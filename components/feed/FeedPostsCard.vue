@@ -1,0 +1,142 @@
+<template>
+  <div class="p-1 py-2 border-b border-borderColor-light dark:border-borderColor-dark"
+    :class="[isSelectedPost ? 'bg-bgHover-light dark:bg-bgHover-dark' : '']">
+    <!-- show title with nuxt-link to id if post has no signature (web2) -->
+    <div class="">
+      <span v-if="post.pubdate || post.added_time"
+        class="mr-1 text-colorNotImportant-light dark:text-colorNotImportant-dark">
+        {{timeAgo}}
+      </span>
+      <span v-if="post.source" class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+        {{post.source}}
+      </span>
+      <span v-if="post.signer" class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+        <nuxt-link
+          :to="`/authors/${post.signer}`"
+          @click="hideFeed()"
+        >
+          <ExtraBlockies :seed="post.signer" :scale="2" class="inline-block" />
+          {{sliceAddress(post.signer, 4)}}
+        </nuxt-link>
+      </span>
+      <span v-if="post.tickers"
+        class="float-right text-sm text-colorBlue-light dark:text-colorBlue-dark">
+        {{post.tickers}}
+      </span>
+    </div>
+    <!-- clr restores the next line to default behaviour after float:right -->
+    <div class="clr" />
+
+    <div v-if="!post.signature">
+      <nuxt-link v-if="post.title" :to="`/news/${post.id}`">
+        <span @click="postClicked()">{{post.title}}</span>
+      </nuxt-link>
+    </div>
+
+    <!-- show title with nuxt-link to signature if post has signature (web3) -->
+    <div v-if="post.signature">
+      <nuxt-link v-if="post.title" :to="`/news/${post.signature}`">
+        <span @click="postClicked()">{{post.title.slice(0, 100)}}</span>
+      </nuxt-link>
+      <nuxt-link v-if="!post.title && post.text" :to="`/news/${post.signature}`">
+        <span @click="postClicked()">{{post.text.slice(0, 100)}}</span>
+      </nuxt-link>
+    </div>
+
+    <div>
+      <span v-if="post.bullish" class="mr-2 text-colorGreen-light dark:text-colorGreen-dark">
+        <IconsBullish class="custom-icons" />
+        {{post.bullish}}
+      </span>
+      <span v-if="post.bearish" class="mr-2 text-colorRed-light dark:text-colorRed-dark">
+        <IconsBearish class="custom-icons" />
+        {{post.bearish}}
+      </span>
+      <span v-if="post.important" class="mr-2 text-colorOrange-light dark:text-colorOrange-dark">
+        <IconsImportant class="custom-icons" />
+        {{post.important}}
+      </span>
+      <span v-if="post.scam" class="mr-2 text-colorRed-light dark:text-colorRed-dark">
+        <IconsScam class="custom-icons" />
+        {{post.scam}}
+      </span>
+      <span v-if="post.upvote" class="mr-2 text-colorNotImportant-light dark:text-colorNotImportant-dark">
+        <IconsUpvote class="custom-icons" />
+        {{post.upvote}}
+      </span>
+      <span v-if="post.downvote" class="mr-2 text-colorNotImportant-light dark:text-colorNotImportant-dark">
+        <IconsDownvote class="custom-icons" />
+        {{post.downvote}}
+      </span>
+      <span v-if="post.comments_count" class="mr-2 text-colorBlue-light dark:text-colorBlue-dark">
+        <IconsComments class="custom-icons" />
+        {{post.comments_count}}
+      </span>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import {Post, PostId} from '@/helpers/interfaces';
+const {sliceAddress} = useWeb3()
+const {id} = useRoute().params
+const isSelectedPost = ref<boolean>(false)
+const {hideFeed} = useFeed()
+
+const props = defineProps<{
+  post: Post
+  key: PostId
+}>()
+
+/* console.log(`FeedPostsCard called */
+/* props.key: ${props.key}           */
+/* props.post: ${props.post}`)       */
+/* console.log(props.post)           */
+
+// Highlight the post card in the feed section
+// if the post is displayed in the info section.
+const checkIfSelected = (id: PostId | PostId[] | undefined): boolean => {
+  if (Array.isArray(id)) {return false}
+
+  if (id) {
+    return props.post.id?.toString() === id ||
+      props.post.signature === id
+  } else {
+    return false
+  }
+}
+
+isSelectedPost.value = checkIfSelected(id)
+
+watch(() => useRoute().params.id, newId => {
+  isSelectedPost.value = checkIfSelected(newId)
+})
+
+let timeAgo = ref(useTime().timeAgo(props.post))
+let timeAgoUpdateInterval: ReturnType<typeof setInterval>
+
+onMounted(() => {
+  // Warning: potential memory leak!
+  // Make sure to clearInterval when onUnmounted()
+  const updateTimeAgo = () => {
+    timeAgo.value = useTime().timeAgo(props.post)
+  }
+
+  // update every 60 seconds
+  timeAgoUpdateInterval = setInterval(updateTimeAgo, 60000)
+})
+
+onUnmounted(() => {
+  clearInterval(timeAgoUpdateInterval)
+  /* timeAgoUpdateInterval = null */
+})
+
+const postClicked = () => {
+  hideFeed()
+}
+
+</script>
+
+<style scoped>
+
+</style>
