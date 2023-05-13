@@ -1,8 +1,8 @@
 {
   "name": "degen-rocket-client",
-  "version": "0.7.2",
+  "version": "1.1.0",
   "license": "MIT",
-  "description": "DeFi and NFT news aggregator for degens",
+  "description": "DeFi, NFT, web3, privacy news aggregator for degens",
   "private": true,
   "scripts": {
     "build": "nuxt build",
@@ -11,13 +11,17 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "stage": "pm2 start --name stage-front@$npm_package_version .output/server/index.mjs"
+    "stage": "pm2 start --name stage-front@$npm_package_version .output/server/index.mjs",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@nuxtjs/color-mode": "^3.2.0",
     "@nuxtjs/tailwindcss": "^6.2.0",
     "@vite-pwa/nuxt": "^0.0.7",
-    "nuxt": "^3.4.2"
+    "@vitest/coverage-c8": "^0.31.0",
+    "nuxt": "^3.4.2",
+    "vitest": "^0.31.0"
   },
   "overrides": {
     "vue": "latest"

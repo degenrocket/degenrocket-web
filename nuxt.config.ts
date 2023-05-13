@@ -1,14 +1,14 @@
 export default defineNuxtConfig({
   app: {
     head: {
-    title: 'DegenRocket - DeFi and NFT news aggregator for degens',
+    title: 'DegenRocket - DeFi, NFT, web3, privacy news aggregator for degens',
       meta: [
         // 'hid:' key-value pair can be removed
-        { name: 'description', content: 'Get the most important news about Web3, DeFi, NFTs, and Urbit. Interact with other degens by signing messages with your private key.' },
-        { name: 'apple-mobile-web-app-title', content: 'DegenRocket - DeFi and NFTs news aggregator for degens' },
-        { name: 'og:title', property: 'og:title', content: 'DegenRocket - DeFi and NFTs news aggregator for degens' },
-        { name: 'og:site_name', property: 'og:site_name', content: 'DegenRocket - DeFi and NFTs news aggregator for degens' },
-        { name: 'og:description', property: 'og:description', content: 'Get the most important news about Web3, DeFi, NFTs, and Urbit. Interact with other degens by signing messages with your private key.' }
+        { name: 'description', content: 'Get the most important news about Web3, DeFi, NFTs, and privacy. Interact with other degens by signing messages with your private key.' },
+        { name: 'apple-mobile-web-app-title', content: 'DegenRocket - DeFi, NFT, web3, privacy news aggregator for degens' },
+        { name: 'og:title', property: 'og:title', content: 'DegenRocket - DeFi, NFT, web3, privacy news aggregator for degens' },
+        { name: 'og:site_name', property: 'og:site_name', content: 'DegenRocket - DeFi, NFT, web3, privacy news aggregator for degens' },
+        { name: 'og:description', property: 'og:description', content: 'Get the most important news about Web3, DeFi, NFTs, and privacy. Interact with other degens by signing messages with your private key.' }
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
@@ -27,8 +27,8 @@ export default defineNuxtConfig({
       // Default meta values are used on other pages
       // so it's easy to change values in just one place.
       defaultMetaAppName: 'DegenRocket',
-      defaultMetaTitle: 'DegenRocket - DeFi and NFT news aggregator for degens',
-      defaultMetaDescription: 'Get the most important news about Web3, DeFi, NFTs, and Urbit. Interact with other degens by signing messages with your private key.'
+      defaultMetaTitle: 'DegenRocket - DeFi, NFT, web3, privacy news aggregator for degens',
+      defaultMetaDescription: 'Get the most important news about Web3, DeFi, NFTs, and privacy. Interact with other degens by signing messages with your private key.'
     }
   },
 
