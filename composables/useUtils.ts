@@ -87,7 +87,7 @@ export const useUtils = () => {
       return false
     }
 
-    if (!post.signature && !post.url && !post.id) {
+    if (!post.signature && !post.url && !post.id && !post.ipfs) {
       console.error("ERROR. A post has no signature, url, or id", post)
       return false
     }

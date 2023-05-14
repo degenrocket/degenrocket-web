@@ -64,6 +64,8 @@ export const useFeedFilters = () => {
 
   return {
     feedFilters: readonly(feedFilters),
+    feedFiltersDefault: readonly(feedFiltersDefault),
+    feedFiltersStep: readonly(feedFiltersStep),
     resetFeedFiltersLimits,
     increaseFeedFiltersLimits,
     changeFeedFiltersCategory,
