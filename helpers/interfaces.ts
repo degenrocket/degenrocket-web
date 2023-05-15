@@ -1,6 +1,6 @@
 export type FiltersActivity = "hot" | "rising" | "all";
 
-export type FiltersCategory = "defi" | "nft" | "any";
+export type FiltersCategory = "defi" | "nft" | "privacy" | "any";
 
 export interface FeedFilters {
   webType?: string | boolean
