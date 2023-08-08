@@ -5,6 +5,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // You can customize these colors
         colorBase: {
           light: '#000',
           dark: '#d8d8d8'

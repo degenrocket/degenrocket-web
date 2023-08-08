@@ -6,17 +6,7 @@
   -->
     <div>
       <div class="p-5">
-        <p>Welcome onboard, this rocket was built by degens for degens.</p>
-        <p>- Please tighten your seatbelts and prepare for the lift off.</p>
-        <p>- You can save the app to your device by clicking 'Add to Home screen'.</p>
-        <p>- You will need a web3 authenticator to interact with the content.</p>
-        <p>- Never sign messages that you don't understand.</p>
-        <p>- No passwords, no email addresses, no spam.</p>
-        <p>- No 3rd party trackers, no CDNs.</p>
-        <p>
-          - To the moon!
-          <IconsRocket class="custom-icons" />
-        </p>
+        <CustomIntro />
         <button class="block lg:hidden mt-4 border-2 py-2 px-3 text-colorPrimary-light dark:text-colorPrimary-dark rounded-md border-colorPrimary-light dark:border-colorPrimary-dark" @click="showFeed()">
           SHOW FEED
         </button>

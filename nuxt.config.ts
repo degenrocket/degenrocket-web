@@ -1,14 +1,14 @@
 export default defineNuxtConfig({
   app: {
     head: {
-    title: 'DegenRocket - DeFi, NFT, web3, privacy news aggregator for degens',
+    title: process.env.CUSTOM_META_TITLE,
       meta: [
         // 'hid:' key-value pair can be removed
-        { name: 'description', content: 'Get the most important news about Web3, DeFi, NFTs, and privacy. Interact with other degens by signing messages with your private key.' },
-        { name: 'apple-mobile-web-app-title', content: 'DegenRocket - DeFi, NFT, web3, privacy news aggregator for degens' },
-        { name: 'og:title', property: 'og:title', content: 'DegenRocket - DeFi, NFT, web3, privacy news aggregator for degens' },
-        { name: 'og:site_name', property: 'og:site_name', content: 'DegenRocket - DeFi, NFT, web3, privacy news aggregator for degens' },
-        { name: 'og:description', property: 'og:description', content: 'Get the most important news about Web3, DeFi, NFTs, and privacy. Interact with other degens by signing messages with your private key.' }
+        { name: 'description', content: process.env.CUSTOM_META_DESCRIPTION },
+        { name: 'apple-mobile-web-app-title', content: process.env.CUSTOM_META_TITLE },
+        { name: 'og:title', property: 'og:title', content: process.env.CUSTOM_META_TITLE },
+        { name: 'og:site_name', property: 'og:site_name', content: process.env.CUSTOM_META_TITLE },
+        { name: 'og:description', property: 'og:description', content: process.env.CUSTOM_META_DESCRIPTION }
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
@@ -26,9 +26,12 @@ export default defineNuxtConfig({
 
       // Default meta values are used on other pages
       // so it's easy to change values in just one place.
-      defaultMetaAppName: 'DegenRocket',
-      defaultMetaTitle: 'DegenRocket - DeFi, NFT, web3, privacy news aggregator for degens',
-      defaultMetaDescription: 'Get the most important news about Web3, DeFi, NFTs, and privacy. Interact with other degens by signing messages with your private key.'
+      defaultMetaAppName: process.env.CUSTOM_META_APP_NAME,
+      defaultMetaTitle: process.env.CUSTOM_META_TITLE,
+      defaultMetaDescription: process.env.CUSTOM_META_DESCRIPTION,
+
+      ifShowCategoriesFilter: process.env.IF_SHOW_CATEGORIES_FILTER,
+      ifAllowGuestLogin: process.env.IF_ALLOW_GUEST_LOGIN,
     }
   },
 
@@ -59,11 +62,11 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
-      name: 'DegenRocket.space',
-      short_name: 'DegenRocket',
+      name: process.env.CUSTOM_MANIFEST_NAME,
+      short_name: process.env.CUSTOM_MANIFEST_SHORT_NAME,
       background_color: '#000000',
       theme_color: '#000000',
-      id: 'degenrocket.space',
+      id: process.env.CUSTOM_MANIFEST_ID,
       start_url: '.',
       display: 'standalone',
       lang: 'en',
