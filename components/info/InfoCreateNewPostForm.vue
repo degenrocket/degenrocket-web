@@ -37,7 +37,7 @@ const props = defineProps<{
 
 const titlePlaceholder = ref<string>('title')
 const bodyPlaceholder = ref<string>(`share your wisdom with other degens...
-(markdown is disabled)`)
+(markdown is disabled, tags are sanitized)`)
 
 const userInputTitle = ref<string>('')
 const userInput = ref<string>('')

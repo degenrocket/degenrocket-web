@@ -35,7 +35,7 @@ const emit = defineEmits<{
 const userInput = ref('')
 const errorBody = ref(false)
 const bodyPlaceholder = ref(`share your wisdom with other degens...
-(markdown is disabled)`)
+(markdown is disabled, tags are sanitized)`)
 
 watch(
   userInput, async (newBody) => {
@@ -44,7 +44,7 @@ watch(
     } else {
       /* errorBody.value = true */
       bodyPlaceholder.value = `share your wisdom with other degens...
-      (markdown is disabled)`
+      (markdown is disabled, tags are sanitized)`
     }
   }
 )

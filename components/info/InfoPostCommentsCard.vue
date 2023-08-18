@@ -36,7 +36,7 @@
       </div>
 
       <div>
-        <h4 v-if="comment.title" class="CommentTitle">
+        <h4 v-if="comment.title" class="font-bold ml-1">
           {{comment.title}}
         </h4>
       </div>
