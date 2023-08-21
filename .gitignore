@@ -38,6 +38,13 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+**/node_modules
+
+# testing
+**/coverage
+
+# production
+**/build
 
 # TypeScript v1 declaration files
 typings/
@@ -60,6 +67,10 @@ typings/
 # dotenv environment variables file
 .env
 .env.dev
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -89,9 +100,19 @@ sw.*
 .DS_Store
 
 # Vim swap files
+*~
 *.swp
+*.swo
 
 # Other
 .output
 .nitro
 
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

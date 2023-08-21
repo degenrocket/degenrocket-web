@@ -1,6 +1,6 @@
 {
   "name": "degen-rocket-client",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "license": "MIT",
   "description": "DeFi, NFT, web3, privacy news aggregator for degens",
   "private": true,
@@ -11,6 +11,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "prod": "pm2 start --name prod-front@$npm_package_version .output/server/index.mjs",
     "stage": "pm2 start --name stage-front@$npm_package_version .output/server/index.mjs",
     "test": "vitest",
     "coverage": "vitest run --coverage"
