@@ -2,6 +2,10 @@
 
 DegenRocket-web is a UI interface for a web3 decentralized social media with native support for Degen Messaging Protocol (DMP).
 
+## Server setup
+
+If you don't have any experience at setting up a server, then there is a beginner-friendly guide with scripts for an automated [initial server setup](https://github.com/degenrocket/degenrocket-scripts).
+
 ## Install
 
 ```
@@ -26,7 +30,11 @@ npm install
 
 ## Environment
 
-Create `.env` file, see example `.env.example`.
+Create default `.env` file, see example `.env.example`.
+
+```
+cp .env.example .env
+```
 
 ## Test locally
 
@@ -34,15 +42,37 @@ Create `.env` file, see example `.env.example`.
 npm run dev
 ```
 
+The app should run at `localhost:3000`.
+
 ## Customization
 
-- Change intro in `components/custom/intro.vue`.
-- Change contacts in `components/custom/contacts.vue`.
-- Change app name, title, description, and manifest params in `.env`.
-- Show/hide categories filter in feed in `.env`.
-- Show/hide guest login option in web3 modal in `.env`.
+Create custom files `intro.vue` and `contacts.vue` in `components/custom/`,
+see examples `components/custom/intro.example.vue`
+and `components/custom/contacts.example.vue`.
+
+```
+cp components/custom/contacts.example.vue components/custom/contacts.vue
+cp components/custom/intro.example.vue components/custom/intro.vue
+```
+
+Note: customized files like `components/custom/intro.vue`, `components/custom/contacts.vue`, and `.env` are ignored by git, so you can customize them and they won't be changed after updating the code to a newer version with `git pull`. However, it's a good idea to back these files up.
+
+#### Necessary settings
+
+- Change app name, title, description, about, manifest params in `.env`.
+- Add social media links in `.env`.
 - Change `favicon.ico`, `pwa-192x192.png`, `pwa-512x512.png` in `public/` folder.
-- (optional) change colors in `tailwind.config.js`.
+
+#### Optional settings
+
+- (Optional) change colors in `tailwind.config.js`.
+- (Optional) change intro in `components/custom/intro.vue`.
+- (Optional) change contacts in `components/custom/contacts.vue`.
+- (Optional) Show/hide contacts info in intro in `.env`.
+- (Optional) Show/hide tutorial in intro in `.env`.
+- (Optional) Show/hide latest comments in intro in `.env`.
+- (Optional) Show/hide categories filter in feed in `.env`.
+- (Optional) Show/hide guest login option in web3 modal in `.env`.
 
 ## Build
 
@@ -50,7 +80,7 @@ npm run dev
 npm run build
 ```
 
-## Run
+## Run production
 
 Run with pm2 (after build):
 

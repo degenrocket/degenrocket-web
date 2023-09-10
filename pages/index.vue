@@ -7,36 +7,39 @@
     <div>
       <div class="p-5">
         <CustomIntro />
+
         <button class="block lg:hidden mt-4 border-2 py-2 px-3 text-colorPrimary-light dark:text-colorPrimary-dark rounded-md border-colorPrimary-light dark:border-colorPrimary-dark" @click="showFeed()">
           SHOW FEED
         </button>
       </div>
 
-      <div v-if="isError">
-        Failed to download the latest comments. Try again later.
-      </div>
+      <div v-if="ifShowHomeLatestComments">
+        <div v-if="isError">
+          Failed to download the latest comments. Try again later.
+        </div>
 
-      <div v-if="areValidPosts(comments)">
-        <div v-if="comments[0]">
-          <div class="mt-4 mb-32 border-t border-borderColor-light dark:border-borderColor-dark p-2">
-            Latest comments:
-            
-            <div class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4"
-              @click="toggleShowActionDetails()">
-              {{showActionDetailsText}} details
+        <div v-if="areValidPosts(comments)">
+          <div v-if="comments[0]">
+            <div class="mt-4 mb-32 border-t border-borderColor-light dark:border-borderColor-dark p-2">
+              Latest comments:
+              
+              <div class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4"
+                @click="toggleShowActionDetails()">
+                {{showActionDetailsText}} details
+              </div>
+
+              <InfoPostCommentsCard
+                v-for="comment in comments"
+                :key="comment.id"
+                :comment="comment"
+                :show-comments-count="true"
+                :show-action-details="showActionDetails"
+              />
+
+              <!--
+              <ExtraLoadMoreButton :what-to-load="'home-comments'" />
+              -->
             </div>
-
-            <InfoPostCommentsCard
-              v-for="comment in comments"
-              :key="comment.id"
-              :comment="comment"
-              :show-comments-count="true"
-              :show-action-details="showActionDetails"
-            />
-
-            <!--
-            <ExtraLoadMoreButton :what-to-load="'home-comments'" />
-            -->
           </div>
         </div>
       </div>
@@ -51,6 +54,7 @@ import {Post} from '@/helpers/interfaces';
 const {showFeed} = useFeed()
 const {areValidPosts} = useUtils()
 const apiURL = useRuntimeConfig()?.public?.apiURL
+const ifShowHomeLatestComments = useRuntimeConfig()?.public?.ifShowHomeLatestComments === 'true' ? true : false
 
 const showActionDetails = ref(false)
 const showActionDetailsText = ref('show')
