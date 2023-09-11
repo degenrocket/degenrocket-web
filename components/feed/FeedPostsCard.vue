@@ -16,7 +16,7 @@
           @click="hideFeed()"
         >
           <ExtraBlockies :seed="post.signer" :scale="2" class="inline-block" />
-          {{sliceAddress(post.signer, 4)}}
+          {{sliceAddress(post.signer, 6)}}
         </nuxt-link>
       </span>
       <span v-if="post.tickers"

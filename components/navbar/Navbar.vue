@@ -19,12 +19,12 @@
     <div
       class="ml-2 mr-1 inline-block text-center float-right"
       @click="showWeb3Modal">
-      <span v-if="connectedAddress" class="inline-block min-w-[120px] lg:min-w-[150px] border-2 rounded-lg border-bgSecondary-light dark:border-bgSecondary-dark cursor-pointer text-colorGreen-light dark:text-colorGreen-dark hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
+      <span v-if="connectedAddress" class="text-sm lg:text-lg inline-block min-w-[100px] lg:min-w-[120px] border-2 rounded-lg border-bgSecondary-light dark:border-bgSecondary-dark cursor-pointer text-colorGreen-light dark:text-colorGreen-dark hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
         <!-- :key rerenders the component when account changes -->
         <ExtraBlockies :seed="connectedAddress" :key="connectedAddress" :scale="2" class="inline-block" />
         {{sliceAddress(connectedAddress, 4)}}
       </span>
-      <span v-if="!connectedAddress" class="inline-block min-w-[120px] lg:min-w-[150px] border-2 rounded-lg border-colorRed-light dark:border-colorRed-dark cursor-pointer text-colorRed-light dark:text-colorRed-dark hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
+      <span v-if="!connectedAddress" class="inline-block min-w-[100px] lg:min-w-[120px] border-2 rounded-lg border-colorRed-light dark:border-colorRed-dark cursor-pointer text-colorRed-light dark:text-colorRed-dark hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
         <span v-if="pendingAuthentication" class="animate-pulse">Pending...</span>
         <span v-if="!pendingAuthentication">Connect</span>
       </span>
