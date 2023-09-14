@@ -1,7 +1,10 @@
 # Created by .ignore support plugin (hsz.mobi)
 # Custom files for each instance
-components/custom/contacts.vue
-components/custom/intro.vue
+components/custom/CustomContacts.vue
+components/custom/CustomIntro.vue
+public/favicon.ico
+public/pwa-192x192.png
+public/pwa-512x512.png
 
 ### Node template
 # Logs
