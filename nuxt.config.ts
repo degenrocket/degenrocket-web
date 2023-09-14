@@ -28,38 +28,64 @@ export default defineNuxtConfig({
       defaultMetaTitle: process.env.META_TITLE,
       defaultMetaDescription: process.env.META_DESCRIPTION,
 
+      // Default/custom intro and contacts
+      enableDefaultIntro: process.env.ENABLE_DEFAULT_INTRO,
+      enableDefaultContacts: process.env.ENABLE_DEFAULT_CONTACTS,
+      enableCustomIntro: process.env.ENABLE_CUSTOM_INTRO,
+      enableCustomContacts: process.env.ENABLE_CUSTOM_CONTACTS,
+
       introTitle: process.env.INTRO_TITLE,
       introAbout: process.env.INTRO_ABOUT,
+
       ifShowContactsInIntro: process.env.IF_SHOW_CONTACTS_IN_INTRO,
       ifShowIntroTutorial: process.env.IF_SHOW_INTRO_TUTORIAL,
       ifShowHomeLatestComments: process.env.IF_SHOW_HOME_LATEST_COMMENTS,
 
       // Another website links:
       anotherWebsiteLink: process.env.ANOTHER_WEBSITE_LINK,
+      torLink: process.env.TOR_LINK,
       ipfsLink: process.env.IPFS_LINK,
       ipfsHttpGatewayLink: process.env.IPFS_HTTP_GATEWAY_LINK,
 
       // Social media links
       nostrLink: process.env.NOSTR_LINK,
+      sessionLink: process.env.SESSION_LINK,
       lensLink: process.env.LENS_LINK,
       hiveLink: process.env.HIVE_LINK,
       mirrorLink: process.env.MIRROR_LINK,
-      discordLink: process.env.DISCORD_LINK,
+      mastodonLink: process.env.MASTODON_LINK,
       matrixLink: process.env.MATRIX_LINK,
+      discordLink: process.env.DISCORD_LINK,
       telegramLink: process.env.TELEGRAM_LINK,
       twitterLink: process.env.TWITTER_LINK,
       redditLink: process.env.REDDIT_LINK,
       youtubeLink: process.env.YOUTUBE_LINK,
+      instagramLink: process.env.INSTAGRAM_LINK,
+      facebookLink: process.env.FACEBOOK_LINK,
       githubLink: process.env.GITHUB_LINK,
+
+      // Messengers
+      nostrNpub: process.env.NOSTR_NPUB,
+      sessionName: process.env.SESSION_NAME,
+      matrixName: process.env.MATRIX_NAME,
+      lensName: process.env.LENS_NAME,
+      hiveName: process.env.HIVE_NAME,
+      mirrorName: process.env.MIRROR_NAME,
+      telegramName: process.env.TELEGRAM_NAME,
+      twitterName: process.env.TWITTER_NAME,
+      redditName: process.env.REDDIT_NAME,
+      signalNumber: process.env.SIGNAL_NUMBER,
+      whatsappNumber: process.env.WHATSAPP_NUMBER,
+      xmppName: process.env.XMPP_NAME,
 
       // Blockchain
       uniswapLink: process.env.UNISWAP_LINK,
       sushiswapLink: process.env.SUSHISWAP_LINK,
       etherscanLink: process.env.ETHERSCAN_LINK,
-
-      // Messengers
-      sessionName: process.env.SESSION_NAME,
-      telegramName: process.env.TELEGRAM_NAME,
+      ethvmLink: process.env.ETHVM_LINK,
+      coingeckoLink: process.env.COINGECKO_LINK,
+      coinmarketcapLink: process.env.COINMARKETCAP_LINK,
+      dextoolsLink: process.env.DEXTOOLS_LINK,
 
       ifShowDevelopersInfo: process.env.IF_SHOW_DEVELOPERS_INFO,
 
