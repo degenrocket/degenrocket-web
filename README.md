@@ -6,12 +6,13 @@ DegenRocket-web is a UI interface for a web3 decentralized social media with nat
 
 If you don't have any experience at setting up a server, then there is a beginner-friendly guide with scripts for an automated [initial server setup](https://github.com/degenrocket/degenrocket-scripts).
 
-## Install
+---
+
+## Install npm
+
+*Note: nvm and npm should already be installed if you've used scripts for an automated [initial server setup](https://github.com/degenrocket/degenrocket-scripts).*
 
 ```
-# update npm
-npm install -g npm
-
 # install nvm to manage node versions
 # https://github.com/nvm-sh/nvm
 
@@ -24,17 +25,39 @@ nvm alias default 18
 # switch to node v18
 nvm use 18
 
+# update npm
+npm install -g npm
+
 # install packages
 npm install
 ```
+
+---
+
+## Download the app
+
+Download the app from the Github into the `frontend/` folder.
+
+*Note: the app should already be downloaded if you've used scripts for an automated [initial server setup](https://github.com/degenrocket/degenrocket-scripts).*
+
+```
+git clone https://github.com/degenrocket/degenrocket-web.git frontend/
+cd frontend/
+```
+
+---
 
 ## Environment
 
 Create default `.env` file, see example `.env.example`.
 
+*Note: the `.env` file should already be created if you've used scripts for an automated [initial server setup](https://github.com/degenrocket/degenrocket-scripts).*
+
 ```
 cp .env.example .env
 ```
+
+---
 
 ## Test locally
 
@@ -42,39 +65,56 @@ cp .env.example .env
 npm run dev
 ```
 
-The app should run at `localhost:3000`.
+Open a browser and test the app at `localhost:3000`.
+
+*Note: press `ctrl+c` in the terminal to stop the process.* 
+
+---
 
 ## Customization
-
-Create custom files `intro.vue` and `contacts.vue` in `components/custom/`,
-see examples `components/custom/intro.example.vue`
-and `components/custom/contacts.example.vue`.
-
-```
-cp components/custom/contacts.example.vue components/custom/contacts.vue
-cp components/custom/intro.example.vue components/custom/intro.vue
-```
-
-Note: customized files like `components/custom/intro.vue`, `components/custom/contacts.vue`, and `.env` are ignored by git, so you can customize them and they won't be changed after updating the code to a newer version with `git pull`. However, it's a good idea to back these files up.
 
 #### Necessary settings
 
 - Change app name, title, description, about, manifest params in `.env`.
 - Add social media links in `.env`.
-- Change `favicon.ico`, `pwa-192x192.png`, `pwa-512x512.png` in `public/` folder.
+- Add logos (recommended sizes are 100x100, 192x192, 512x512) as `favicon.ico`, `pwa-192x192.png`, `pwa-512x512.png` into `public/` folder.
 
 #### Optional settings
 
-- (Optional) change colors in `tailwind.config.js`.
-- (Optional) change intro in `components/custom/intro.vue`.
-- (Optional) change contacts in `components/custom/contacts.vue`.
+- (Optional) change colors in `.env`.
 - (Optional) Show/hide contacts info in intro in `.env`.
 - (Optional) Show/hide tutorial in intro in `.env`.
 - (Optional) Show/hide latest comments in intro in `.env`.
 - (Optional) Show/hide categories filter in feed in `.env`.
 - (Optional) Show/hide guest login option in web3 modal in `.env`.
 
+#### Advanced customization
+
+You can use completely custom intro and contacts if customization
+via predefined options in `.env` is not enough.
+
+If you've used scripts for the automated server setup, then custom
+intro and contacts files should have already been created.
+
+If you follow the manual installation, then create custom files
+`CustomIntro.vue` and `CustomContacts.vue` in `components/custom/`.
+
+If your version has example files, then you can simply copy-paste them:
+
+```
+cp components/custom/CustomContacts.example.vue components/custom/CustomContacts.vue
+cp components/custom/CustomIntro.example.vue components/custom/CustomIntro.vue
+```
+
+#### Updates
+
+Note: customized files like `components/custom/CustomIntro.vue`, `components/custom/CustomContacts.vue`, and `.env` are ignored by git, so you can customize them and they won't be changed after updating the code to a newer version with `git pull`. However, it's a good idea to back these files up.
+
+---
+
 ## Build
+
+Build the frontend for running in production.
 
 ```
 npm run build
