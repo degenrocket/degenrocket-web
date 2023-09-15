@@ -8,13 +8,13 @@
       Feed
     </div>
     <div class="inline-block pl-1 lg:pl-2" @click="hideFeed()">
-      <NuxtLink :to="`/`">Home</NuxtLink>
+      <nuxt-link :to="`/`" class="nuxt-link">Home</nuxt-link>
     </div>
     <div class="inline-block pl-1 lg:pl-2" @click="hideFeed()">
-      <NuxtLink :to="`/newpost`">Publish</NuxtLink>
+      <nuxt-link :to="`/newpost`" class="nuxt-link">Publish</nuxt-link>
     </div>
     <div class="inline-block pl-1 lg:pl-2" @click="hideFeed()">
-      <NuxtLink :to="`/contacts`">Contacts</NuxtLink>
+      <nuxt-link :to="`/contacts`" class="nuxt-link">Contacts</nuxt-link>
     </div>
     <div
       class="ml-2 mr-1 inline-block text-center float-right"

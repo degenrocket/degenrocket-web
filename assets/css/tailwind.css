@@ -41,6 +41,10 @@
     border-color: theme('colors.colorPrimary.light');
   }
 
+  .nuxt-link {
+    @apply text-colorBase-light dark:text-colorBase-dark hover:no-underline;
+  }
+
   .custom-icons {
     @apply w-5 inline-block;
   }

@@ -10,10 +10,11 @@
       <span v-if="post.source" class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
         {{post.source}}
       </span>
-      <span v-if="post.signer" class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+      <span v-if="post.signer" class="">
         <nuxt-link
           :to="`/authors/${post.signer}`"
           @click="hideFeed()"
+          class="nuxt-link text-colorNotImportant-light dark:text-colorNotImportant-dark"
         >
           <ExtraBlockies :seed="post.signer" :scale="2" class="inline-block" />
           {{sliceAddress(post.signer, 6)}}
@@ -28,17 +29,29 @@
     <div class="clr" />
 
     <div v-if="!post.signature">
-      <nuxt-link v-if="post.title" :to="`/news/${post.id}`">
+      <nuxt-link
+        v-if="post.title"
+        :to="`/news/${post.id}`"
+        class="nuxt-link"
+      >
         <span @click="postClicked()">{{post.title}}</span>
       </nuxt-link>
     </div>
 
     <!-- show title with nuxt-link to signature if post has signature (web3) -->
     <div v-if="post.signature">
-      <nuxt-link v-if="post.title" :to="`/news/${post.signature}`">
+      <nuxt-link
+        v-if="post.title"
+        :to="`/news/${post.signature}`"
+        class="nuxt-link"
+      >
         <span @click="postClicked()">{{post.title.slice(0, 100)}}</span>
       </nuxt-link>
-      <nuxt-link v-if="!post.title && post.text" :to="`/news/${post.signature}`">
+      <nuxt-link
+        v-if="!post.title && post.text"
+        :to="`/news/${post.signature}`"
+        class="nuxt-link"
+      >
         <span @click="postClicked()">{{post.text.slice(0, 100)}}</span>
       </nuxt-link>
     </div>
