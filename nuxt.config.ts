@@ -35,13 +35,21 @@ export default defineNuxtConfig({
       enableCustomContacts: process.env.ENABLE_CUSTOM_CONTACTS,
 
       introTitle: process.env.INTRO_TITLE,
+      introTitleExtra: process.env.INTRO_TITLE_EXTRA,
       introAbout: process.env.INTRO_ABOUT,
+
+      postPlaceholder: process.env.POST_PLACEHOLDER,
+      commentPlaceholder: process.env.COMMENT_PLACEHOLDER,
 
       ifShowContactsInIntro: process.env.IF_SHOW_CONTACTS_IN_INTRO,
       ifShowIntroTutorial: process.env.IF_SHOW_INTRO_TUTORIAL,
       ifShowHomeLatestComments: process.env.IF_SHOW_HOME_LATEST_COMMENTS,
 
-      // Another website links:
+      // Markdown
+      enableMarkdownInPosts: process.env.ENABLE_MARKDOWN_IN_POSTS,
+      enableMarkdownInComments: process.env.ENABLE_MARKDOWN_IN_COMMENTS,
+
+      // Another website links
       anotherWebsiteLink: process.env.ANOTHER_WEBSITE_LINK,
       torLink: process.env.TOR_LINK,
       ipfsLink: process.env.IPFS_LINK,
@@ -50,8 +58,11 @@ export default defineNuxtConfig({
       // Social media links
       nostrLink: process.env.NOSTR_LINK,
       sessionLink: process.env.SESSION_LINK,
+      simplexLink: process.env.SIMPLEX_LINK,
+      statusLink: process.env.STATUS_LINK,
       lensLink: process.env.LENS_LINK,
       hiveLink: process.env.HIVE_LINK,
+      pushLink: process.env.PUSH_LINK,
       mirrorLink: process.env.MIRROR_LINK,
       mastodonLink: process.env.MASTODON_LINK,
       matrixLink: process.env.MATRIX_LINK,
@@ -62,6 +73,8 @@ export default defineNuxtConfig({
       youtubeLink: process.env.YOUTUBE_LINK,
       instagramLink: process.env.INSTAGRAM_LINK,
       facebookLink: process.env.FACEBOOK_LINK,
+      linkedinLink: process.env.LINKEDIN_LINK,
+      wikipediaLink: process.env.WIKIPEDIA_LINK,
       githubLink: process.env.GITHUB_LINK,
 
       // Messengers
@@ -70,6 +83,7 @@ export default defineNuxtConfig({
       matrixName: process.env.MATRIX_NAME,
       lensName: process.env.LENS_NAME,
       hiveName: process.env.HIVE_NAME,
+      pushName: process.env.PUSH_NAME,
       mirrorName: process.env.MIRROR_NAME,
       telegramName: process.env.TELEGRAM_NAME,
       twitterName: process.env.TWITTER_NAME,
@@ -86,6 +100,9 @@ export default defineNuxtConfig({
       coingeckoLink: process.env.COINGECKO_LINK,
       coinmarketcapLink: process.env.COINMARKETCAP_LINK,
       dextoolsLink: process.env.DEXTOOLS_LINK,
+
+      // Extra contact links
+      extraContactInfo: process.env.EXTRA_CONTACT_INFO,
 
       ifShowDevelopersInfo: process.env.IF_SHOW_DEVELOPERS_INFO,
 

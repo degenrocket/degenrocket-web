@@ -10,10 +10,6 @@
         :class="errorTitle ? 'border-red-400 dark:border-red-400 placeholder:text-red-400' : ''"
       >
       <div class="mt-2 text-colorNotImportant-light dark:text-colorNotImportant-dark">Body:</div>
-      <!--
-        placeholder="share your wisdom with other degens...
-        (markdown is disabled)"
-      -->
       <textarea
         v-model="userInput"
         :placeholder="bodyPlaceholder"
@@ -30,14 +26,15 @@
 
 <script setup lang="ts">
 const {submitAction} = useWeb3()
+const env = useRuntimeConfig()?.public
+const postPlaceholder = env?.postPlaceholder
 
 const props = defineProps<{
   target: string
 }>()
 
 const titlePlaceholder = ref<string>('title')
-const bodyPlaceholder = ref<string>(`share your wisdom with other degens...
-(markdown is disabled, tags are sanitized)`)
+const bodyPlaceholder = ref<string>(postPlaceholder)
 
 const userInputTitle = ref<string>('')
 const userInput = ref<string>('')

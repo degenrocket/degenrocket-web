@@ -1,10 +1,6 @@
 <template>
   <div v-if="target">
     <form class="mb-10" @submit="submitReply">
-      <!--
-      placeholder="share your wisdom with other degens...
-      (markdown is disabled)"
-      -->
       <textarea
       v-model="userInput"
       :placeholder="bodyPlaceholder"
@@ -22,6 +18,8 @@
 <script setup lang="ts">
 /* import {usePostsStore} from '@/stores/usePostsStore' */
 /* const postsStore = usePostsStore()                   */
+const env = useRuntimeConfig()?.public
+const commentPlaceholder = env?.commentPlaceholder
 const {submitAction} = useWeb3()
 
 const props = defineProps<{
@@ -34,8 +32,9 @@ const emit = defineEmits<{
 
 const userInput = ref('')
 const errorBody = ref(false)
-const bodyPlaceholder = ref(`share your wisdom with other degens...
-(markdown is disabled, tags are sanitized)`)
+/* const bodyPlaceholder = ref(`share your wisdom with other degens...
+(basic markdown is enabled, tags are sanitized`) */
+const bodyPlaceholder = ref(commentPlaceholder)
 
 watch(
   userInput, async (newBody) => {
@@ -43,8 +42,7 @@ watch(
       errorBody.value = false
     } else {
       /* errorBody.value = true */
-      bodyPlaceholder.value = `share your wisdom with other degens...
-      (markdown is disabled, tags are sanitized)`
+      bodyPlaceholder.value = commentPlaceholder
     }
   }
 )

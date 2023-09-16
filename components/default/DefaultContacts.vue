@@ -109,6 +109,13 @@
       </span>
     </div>
 
+    <div v-if="pushName">
+      Push:
+      <span v-if="pushName">
+        {{pushName}}
+      </span>
+    </div>
+
     <div v-if="mirrorName">
       Mirror:
       <span v-if="mirrorName">
@@ -175,6 +182,16 @@
           Session
         </a>
       </span>
+      <span v-if="simplexLink">
+        <a :href="simplexLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+          SimpleX
+        </a>
+      </span>
+      <span v-if="statusLink">
+        <a :href="statusLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+          Status
+        </a>
+      </span>
       <span v-if="lensLink">
         <a :href="lensLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
           Lens
@@ -183,6 +200,11 @@
       <span v-if="hiveLink">
         <a :href="hiveLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
           Hive
+        </a>
+      </span>
+      <span v-if="pushLink">
+        <a :href="pushLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+          Push
         </a>
       </span>
       <span v-if="mirrorLink">
@@ -235,16 +257,32 @@
           Facebook
         </a>
       </span>
+      <span v-if="linkedinLink">
+        <a :href="linkedinLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+          LinkedIn
+        </a>
+      </span>
+      <span v-if="wikipediaLink">
+        <a :href="wikipediaLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+          Wikipedia
+        </a>
+      </span>
       <span v-if="githubLink">
         <a :href="githubLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
           Github
         </a>
       </span>
     </div>
+    <div v-if="extraContactInfo" class="whitespace-pre-line">
+      <div v-dompurify-html="(marked(extraContactInfo, {breaks:true}))" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+// Marked converts markdown to HTML
+import {marked} from 'marked'
+
 const env = useRuntimeConfig()?.public
 const anotherWebsiteLink = env?.anotherWebsiteLink
 const ipfsLink = env?.ipfsLink
@@ -253,8 +291,11 @@ const ipfsHttpGatewayLink = env?.ipfsHttpGatewayLink
 
 const nostrLink = env?.nostrLink
 const sessionLink = env?.sessionLink
+const simplexLink = env?.simplexLink
+const statusLink = env?.statusLink
 const lensLink = env?.lensLink
 const hiveLink = env?.hiveLink
+const pushLink = env?.pushLink
 const mirrorLink = env?.mirrorLink
 const mastodonLink = env?.mastodonLink
 const matrixLink = env?.matrixLink
@@ -265,6 +306,8 @@ const redditLink = env?.redditLink
 const youtubeLink = env?.youtubeLink
 const instagramLink = env?.instagramLink
 const facebookLink = env?.facebookLink
+const linkedinLink = env?.linkedinLink
+const wikipediaLink = env?.wikipediaLink
 const githubLink = env?.githubLink
 
 const nostrNpub = env?.nostrNpub
@@ -272,6 +315,7 @@ const sessionName = env?.sessionName
 const matrixName = env?.matrixName
 const lensName = env?.lensName
 const hiveName = env?.hiveName
+const pushName = env?.pushName
 const mirrorName = env?.mirrorName
 const telegramName = env?.telegramName
 const twitterName = env?.twitterName
@@ -287,6 +331,8 @@ const ethvmLink = env?.ethvmLink
 const coingeckoLink = env?.coingeckoLink
 const coinmarketcapLink = env?.coinmarketcapLink
 const dextoolsLink = env?.dextoolsLink
+
+const extraContactInfo = env?.extraContactInfo
 
 </script>
 
