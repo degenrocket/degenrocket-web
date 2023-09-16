@@ -30,6 +30,8 @@
   "dependencies": {
     "@pinia/nuxt": "^0.4.6",
     "ethers": "^6.1.0",
-    "pinia": "^2.0.30"
+    "marked": "^9.0.1",
+    "pinia": "^2.0.30",
+    "vue-dompurify-html": "^4.1.4"
   }
 }

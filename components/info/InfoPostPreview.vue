@@ -58,14 +58,15 @@
     but it adds an unnecessary tab to the first line (how to fix?).
     3. Eventually, decided to use marked library with {breaks:true},
     which replaces single \n with <br> to properly display a new line
-    4. Currently, markdown (marked library) is disabled due to
-    security concerns, so 'white-space: pre-line' is used again.
+    4. Markdown (marked library) can be disabled in .env, e.g. due to
+    security concerns, so 'white-space: pre-line' is used.
     -->
     <div v-if="post.text" class="whitespace-pre-line my-1">
-      <!-- disabled markdown
-      <div v-html="DOMPurify.sanitize(marked(post.text, {breaks:true}))" />
-      -->
-      <div>
+      <div
+        v-if="enableMarkdownInPosts"
+        v-dompurify-html="(marked(post.text, {breaks:true}))"
+      />
+      <div v-if="!enableMarkdownInPosts">
         {{post.text}}
       </div>
     </div>
@@ -74,8 +75,11 @@
 </template>
 
 <script setup lang="ts">
+import {marked} from 'marked'
 import {Post} from '@/helpers/interfaces'
 const {sliceAddress} = useWeb3()
+const env = useRuntimeConfig()?.public
+const enableMarkdownInPosts = env?.enableMarkdownInPosts === 'true'? true : false
 
 const props = defineProps<{
   post?: Post

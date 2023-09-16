@@ -28,7 +28,7 @@
             </nuxt-link>
           </span>
         </span>
-        <nuxt-link :to="`/news/${comment.signature}`">
+        <nuxt-link :to="`/news/${comment.signature}`" class="nuxt-link text-colorNotImportant-light dark:text-colorNotImportant-dark">
           <span v-if="comment.signed_time">
             ({{new Date(Date.parse(comment.signed_time)).toDateString()}})
           </span>
@@ -42,11 +42,15 @@
       </div>
 
       <!-- breaks:true is needed to properly change single \n with <br> -->
-      <!-- disabled markdown
-      <div v-html="DOMPurify.sanitize(marked(comment.text, {breaks:true}))" />
-      -->
-      <div class="whitespace-pre-line ml-1">
-        {{comment.text}}
+      <!-- Markdown can be enabled/disabled in the .env file. -->
+      <div v-if="comment.text" class="whitespace-pre-line my-1">
+        <div
+          v-if="enableMarkdownInComments"
+          v-dompurify-html="(marked(comment.text, {breaks:true}))"
+        />
+        <div v-if="!enableMarkdownInComments">
+          {{comment.text}}
+        </div>
       </div>
 
     </div>
@@ -88,8 +92,11 @@
 </template>
 
 <script setup lang="ts">
+import {marked} from 'marked'
 import {Post, PostId} from '@/helpers/interfaces'
 const {sliceAddress} = useWeb3()
+const env = useRuntimeConfig()?.public
+const enableMarkdownInComments = env?.enableMarkdownInComments === 'true'? true : false
 
 const props = defineProps<{
   comment?: Post
