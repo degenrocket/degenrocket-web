@@ -11,8 +11,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "prod": "pm2 start --name prod-front@$npm_package_version .output/server/index.mjs",
-    "stage": "pm2 start --name stage-front@$npm_package_version .output/server/index.mjs",
+    "prod": "pm2 start ecosystem-prod.config.js",
+    "stage": "pm2 start ecosystem-stage.config.js",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@pinia/nuxt": "^0.4.6",
+    "dotenv": "^16.3.1",
     "ethers": "^6.1.0",
     "marked": "^9.0.1",
     "pinia": "^2.0.30",

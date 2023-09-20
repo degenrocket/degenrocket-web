@@ -1,4 +1,8 @@
 export default defineNuxtConfig({
+  devServer: {
+    port: parseInt(process.env.FRONTEND_DEV_PORT as string) || 3000
+  },
+
   app: {
     head: {
     title: process.env.META_TITLE,
