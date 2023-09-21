@@ -53,6 +53,16 @@ export default defineNuxtConfig({
       enableMarkdownInPosts: process.env.ENABLE_MARKDOWN_IN_POSTS,
       enableMarkdownInComments: process.env.ENABLE_MARKDOWN_IN_COMMENTS,
 
+      // Iframe tags (warning: manage with caution)
+      enableEmbedIframeTagsForSelectedUsers: process.env.ENABLE_EMBED_IFRAME_TAGS_FOR_SELECTED_USERS,
+      enableEmbedIframeTagsInPosts: process.env.ENABLE_EMBED_IFRAME_TAGS_IN_POSTS,
+      enableEmbedIframeTagsInComments: process.env.ENABLE_EMBED_IFRAME_TAGS_IN_COMMENTS,
+      signersAllowedToEmbedIframeTags: process.env.SIGNERS_ALLOWED_TO_EMBED_IFRAME_TAGS,
+      iframeTagsAllowedDomains: process.env.IFRAME_TAGS_ALLOWED_DOMAINS,
+      iframeVideoWidth: process.env.IFRAME_VIDEO_WIDTH,
+      iframeVideoHeight: process.env.IFRAME_VIDEO_HEIGHT,
+      iframeAdditionalParams: process.env.IFRAME_ADDITIONAL_PARAMS,
+
       // Another website links
       anotherWebsiteLink: process.env.ANOTHER_WEBSITE_LINK,
       torLink: process.env.TOR_LINK,

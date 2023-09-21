@@ -11,7 +11,7 @@
         </div>
         <InfoPostCommentsCard
           v-for="comment in postsStore.getPostComments"
-          :key="comment.id"
+          :key="randomNumber()"
           :comment="comment"
           :show-action-details="showActionDetails"
           @reply-submitted="replySubmitted"
@@ -29,6 +29,7 @@ import {Post} from '@/helpers/interfaces';
 import {usePostsStore} from '@/stores/usePostsStore'
 const postsStore = usePostsStore()
 const {isValidPost, areValidPosts} = useUtils()
+const {randomNumber} = useWeb3()
 
 const props = defineProps<{
   post?: Post;

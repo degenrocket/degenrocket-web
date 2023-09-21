@@ -62,13 +62,31 @@
     security concerns, so 'white-space: pre-line' is used.
     -->
     <div v-if="post.text" class="whitespace-pre-line my-1">
-      <div
-        v-if="enableMarkdownInPosts"
-        v-dompurify-html="(marked(post.text, {breaks:true}))"
-      />
-      <div v-if="!enableMarkdownInPosts">
+      <!-- Plain text -->
+      <div v-if="!enableMarkdownInPosts && !isSignerAllowedIframe">
         {{post.text}}
       </div>
+      <!-- Markdown -->
+      <!-- Markdown can be enabled/disabled in the .env file. -->
+      <!-- breaks:true changes single \n with <br> -->
+      <div
+        v-if="enableMarkdownInPosts && !isSignerAllowedIframe"
+        v-dompurify-html="(marked(post.text, {breaks:true}))"
+      />
+      <!--
+        Disable dompurify if a signer is whitelisted so links with
+        videos can be properly embedded e.g. with <iframe> tags
+      -->
+      <!-- Markdown and iframe tags -->
+      <div
+        v-if="enableMarkdownInPosts && isSignerAllowedIframe"
+        v-html="(marked(textWithIframeTags, {breaks:true}))"
+      />
+      <!-- Iframe tags without markdown -->
+      <div
+        v-if="!enableMarkdownInPosts && isSignerAllowedIframe"
+        v-html="textWithIframeTags"
+      />
     </div>
 
   </div>
@@ -80,10 +98,31 @@ import {Post} from '@/helpers/interfaces'
 const {sliceAddress} = useWeb3()
 const env = useRuntimeConfig()?.public
 const enableMarkdownInPosts = env?.enableMarkdownInPosts === 'true'? true : false
+const enableEmbedIframeTagsInPosts = env?.enableEmbedIframeTagsInPosts === 'true'? true : false
+const {addIframeTags, checkIfSignerAllowedIframe} = useHtmlTags()
 
 const props = defineProps<{
   post?: Post
 }>()
+
+// Iframe tags
+let isSignerAllowedIframe: boolean = false
+let textWithIframeTags: string = ''
+
+if (enableEmbedIframeTagsInPosts) {
+  // Check if a signer is allowed to embed iframe tags
+  if (typeof(props?.post?.signer) === 'string') {
+    isSignerAllowedIframe = checkIfSignerAllowedIframe(props?.post?.signer)
+  }
+
+  // Add iframe tags if text has any iframe URLs
+  // WARNING: it's very important to check whether the
+  // signer is allowed to add iframe tags because that's
+  // a potential attack vector.
+  if (typeof(props?.post?.text) === 'string' && isSignerAllowedIframe) {
+    textWithIframeTags = addIframeTags(props?.post)
+  }
+}
 
 </script>
 

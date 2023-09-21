@@ -41,16 +41,32 @@
         </h4>
       </div>
 
-      <!-- breaks:true is needed to properly change single \n with <br> -->
-      <!-- Markdown can be enabled/disabled in the .env file. -->
       <div v-if="comment.text" class="whitespace-pre-line my-1">
-        <div
-          v-if="enableMarkdownInComments"
-          v-dompurify-html="(marked(comment.text, {breaks:true}))"
-        />
-        <div v-if="!enableMarkdownInComments">
+        <!-- Plain text -->
+        <div v-if="!enableMarkdownInComments && !isSignerAllowedIframe">
           {{comment.text}}
         </div>
+        <!-- Markdown -->
+        <!-- Markdown can be enabled/disabled in the .env file. -->
+        <!-- breaks:true changes single \n with <br> -->
+        <div
+          v-if="enableMarkdownInComments && !isSignerAllowedIframe"
+          v-dompurify-html="(marked(comment.text, {breaks:true}))"
+        />
+        <!--
+          Disable dompurify if a signer is whitelisted so links with
+          videos can be properly embedded e.g. with <iframe> tags
+        -->
+        <!-- Markdown and iframe tags -->
+        <div
+          v-if="enableMarkdownInComments && isSignerAllowedIframe"
+          v-html="(marked(textWithIframeTags, {breaks:true}))"
+        />
+        <!-- Iframe tags without markdown -->
+        <div
+          v-if="!enableMarkdownInComments && isSignerAllowedIframe"
+          v-html="textWithIframeTags"
+        />
       </div>
 
     </div>
@@ -97,6 +113,8 @@ import {Post, PostId} from '@/helpers/interfaces'
 const {sliceAddress} = useWeb3()
 const env = useRuntimeConfig()?.public
 const enableMarkdownInComments = env?.enableMarkdownInComments === 'true'? true : false
+const enableEmbedIframeTagsInComments = env?.enableEmbedIframeTagsInComments === 'true'? true : false
+const {addIframeTags, checkIfSignerAllowedIframe} = useHtmlTags()
 
 const props = defineProps<{
   comment?: Post
@@ -125,6 +143,25 @@ const toggleReplyForm = () => {
         ? 'hide'
         : 'reply'
     }
+
+// Iframe tags
+let isSignerAllowedIframe: boolean = false
+let textWithIframeTags: string = ''
+
+if (enableEmbedIframeTagsInComments) {
+  // Check if a signer is allowed to embed iframe tags
+  if (typeof(props?.comment?.signer) === 'string') {
+    isSignerAllowedIframe = checkIfSignerAllowedIframe(props?.comment?.signer)
+  }
+
+  // Add iframe tags if text has any iframe URLs
+  // WARNING: it's very important to check whether the
+  // signer is allowed to add iframe tags because that's
+  // a potential attack vector.
+  if (typeof(props?.comment?.text) === 'string' && isSignerAllowedIframe) {
+    textWithIframeTags = addIframeTags(props?.comment)
+  }
+}
 </script>
 
 <style scoped>

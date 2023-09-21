@@ -1,5 +1,5 @@
 <template>
-  <div class="p-1">
+  <div class="lg:p-2 p-3">
     <div class="pt-2 block cursor-pointer lg:hidden text-colorNotImportant-light dark:text-colorNotImportant-dark"
       @click="showFeed()">
       <IconsArrowLeft class="custom-icons" />Show feed
