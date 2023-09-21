@@ -57,6 +57,19 @@
   a {
     @apply text-colorPrimary-light dark:text-colorPrimary-dark;
   }
+
+  iframe {
+    /* w-full (width: 100%) fits embedded video on small screens */
+    @apply w-full;
+  }
+
+  ul {
+    @apply -mt-5;
+  }
+
+  li {
+    @apply ml-3 -my-1 list-disc list-outside;
+  }
 }
 
 @layer components {
