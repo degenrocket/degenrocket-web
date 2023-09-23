@@ -6,8 +6,8 @@ module.exports = {
     {
       name: `stage-front@${packageJson.version}`,
       script: './.output/server/index.mjs',
-      exec_mode: process.env.FRONTEND_PM2_STAGE_EXEC_MODE,
-      instances: process.env.FRONTEND_PM2_STAGE_INSTANCES,
+      exec_mode: process.env.FRONTEND_PM2_STAGE_EXEC_MODE || 'cluster',
+      instances: process.env.FRONTEND_PM2_STAGE_INSTANCES || '1',
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',

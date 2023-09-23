@@ -6,8 +6,8 @@ module.exports = {
     {
       name: `prod-front@${packageJson.version}`,
       script: './.output/server/index.mjs',
-      exec_mode: process.env.FRONTEND_PM2_PROD_EXEC_MODE,
-      instances: process.env.FRONTEND_PM2_PROD_INSTANCES,
+      exec_mode: process.env.FRONTEND_PM2_PROD_EXEC_MODE || 'cluster',
+      instances: process.env.FRONTEND_PM2_PROD_INSTANCES || 'max',
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
