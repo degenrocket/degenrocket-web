@@ -12,7 +12,7 @@ const feedFiltersDefault: FeedFilters = {
   category: "any",
   platform: false,
   source: false,
-  activity: "rising",
+  activity: "all",
   keyword: false,
   ticker: false,
   limitWeb2: 25,
