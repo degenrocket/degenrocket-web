@@ -11,7 +11,7 @@
         </div>
         <InfoPostCommentsCard
           v-for="comment in postsStore.getPostComments"
-          :key="randomNumber()"
+          :key="comment?.id || comment?.signature || randomNumber()"
           :comment="comment"
           :show-action-details="showActionDetails"
           @reply-submitted="replySubmitted"
