@@ -31,8 +31,6 @@ const {randomNumber} = useWeb3()
 const {areValidPosts} = useUtils()
 const postsStore = usePostsStore()
 const {feedFilters} = useFeedFilters()
-const env = useRuntimeConfig()?.public
-const enableEmbedIframeTagsForSelectedUsers: boolean = env?.enableEmbedIframeTagsForSelectedUsers === 'true' ? true : false
 
 const showSpinner = ref(false)
 
@@ -57,15 +55,7 @@ onMounted(async () => {
   // which are only called on the client side
   // and get destroyed when the page is closed.
   // Update feed posts every 120 seconds.
-  
-  if (!enableEmbedIframeTagsForSelectedUsers) {
-    setInterval(postsStore.fetchPostsByFilters, 120000)
-  } else {
-    // Updating the feed also triggers rerender of embedded
-    // videos via iframe tags, which stops the video from playing.
-    // Thus, temporary increasing the feed refresh time to 1 hour.
-    setInterval(postsStore.fetchPostsByFilters, 3600000)
-  }
+  setInterval(postsStore.fetchPostsByFilters, 120000)
 })
 
 watch(

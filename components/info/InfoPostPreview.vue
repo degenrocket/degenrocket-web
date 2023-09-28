@@ -80,7 +80,7 @@
       <div v-if="isSignerAllowedIframe">
         <div
           v-for="(textChunk, index) in arrayOfTextChunks"
-          :key="randomNumber()"
+          :key="post?.id || post?.signature || randomNumber()"
         >
           <!-- Markdown if enabled -->
           <div
