@@ -4,6 +4,7 @@ import {Post, PostId} from '@/helpers/interfaces'
 import {FeedFilters} from '@/helpers/interfaces'
 const {feedFilters} = useFeedFilters()
 const {logPosts, logTime} = useLog()
+const {hasValue} = useUtils()
 
 export interface IPostsState {
   apiUrl: any
@@ -106,12 +107,15 @@ export const usePostsStore = defineStore('postsStore', {
       const fetchedPosts = await Promise.all(ids.map(this.fetchPostById))
 
       // console.log("allPosts before saving:", logPosts(this.allPosts))
+      if (!hasValue(fetchedPosts)) { return fetchedPosts }
+
       this.savePostsToStore(fetchedPosts)
       // console.log("allPosts after saving:", logPosts(this.allPosts))
       return fetchedPosts
     },
 
     async fetchPostById(id: PostId): Promise<Post> {
+      if (!id) {return {}}
       if (!this.apiUrl) {return {}}
 
       if (typeof (id) === "number" || "string") {
