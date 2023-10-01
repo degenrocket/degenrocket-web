@@ -51,7 +51,7 @@ export const useUtils = () => {
       if (hasAtLeastOneValue) {
         return true
       } else {
-        console.error("ERROR. There are no values in the array", el)
+        // console.error("ERROR. There are no values in the array", el)
         return false
       }
     }
@@ -83,31 +83,31 @@ export const useUtils = () => {
     if (!post) { return false }
 
     if (!hasValue(post)) {
-      console.error("ERROR. A post has no values:", post)
+      // console.error("ERROR. A post has no values:", post)
       return false
     }
 
     if (!post.signature && !post.url && !post.id && !post.ipfs) {
-      console.error("ERROR. A post has no signature, url, or id", post)
+      // console.error("ERROR. A post has no signature, url, or id", post)
       return false
     }
 
     if (post.signature) {
       if (!post.action) {
-        console.error("ERROR. A post with signature has no action", post)
+        // console.error("ERROR. A post with signature has no action", post)
         return false
       }
       if (post.action === 'post') {return true}
 
       if (post.action === 'reply' && !post.target) {
-        console.error("ERROR. A post with signature and a reply action has no target:", post)
+        // console.error("ERROR. A post with signature and a reply action has no target:", post)
         return false
       } else if (post.action === 'reply' && post.target) {
         return true
       }
 
       if (post.action === 'react' && !post.target) {
-        console.error("ERROR. A post with signature and a react action has no target:", post)
+        // console.error("ERROR. A post with signature and a react action has no target:", post)
         return false
       } else if (post.action === 'react' && post.target) {
         return true
@@ -120,7 +120,7 @@ export const useUtils = () => {
 
     if (post.ipfs) {return true}
 
-    console.error("ERROR. Not a valid post:", post)
+    // console.error("ERROR. Not a valid post:", post)
     return false
   }
 
@@ -164,13 +164,13 @@ export const useUtils = () => {
     let areAllPostsValid: boolean = true
     posts.forEach(function (post) {
       if (!isValidPost(post)) {
-        console.error("ERROR. Post inside posts is not a valid post", post)
+        // console.error("ERROR. Post inside posts is not a valid post", post)
         areAllPostsValid = false
       }
     })
 
     if (!areAllPostsValid) {
-      console.error("ERROR. At least one post in posts is not a valid post", posts)
+      // console.error("ERROR. At least one post in posts is not a valid post", posts)
       return false
     }
 
