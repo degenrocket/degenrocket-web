@@ -49,6 +49,13 @@ export default defineNuxtConfig({
       ifShowIntroTutorial: process.env.IF_SHOW_INTRO_TUTORIAL,
       ifShowHomeLatestComments: process.env.IF_SHOW_HOME_LATEST_COMMENTS,
 
+      // New web3 actions
+      enableNewWeb3ActionsAll: process.env.ENABLE_NEW_WEB3_ACTIONS_ALL,
+      enableNewWeb3ActionsPost: process.env.ENABLE_NEW_WEB3_ACTIONS_POST,
+      enableNewWeb3ActionsReply: process.env.ENABLE_NEW_WEB3_ACTIONS_REPLY,
+      enableNewWeb3ActionsReact: process.env.ENABLE_NEW_WEB3_ACTIONS_REACT,
+      enableNewWeb3ActionsModerate: process.env.ENABLE_NEW_WEB3_ACTIONS_MODERATE,
+
       // Markdown
       enableMarkdownInPosts: process.env.ENABLE_MARKDOWN_IN_POSTS,
       enableMarkdownInComments: process.env.ENABLE_MARKDOWN_IN_COMMENTS,

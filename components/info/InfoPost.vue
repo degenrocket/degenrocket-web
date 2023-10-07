@@ -10,11 +10,13 @@
         :post="postsStore.getPost"
       />
 
-      <InfoPostCommentInputField
-        v-if="postsStore?.getPost.signature || postsStore?.getPost.url || postsStore?.getPost.guid || postsStore?.getPost.ipfs"
-        :target="postsStore?.getPost.signature || postsStore?.getPost.url || postsStore?.getPost.guid || postsStore?.getPost.ipfs"
-        @reply-submitted="replySubmitted"
-      />
+      <div v-if="enableNewWeb3ActionsAll && enableNewWeb3ActionsReply">
+        <InfoPostCommentInputField
+          v-if="postsStore?.getPost.signature || postsStore?.getPost.url || postsStore?.getPost.guid || postsStore?.getPost.ipfs"
+          :target="postsStore?.getPost.signature || postsStore?.getPost.url || postsStore?.getPost.guid || postsStore?.getPost.ipfs"
+          @reply-submitted="replySubmitted"
+        />
+      </div>
 
       <!--
         Since comments are fetched inside <InfoPostComments />,
@@ -71,6 +73,10 @@
 <script setup lang="ts">
 import {usePostsStore} from '@/stores/usePostsStore'
 /* import {Post} from '@/helpers/interfaces'; */
+// New web3 actions are enabled by default if not disabled in .env
+const env = useRuntimeConfig()?.public
+const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true
+const enableNewWeb3ActionsReply: boolean = env?.enableNewWeb3ActionsReply === 'false'? false : true
 const postsStore = usePostsStore()
 const params = useRoute().params
 const query = useRoute().query

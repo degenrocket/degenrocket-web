@@ -10,8 +10,10 @@
     <div class="inline-block pl-1 lg:pl-2" @click="hideFeed()">
       <nuxt-link :to="`/`" class="nuxt-link">Home</nuxt-link>
     </div>
-    <div class="inline-block pl-1 lg:pl-2" @click="hideFeed()">
-      <nuxt-link :to="`/newpost`" class="nuxt-link">Publish</nuxt-link>
+    <div v-if=" enableNewWeb3ActionsAll && enableNewWeb3ActionsPost" class="inline-block">
+      <div class="inline-block pl-1 lg:pl-2" @click="hideFeed()">
+        <nuxt-link :to="`/newpost`" class="nuxt-link">Publish</nuxt-link>
+      </div>
     </div>
     <div class="inline-block pl-1 lg:pl-2" @click="hideFeed()">
       <nuxt-link :to="`/contacts`" class="nuxt-link">Contacts</nuxt-link>
@@ -35,6 +37,10 @@
 <script setup lang="ts">
 const {showFeed, hideFeed, isFeedShown} = useFeed()
 const {showWeb3Modal, pendingAuthentication, connectedAddress, sliceAddress} = useWeb3()
+// New web3 actions are enabled by default if not disabled in .env
+const env = useRuntimeConfig()?.public
+const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true
+const enableNewWeb3ActionsPost: boolean = env?.enableNewWeb3ActionsPost === 'false'? false : true
 </script>
 
 <style scoped>

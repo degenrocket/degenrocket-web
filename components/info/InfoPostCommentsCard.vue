@@ -100,8 +100,10 @@
         </nuxt-link>
       </span>
 
-      <div class="inline-block text-lg lg:text-base text-colorNotImportant-light dark:text-colorNotImportant-dark cursor-pointer" @click="toggleReplyForm">
-        {{showReplyFormText}}
+      <div v-if="enableNewWeb3ActionsAll && enableNewWeb3ActionsReply" class="inline-block">
+        <div class="inline-block text-lg lg:text-base text-colorNotImportant-light dark:text-colorNotImportant-dark cursor-pointer" @click="toggleReplyForm">
+          {{showReplyFormText}}
+        </div>
       </div>
 
       <InfoPostCommentInputField v-if="showReplyForm" :target="comment.signature" @reply-submitted="replySubmitted" />
@@ -131,6 +133,9 @@ const {sliceAddress, randomNumber} = useWeb3()
 const env = useRuntimeConfig()?.public
 const enableMarkdownInComments = env?.enableMarkdownInComments === 'true'? true : false
 const enableEmbedIframeTagsInComments = env?.enableEmbedIframeTagsInComments === 'true'? true : false
+// New web3 actions are enabled by default if not disabled in .env
+const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true
+const enableNewWeb3ActionsReply: boolean = env?.enableNewWeb3ActionsReply === 'false'? false : true
 const {checkIfSignerAllowedIframe, getArrayOfArraysOfTextAndTags} = useHtmlTags()
 
 const props = defineProps<{
