@@ -69,6 +69,7 @@ export default defineNuxtConfig({
       iframeVideoWidth: process.env.IFRAME_VIDEO_WIDTH,
       iframeVideoHeight: process.env.IFRAME_VIDEO_HEIGHT,
       iframeAdditionalParams: process.env.IFRAME_ADDITIONAL_PARAMS,
+      iframeHideOneLineUrl: process.env.IFRAME_HIDE_ONE_LINE_URL,
 
       // Another website links
       anotherWebsiteLink: process.env.ANOTHER_WEBSITE_LINK,

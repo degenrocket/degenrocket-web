@@ -69,6 +69,7 @@ export const useHtmlTags = () => {
   const config = useRuntimeConfig()
   const env = config?.public
   const enableEmbedIframeTagsForSelectedUsers: boolean = env?.enableEmbedIframeTagsForSelectedUsers === 'true' ? true : false
+  const iframeHideOneLineUrl: boolean = env?.iframeHideOneLineUrl === 'true' ? true : false
   const signersAllowedToEmbedIframeTags: string = env?.signersAllowedToEmbedIframeTags
   const iframeTagsAllowedDomains: string = env?.iframeTagsAllowedDomains
   const iframeVideoWidth: string = env?.iframeVideoWidth
@@ -164,6 +165,9 @@ export const useHtmlTags = () => {
 
     // const urlRegex = /(https?:\/\/[^\s\])]+)/g;
     const urlRegex = /(https?:\/\/[^\s\])]+)(?![,!])/g;
+
+    // Matches the string only if the whole string is a URL.
+    const urlRegexFullLine = /^(https?:\/\/[^\s\])]+)(?![,!])$/g;
     
     const linesOfText = text.split('\n')
 
@@ -175,11 +179,21 @@ export const useHtmlTags = () => {
 
     // Loop through all lines
     linesOfText?.forEach((line): void => {
+      if (!line) return
+
       // Add the current line to array of text chunks
-      // arrayOfTextChunks[chunkIndex].concat("hello")
       if (line) {
-        // Check for undefined with ||
-        arrayOfTextChunks[chunkIndex] = (arrayOfTextChunks[chunkIndex] || '') + `${line}\n`
+        // Some instances want to embed videos with iframe tags
+        // without displaying the actual URL to users.
+        // Check if the whole line consists of only one URL,
+        // and hide it if the URL hiding is enabled in the .env file.
+        if (urlRegexFullLine.test(line) && iframeHideOneLineUrl) {
+          // Check for undefined with ||
+          arrayOfTextChunks[chunkIndex] = (arrayOfTextChunks[chunkIndex] || '') + `\n`
+        } else {
+          // Check for undefined with ||
+          arrayOfTextChunks[chunkIndex] = (arrayOfTextChunks[chunkIndex] || '') + `${line}\n`
+        }
       }
 
       const arrayOfUrlsInLine = line.match(urlRegex)
