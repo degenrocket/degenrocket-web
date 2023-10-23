@@ -1,6 +1,8 @@
 import {ref, readonly} from "vue";
 import {ethers, JsonRpcApiProvider, JsonRpcSigner} from "ethers";
-import {PostSignature, Web3Message, Web3MessageAction} from "@/helpers/interfaces";
+import {PostSignature, Web3Message, Web3MessageAction, NostrEvent} from "@/helpers/interfaces";
+import { bech32 } from 'bech32'
+import { validateEvent, verifySignature, getSignature, getEventHash } from 'nostr-tools'
 // import detectEthereumProvider from '@metamask/detect-provider'
 
 const isWeb3ModalShown = ref(false)
@@ -8,6 +10,7 @@ const pendingAuthentication = ref(false)
 let provider: JsonRpcApiProvider | undefined
 let signer: JsonRpcSigner | undefined
 const connectedAddress = ref<string | undefined>('')
+const connectedKeyType = ref<string | undefined>('')
 
 export const useWeb3 = () => {
   const showWeb3Modal = (): void => {
@@ -29,7 +32,7 @@ export const useWeb3 = () => {
 
       if (Array.isArray(accounts) &&
         typeof (accounts?.[0]?.address) === 'string') {
-        setConnectedAddress(accounts?.[0]?.address)
+        setConnectedAddress(accounts?.[0]?.address, 'ethereum')
         pendingAuthentication.value = false
         return true
       } else {
@@ -44,7 +47,6 @@ export const useWeb3 = () => {
   }
 
   const detectProvider = async (): Promise<boolean> => {
-    // console.log("detectProvider called")
     // provider.value = await detectEthereumProvider()
     // TODO use RPC provider if BrowserProvider is not detected
     // console.log("provider before:", provider)
@@ -59,7 +61,6 @@ export const useWeb3 = () => {
 
   // provider.getSigner() prompts a user to connect an account
   const setSigner = async (): Promise<void> => {
-    // console.log("setSigner called")
     // console.log("signer before:", signer)
     signer = await provider?.getSigner()
     // console.log("signer after:", signer)
@@ -69,7 +70,7 @@ export const useWeb3 = () => {
     // console.log("setSigner called")
     // console.log("signer before:", signer)
     signer = ethers.Wallet.createRandom()
-    setConnectedAddress(signer?.address)
+    setConnectedAddress(signer?.address, 'ethereum')
     // console.log("signer after:", signer)
   }
 
@@ -87,28 +88,34 @@ export const useWeb3 = () => {
       // console.log("listAccounts called")
       const accounts = await provider?.listAccounts()
       // console.log("accounts:", accounts)
-      setConnectedAddress(accounts?.[0]?.address)
+      setConnectedAddress(accounts?.[0]?.address, 'ethereum')
       return accounts ? accounts : []
     } catch (error) {
       // User denied account access
       console.error(error)
-      setConnectedAddress('')
+      setConnectedAddress('','')
       return []
     }
   }
 
-  const setConnectedAddress = (address?: string): boolean => {
+  const setConnectedAddress = (address?: string, keyType?: string): boolean => {
+    // type can be 'ethereum', 'nostr', etc.
+    keyType = keyType ?? 'ethereum'
+
     if (address && typeof (address) === 'string') {
       connectedAddress.value = address
+      connectedKeyType.value = keyType
       return true
     } else {
       connectedAddress.value = ""
+      connectedKeyType.value = ""
       return false
     }
   }
 
   const disconnectAccount = (): void => {
     connectedAddress.value = ""
+    connectedKeyType.value = ""
     signer = undefined
     provider = undefined
   }
@@ -119,12 +126,25 @@ export const useWeb3 = () => {
   }
 
   const submitAction = async (action?: Web3MessageAction, text?: string, target?: string, title?: string): Promise<SubmitActionReturn | false> => {
-    if (!signer) { await connectWeb3Authenticator() }
-    // console.log("submitAction called")
+    // Only try to connect an Ethereum extension.
+    // If web3 (Ethereum) is not detected, then the web3
+    // modal with different connect options will be shown.
+    // if (!signer) { await connectWeb3Authenticator() }
+    if (!connectedAddress.value) { await connectWeb3Authenticator() }
+    
+    if (connectedKeyType.value === 'ethereum') {
+      return submitEthereumAction(action, text, target, title)
+    } else if (connectedKeyType.value === 'nostr') {
+      return submitNostrAction(action, text, target, title)
+    } else {
+      return false
+    }
+  }
 
+  const submitEthereumAction = async (action?: Web3MessageAction, text?: string, target?: string, title?: string): Promise<SubmitActionReturn | false> => {
     try {
       // assemble JSON object for signing
-      const web3MessageJson: Web3Message = assembleActionIntoJSON(action, target, text, title)
+      const web3MessageJson: Web3Message = assembleActionIntoJSON(action, text, target, title)
       // console.log("web3Message:", web3MessageJson)
 
       const stringToSign: string = JSON.stringify(web3MessageJson)
@@ -138,13 +158,54 @@ export const useWeb3 = () => {
       const signerAddress = signer.address.toLowerCase()
 
       // verify the signature
-      const isSignatureValid: boolean = verifySignature(stringToSign, signature, signer?.address)
+      const isSignatureValid: boolean = verifyEthereumSignature(stringToSign, signature, signer?.address)
       // console.log("isSignatureValid:", isSignatureValid)
 
       if (!isSignatureValid) return false
 
       // send data to backed
       const res: string | boolean | null | undefined = await submitSignature(stringToSign, signature, signerAddress)
+
+      // signature is returned so a user can be redirected
+      // to a newly created post or a comment/reply
+      return { res, signature}
+
+    } catch (err) {
+      console.error('submitAction failed:', err)
+      return false
+    }
+  }
+
+  const submitNostrAction = async (action?: Web3MessageAction, text?: string, target?: string, title?: string): Promise<SubmitActionReturn | false> => {
+    if (!action) return false
+    if (!text) return false
+    if (!connectedAddress.value) return false
+
+    try {
+      // assemble JSON object for signing
+      const nostrEventJson: NostrEvent = await assembleActionIntoNostrJson(action, text, target, title)
+
+      // add ID to Nostr event
+      nostrEventJson.id = getEventHash(nostrEventJson)
+
+      // sign the message
+      // const signature: string | undefined = await signString(stringToSign)
+      const signedNostrEvent: NostrEvent = await window.nostr.signEvent(nostrEventJson)
+
+      const signature = signedNostrEvent.sig
+
+      if (!signature) return false
+      // if (!signer?.address) return false
+      // const signerAddress = signer.address.toLowerCase()
+
+      // verify the signature
+      const isSignatureValid: boolean = verifySignature(signedNostrEvent)
+
+      if (!isSignatureValid) return false
+
+      // send data to backend
+      // const res: string | boolean | null | undefined = await submitSignature(stringToSign, signature, signerAddress)
+      const res: string | boolean | null | undefined = await submitNostrSignature(signedNostrEvent)
 
       // signature is returned so a user can be redirected
       // to a newly created post or a comment/reply
@@ -176,7 +237,7 @@ export const useWeb3 = () => {
     }
   }
 
-  const verifySignature = (messageString: string, signature: string, signerAddress: string): boolean => {
+  const verifyEthereumSignature = (messageString: string, signature: string, signerAddress: string): boolean => {
 
     if (signature && typeof (signature) === 'string') {
       const recoveredAddress = ethers.verifyMessage(messageString, signature)
@@ -190,7 +251,7 @@ export const useWeb3 = () => {
     return false
   }
 
-  const assembleActionIntoJSON = (action?: Web3MessageAction, target?: string, text?: string, title?: string): Web3Message => {
+  const assembleActionIntoJSON = (action?: Web3MessageAction, text?: string, target?: string, title?: string): Web3Message => {
     // Change uppercase reactions such as 'Bullish' to 'bullish'
     if (action === 'react') {
       text = text?.toLowerCase()
@@ -206,6 +267,57 @@ export const useWeb3 = () => {
     }
   }
 
+  const assembleActionIntoNostrJson = async (action: Web3MessageAction, text: string, target?: string, title?: string): Promise<NostrEvent> => {
+    // Change uppercase reactions such as 'Bullish' to 'bullish'
+    if (action === 'react') {
+      text = text?.toLowerCase()
+    }
+
+    const nostrPublicKey: string = await window.nostr.getPublicKey()
+
+    const spasmVersion = "1.0.0"
+
+    const spasmLicense = "MIT"
+
+    let nostrEvent = {
+      kind: 1,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [
+        [
+          "license", spasmLicense
+        ],
+        [
+          "spasm_version", spasmVersion
+        ],
+        // [
+        //   "spasm_target", target
+        // ],
+        [
+          "spasm_action", action
+        ],
+        // [
+        //   "spasm_title", title
+        // ],
+        // [
+        //   "spasm_category", category
+        // ],
+      ],
+      content: text,
+      // pubkey: connectedAddress.value as string
+      pubkey: nostrPublicKey
+    }
+
+    if (target) {
+      nostrEvent.tags.push(["spasm_target", target])
+    }
+
+    if (title) {
+      nostrEvent.tags.push(["spasm_title", title])
+    }
+
+    return nostrEvent
+  }
+
   const submitSignature = async (signedString: string, signature: string, signerAddress: string): Promise<string | boolean | null | undefined> => {
 
     try {
@@ -214,8 +326,13 @@ export const useWeb3 = () => {
       const path = `${apiURL}/api/submit/`
       // console.log("path:", path)
 
-      const data = {signedString, signature, signer: signerAddress}
-      // console.log('data in submitSignature is:', data)
+      const data = {
+        dmpEvent: {
+          signedString,
+          signature,
+          signer: signerAddress
+        }
+      }
 
       const res: string | boolean | null | undefined = await $fetch(path, {
         method: 'POST',
@@ -230,6 +347,77 @@ export const useWeb3 = () => {
     }
   }
 
+  // Nostr
+  const connectNostrExtension = async (): Promise<boolean> => {
+    pendingAuthentication.value = true
+    try {
+      const nostrAccount: string = await getNostrPublicKey()
+
+      if (nostrAccount && typeof (nostrAccount) === 'string') {
+        setConnectedAddress(convertHexToBech32(nostrAccount, 'npub'), 'nostr')
+        pendingAuthentication.value = false
+        return true
+      } else {
+        pendingAuthentication.value = false
+        return false
+      }
+    } catch (err) {
+      console.error(err)
+      pendingAuthentication.value = false
+      return false
+    }
+  }
+
+  const getNostrPublicKey = async (): Promise<string> => {
+    try {
+      const nostrPublicKey: string = await window.nostr.getPublicKey()
+      return nostrPublicKey ? nostrPublicKey : ''
+    } catch (error) {
+      // User denied account access
+      console.error(error)
+      setConnectedAddress('','')
+      return ''
+    }
+  }
+
+  const submitNostrSignature = async (nostrEvent: NostrEvent): Promise<string | boolean | null | undefined> => {
+    try {
+      const {apiURL} = useRuntimeConfig()?.public
+
+      const path = `${apiURL}/api/submit/`
+
+      const data = { nostrEvent }
+
+      const res: string | boolean | null | undefined = await $fetch(path, {
+        method: 'POST',
+        body: data
+      });
+
+      return res
+
+    } catch (err) {
+      console.error(err)
+      return false
+    }
+  }
+
+  const convertHexToBech32 = (hexKey: string, prefix: string): string => {
+    // Convert private or public key from HEX to bech32
+    let bytes = new Uint8Array(hexKey.length / 2);
+
+    for(let i = 0; i < hexKey.length; i+=2) {
+        bytes[i/2] = parseInt(hexKey.substr(i, 2), 16);
+    }
+
+    const words = bech32.toWords(bytes);
+
+    prefix = prefix ?? 'npub'
+
+    const bech32Key = bech32.encode(prefix, words);
+
+    return bech32Key
+  }
+
   // Utils
   const sliceAddress = (address?: string | PostSignature, start: number = 6, end: number = 4) => {
     return address ? `${address.slice(0, start)}...${address.slice(-end)}` : ''
@@ -241,6 +429,7 @@ export const useWeb3 = () => {
     isWeb3ModalShown: readonly(isWeb3ModalShown),
     pendingAuthentication: readonly(pendingAuthentication),
     connectedAddress: readonly(connectedAddress),
+    connectedKeyType: readonly(connectedKeyType),
     signer: signer ? readonly(signer) : undefined,
     showWeb3Modal,
     hideWeb3Modal,
@@ -253,6 +442,7 @@ export const useWeb3 = () => {
     setConnectedAddress,
     disconnectAccount,
     submitAction,
+    connectNostrExtension,
     sliceAddress,
     randomNumber,
   }

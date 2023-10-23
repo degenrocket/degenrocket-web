@@ -29,9 +29,11 @@
   },
   "dependencies": {
     "@pinia/nuxt": "^0.4.6",
+    "bech32": "^2.0.0",
     "dotenv": "^16.3.1",
     "ethers": "^6.1.0",
     "marked": "^9.0.1",
+    "nostr-tools": "^1.17.0",
     "pinia": "^2.0.30",
     "vue-dompurify-html": "^4.1.4"
   }

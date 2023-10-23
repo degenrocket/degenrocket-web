@@ -1,13 +1,15 @@
 <template>
   <div class="fixed top-0  bottom-0 left-0 right-0 grid justify-center bg-black bg-opacity-60" @click="hideWeb3Modal()">
-    <div class="mt-8 max-h-[30rem] overflow-scroll bg-bgSecondary-light dark:bg-bgSecondary-dark block w-80 text-center relative" @click.stop="">
+    <div class="mt-2 lg:mt-5 max-h-[33rem] overflow-scroll bg-bgSecondary-light dark:bg-bgSecondary-dark block w-80 text-center relative" @click.stop="">
       <span class="pr-3 pt-2 pl-1 pb-1 absolute right-0 top-0 cursor-pointer" @click="hideWeb3Modal()">X</span>
+      <!--
       <div class="mt-8 mb-4 text-colorNotImportant-light dark:text-colorNotImportant-dark">
         Choose your web3 extension <br>to sign messages
       </div>
+      -->
 
       <div v-if="ifAllowGuestLogin">
-        <div class="mx-10 text-sm border-t border-colorNotImportant-light dark:border-colorNotImportant-dark text-colorNotImportant-light dark:text-colorNotImportant-dark">
+        <div class="mt-5 mx-10 text-sm text-colorNotImportant-light dark:text-colorNotImportant-dark">
           Temporary:
         </div>
         <div class="font-bold">
@@ -18,13 +20,15 @@
         </div>
       </div>
 
-      <div class="mx-10 text-sm font-normal border-t border-colorNotImportant-light dark:border-colorNotImportant-dark text-colorNotImportant-light dark:text-colorNotImportant-dark">
-        Browser extensions:
-      </div>
+      <!-- Ethereum -->
+      <div v-if="enableNewEthereumActionsAll">
+        <div class="mx-10 text-sm font-normal border-t border-colorNotImportant-light dark:border-colorNotImportant-dark text-colorNotImportant-light dark:text-colorNotImportant-dark">
+          Ethereum browser extensions:
+        </div>
 
-        <div class="block mt-2 mb-2 hover:bg-bgHover-light dark:hover:bg-bgHover-dark cursor-pointer" @click="browserExtensionClicked">
+        <div class="block mt-2 mb-1 hover:bg-bgHover-light dark:hover:bg-bgHover-dark cursor-pointer" @click="browserExtensionClicked">
           <img
-            class="inline-block w-10"
+            class="inline-block w-8"
             src="@/assets/images/logos/metamask-logo.svg"
             alt="MetaMask logo"
           >
@@ -55,18 +59,47 @@
         </div>
         --> 
 
-        <div class="block mb-3 hover:bg-bgHover-light dark:hover:bg-bgHover-dark cursor-pointer" @click="browserExtensionClicked">
+        <div class="block mb-2 hover:bg-bgHover-light dark:hover:bg-bgHover-dark cursor-pointer" @click="browserExtensionClicked">
           <img
-            class="inline-block h-12"
+            class="inline-block h-11"
             src="@/assets/images/logos/rabby-logo.svg"
             alt="Rabby logo"
           >
         </div>
 
         <div class="block mb-4 h-8 hover:bg-bgHover-light dark:hover:bg-bgHover-dark cursor-pointer" @click="browserExtensionClicked">
-          Another extension
+          Another Ethereum extension
+        </div>
+      </div>
+
+      <!-- Nostr -->
+      <div v-if="enableNewNostrActionsAll">
+        <div class="mx-10 text-sm font-normal border-t border-colorNotImportant-light dark:border-colorNotImportant-dark text-colorNotImportant-light dark:text-colorNotImportant-dark">
+          Nostr browser extensions:
         </div>
 
+        <div class="block mt-3 mb-3 hover:bg-bgHover-light dark:hover:bg-bgHover-dark cursor-pointer" @click="nostrExtensionClicked">
+          <img
+            class="inline-block w-7"
+            src="@/assets/images/logos/nos2x-logo.png"
+            alt="Flamingo logo"
+          >
+          nos2x
+        </div>
+
+        <div class="block mt-2 mb-2 hover:bg-bgHover-light dark:hover:bg-bgHover-dark cursor-pointer" @click="nostrExtensionClicked">
+          <img
+            class="inline-block w-7"
+            src="@/assets/images/logos/flamingo-logo.png"
+            alt="Flamingo logo"
+          >
+          Flamingo
+        </div>
+
+        <div class="block mb-4 h-8 hover:bg-bgHover-light dark:hover:bg-bgHover-dark cursor-pointer" @click="nostrExtensionClicked">
+          Another Nostr extension
+        </div>
+      </div>
 
       <div class="mx-10 text-sm border-t border-colorNotImportant-light dark:border-colorNotImportant-dark text-colorNotImportant-light dark:text-colorNotImportant-dark">
       </div>
@@ -84,8 +117,10 @@
 
 <script setup lang="ts">
 const {hideWeb3Modal} = useWeb3()
-const {connectWeb3Authenticator, setRandomSigner, disconnectAccount} = useWeb3()
+const {connectWeb3Authenticator, connectNostrExtension, setRandomSigner, disconnectAccount} = useWeb3()
 const ifAllowGuestLogin = useRuntimeConfig()?.public?.ifAllowGuestLogin === 'true' ? true : false
+const enableNewNostrActionsAll = useRuntimeConfig()?.public?.enableNewNostrActionsAll === 'true' ? true : false
+const enableNewEthereumActionsAll = useRuntimeConfig()?.public?.enableNewEthereumActionsAll === 'true' ? true : false
 
 const browserExtensionClicked = async () => {
   /* console.log("browserExtensionClicked called") */
@@ -107,6 +142,28 @@ const browserExtensionClicked = async () => {
     }
   } else {
     alert('Please install MetaMask, Rabby or other web3 browser extensions and reload the page')
+  }
+}
+
+const nostrExtensionClicked = async () => {
+  /* console.log("nostrExtensionClicked called") */
+
+  const nostr = window.nostr
+
+  if (nostr) {
+    try {
+      const res = await connectNostrExtension()
+      /* console.log("res:", res) */
+
+      if (res) {
+        hideWeb3Modal()
+      }
+      return
+    } catch (err) {
+      console.error(err)
+    }
+  } else {
+    alert('Please install nos2x, flamingo, or other nostr browser extensions and reload the page')
   }
 }
 

@@ -81,3 +81,27 @@ export interface Web3Message {
   text?: string
   license: Web3MessageLicense
 }
+
+type SpasmVersionTag = ["spasm_version", string]
+
+type SpasmTargetTag = ["spasm_target", string]
+
+type SpasmActionTag = ["spasm_action", Web3MessageAction]
+
+type SpasmCategoryTag = ["spasm_category", FiltersCategory]
+
+type SpasmTitleTag = ["spasm_title", string]
+
+type SpasmLicenseTag = ["license", Web3MessageLicense]
+
+type OtherTag = any[]
+
+export interface NostrEvent {
+  id?: string,
+  content: string,
+  created_at: number,
+  kind: number,
+  pubkey: string,
+  sig?: string,
+  tags: (SpasmTargetTag | SpasmActionTag | SpasmCategoryTag | SpasmTitleTag | SpasmLicenseTag | OtherTag)[],
+}
