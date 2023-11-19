@@ -42,7 +42,7 @@
           <div class="mt-4 mb-32 border-t border-borderColor-light dark:border-borderColor-dark p-2">
             Latest comments:
             
-            <div class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4"
+            <div class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4 hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
               @click="toggleShowActionDetails()">
               {{showActionDetailsText}} details
             </div>

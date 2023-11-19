@@ -5,7 +5,7 @@
     </div>
     <div v-if="areValidPosts(postsStore.getPostComments)">
       <div v-if="postsStore.getPostComments[0]" class="mb-32">
-        <div class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark"
+        <div class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
           @click="toggleShowActionDetails()">
           {{showActionDetailsText}} details
         </div>
