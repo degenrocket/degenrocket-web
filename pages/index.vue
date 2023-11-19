@@ -15,8 +15,8 @@
     </div>
 
     <div v-if="ifShowIntroTutorial" class="mt-4">
-      <p>- Connect a browser extension (MetaMask, Rabby) or log in as a guest.</p>
-      <p>- Sign all comments and reactions with your private keys.</p>
+      <p>- Connect a browser extension (MetaMask, Rabby, nos2x, Flamingo) or log in as a guest.</p>
+      <p>- Sign all comments and reactions with your Ethereum or Nostr private keys.</p>
       <p>- Never sign any messages that you don't understand.</p>
       <div>
         - This forum is a part of a
