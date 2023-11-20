@@ -1,4 +1,4 @@
-<template>
+  <template>
   <div class="py-1 text-base lg:text-lg bg-bgSecondary-light dark:bg-bgSecondary-dark">
     <NavbarThemeSwitch />
     <div
@@ -10,7 +10,7 @@
     <div class="inline-block pl-1 lg:pl-2" @click="hideFeed()">
       <nuxt-link :to="`/`" class="nuxt-link">Home</nuxt-link>
     </div>
-    <div v-if=" enableNewWeb3ActionsAll && enableNewWeb3ActionsPost" class="inline-block">
+    <div v-if="showNewPostButtonInMenu && enableNewWeb3ActionsAll && enableNewWeb3ActionsPost" class="inline-block">
       <div class="inline-block pl-1 lg:pl-2" @click="hideFeed()">
         <nuxt-link :to="`/newpost`" class="nuxt-link">Publish</nuxt-link>
       </div>
