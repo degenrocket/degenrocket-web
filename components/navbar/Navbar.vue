@@ -41,6 +41,7 @@ const {showWeb3Modal, pendingAuthentication, connectedAddress, sliceAddress} = u
 const env = useRuntimeConfig()?.public
 const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true
 const enableNewWeb3ActionsPost: boolean = env?.enableNewWeb3ActionsPost === 'false'? false : true
+const showNewPostButtonInMenu: boolean = env?.showNewPostButtonInMenu === 'false'? false : true
 </script>
 
 <style scoped>
