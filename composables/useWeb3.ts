@@ -6,7 +6,9 @@ import { validateEvent, verifySignature, getSignature, getEventHash } from 'nost
 // import detectEthereumProvider from '@metamask/detect-provider'
 
 const isWeb3ModalShown = ref(false)
+const isQrCodeModalShown = ref(false)
 const pendingAuthentication = ref(false)
+const qrCodeValue = ref<string | undefined>('')
 let provider: JsonRpcApiProvider | undefined
 let signer: JsonRpcSigner | undefined
 const connectedAddress = ref<string | undefined>('')
@@ -21,6 +23,20 @@ export const useWeb3 = () => {
   const hideWeb3Modal = (): void => {
     isWeb3ModalShown.value = false
     // console.log("isWeb3ModalShown:", isWeb3ModalShown.value)
+  }
+
+  const showQrCodeModal = (): void => {
+    isQrCodeModalShown.value = true
+  }
+
+  const hideQrCodeModal = (): void => {
+    isQrCodeModalShown.value = false
+  }
+
+  const setQrCodeValue = (value?: string): void => {
+    if (value && typeof(value) === "string") {
+      qrCodeValue.value = value
+    }
   }
 
   const connectWeb3Authenticator = async (): Promise<boolean> => {
@@ -427,12 +443,17 @@ export const useWeb3 = () => {
 
   return {
     isWeb3ModalShown: readonly(isWeb3ModalShown),
+    isQrCodeModalShown: readonly(isQrCodeModalShown),
+    qrCodeValue: readonly(qrCodeValue),
     pendingAuthentication: readonly(pendingAuthentication),
     connectedAddress: readonly(connectedAddress),
     connectedKeyType: readonly(connectedKeyType),
     signer: signer ? readonly(signer) : undefined,
     showWeb3Modal,
     hideWeb3Modal,
+    showQrCodeModal,
+    hideQrCodeModal,
+    setQrCodeValue,
     connectWeb3Authenticator,
     detectProvider,
     setSigner,

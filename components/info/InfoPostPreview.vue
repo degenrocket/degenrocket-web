@@ -13,7 +13,10 @@
         {{post.source}}
       </span>
       <span v-if="post.url" class="text-colorPrimary-light dark:text-colorPrimary-dark hover:underline">
-        <a :href="post.url" target="_blank">(read full)</a>
+        <a :href="post.url" target="_blank">
+          (read full)
+          <IconsExternalWebsite class="custom-icons w-4 pb-1" />
+        </a>
       </span>
     </div>
 
@@ -29,6 +32,16 @@
           {{post.signer.slice(0, 6)}}...{{post.signer.slice(-4)}}
         </span>
       </nuxt-link>
+
+      <ExtraAddressIcons
+        v-if="post.signer"
+        :key="post.signer"
+        :value="post.signer"
+        :showCopyToClipboard="true"
+        :showQrCode="true"
+        :showExternalWebsite="true"
+      />
+
       <span v-if="post.signed_time">
         ({{new Date(Date.parse(post.signed_time)).toDateString()}})
       </span>

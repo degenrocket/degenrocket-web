@@ -5,12 +5,25 @@
     </div>
 
     <div class="mt-2">
-      <span class="text-colorNotImportant-light dark:text-colorNotImportant-dark">Author:</span> <br> {{ author }}
+      <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+        Author:
+      </div>
+      <span class="overflow-auto overflow-wrap break-words">
+      {{ author }}
+      </span>
+      <ExtraAddressIcons
+        v-if="author"
+        :key="author"
+        :value="author"
+        :showCopyToClipboard="true"
+        :showQrCode="true"
+        :showExternalWebsite="true"
+      />
     </div>
 
     <div class="mt-4 mb-12">
       All actions:
-      <div class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4"
+      <div class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4 hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
         @click="toggleShowActionDetails()">
         {{showActionDetailsText}} details
       </div>
@@ -35,7 +48,7 @@ import {Post} from '@/helpers/interfaces';
 const { id } = useRoute().params
 const author = id
 
-const {areValidPosts} = useUtils()
+const {areValidPosts, copyToClipboard} = useUtils()
 const apiURL = useRuntimeConfig()?.public?.apiURL
 
 const showActionDetails = ref(false)
@@ -63,7 +76,6 @@ const toggleShowActionDetails = (): void => {
     ? 'hide'
     : 'show'
 }
-
 </script>
 
 <style scoped>

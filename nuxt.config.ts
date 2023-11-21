@@ -49,6 +49,9 @@ export default defineNuxtConfig({
       ifShowIntroTutorial: process.env.IF_SHOW_INTRO_TUTORIAL,
       ifShowHomeLatestComments: process.env.IF_SHOW_HOME_LATEST_COMMENTS,
 
+      // Menu
+      showNewPostButtonInMenu: process.env.SHOW_NEW_POST_BUTTON_IN_MENU,
+
       // New web3 actions
       enableNewWeb3ActionsAll: process.env.ENABLE_NEW_WEB3_ACTIONS_ALL,
       enableNewWeb3ActionsPost: process.env.ENABLE_NEW_WEB3_ACTIONS_POST,
@@ -73,6 +76,10 @@ export default defineNuxtConfig({
       iframeVideoHeight: process.env.IFRAME_VIDEO_HEIGHT,
       iframeAdditionalParams: process.env.IFRAME_ADDITIONAL_PARAMS,
       iframeHideOneLineUrl: process.env.IFRAME_HIDE_ONE_LINE_URL,
+
+      // Default explorers for Ethereum/Nostr addresses
+      defaultExplorerEthereumAddress: process.env.DEFAULT_EXPLORER_ETHEREUM_ADDRESS,
+      defaultExplorerNostrAddress: process.env.DEFAULT_EXPLORER_NOSTR_ADDRESS,
 
       // Another website links
       anotherWebsiteLink: process.env.ANOTHER_WEBSITE_LINK,

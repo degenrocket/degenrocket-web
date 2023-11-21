@@ -177,9 +177,19 @@ export const useUtils = () => {
     return true
   }
 
+
+  const copyToClipboard = (value: string | number | undefined): void => {
+    if (value && (typeof(value) === "string")) {
+      navigator.clipboard.writeText(value)
+    } else if (value && (typeof(value) === "number")) {
+      navigator.clipboard.writeText(value.toString())
+    }
+  }
+
   return {
     hasValue,
     isValidPost,
     areValidPosts,
+    copyToClipboard,
   }
 }

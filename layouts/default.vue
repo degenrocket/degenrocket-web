@@ -25,12 +25,13 @@
     </div>
 
     <ExtraWeb3Modal v-if="isWeb3ModalShown"/>
+    <ExtraQrCodeModal v-if="isQrCodeModalShown"/>
   </div>
 </template>
 
 <script setup lang="ts">
 const {isFeedShown} = useFeed()
-const {isWeb3ModalShown, setConnectedAddress} = useWeb3()
+const {isWeb3ModalShown, isQrCodeModalShown, setConnectedAddress} = useWeb3()
 
 // componentKey is added as an extra safeguard against
 // hydration mismatches. The idea is that an element

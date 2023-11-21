@@ -89,6 +89,10 @@
   .custom-icons {
     @apply w-5 inline-block;
   }
+
+  .custom-icons-large {
+    @apply w-6 inline-block;
+  }
 }
 
 @layer utilities {
