@@ -279,7 +279,8 @@ export const useWeb3 = () => {
       target,
       title,
       text,
-      license: 'MIT'
+      // license: 'MIT'
+      license: 'SPDX-License-Identifier: CC0-1.0'
     }
   }
 
@@ -293,7 +294,8 @@ export const useWeb3 = () => {
 
     const spasmVersion = "1.0.0"
 
-    const spasmLicense = "MIT"
+    // const spasmLicense = "MIT"
+    const spasmLicense = "SPDX-License-Identifier: CC0-1.0"
 
     let nostrEvent = {
       kind: 1,

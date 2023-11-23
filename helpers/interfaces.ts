@@ -70,7 +70,7 @@ export interface Post {
 
 export type Web3MessageAction = "post" | "react" | "reply"
 
-export type Web3MessageLicense = "MIT"
+export type Web3MessageLicense = "MIT" | "CC0" | "CC0-1.0" | "SPDX-License-Identifier: CC0-1.0" | "SPDX-License-Identifier: MIT"
 
 export interface Web3Message {
   version?: string
