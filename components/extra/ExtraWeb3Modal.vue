@@ -1,7 +1,7 @@
 <template>
-  <div class="fixed top-0  bottom-0 left-0 right-0 grid justify-center bg-black bg-opacity-60" @click="hideWeb3Modal()">
-    <div class="mt-2 lg:mt-5 max-h-[33rem] overflow-scroll bg-bgSecondary-light dark:bg-bgSecondary-dark block w-80 text-center relative" @click.stop="">
-      <span class="pr-3 pt-2 pl-1 pb-1 absolute right-0 top-0 cursor-pointer" @click="hideWeb3Modal()">X</span>
+  <div class="fixed top-0  bottom-0 left-0 right-0 grid justify-center bg-black bg-opacity-60 scrollbar-hide" @click="hideWeb3Modal()">
+    <div class="mt-2 lg:mt-5 max-h-[33rem] overflow-scroll bg-bgSecondary-light dark:bg-bgSecondary-dark block w-80 text-center relative scrollbar-hide" @click.stop="">
+      <span class="pr-3 pt-2 pl-1 pb-1 absolute right-0 top-0 cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark" @click="hideWeb3Modal()">X</span>
       <!--
       <div class="mt-8 mb-4 text-colorNotImportant-light dark:text-colorNotImportant-dark">
         Choose your web3 extension <br>to sign messages
@@ -180,4 +180,15 @@ const logOut = () => {
 
 </script>
 
-<style scoped></style>
+<style scoped>
+/* For Webkit-based browsers (Chrome, Safari and Opera) */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* For IE, Edge and Firefox */
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+</style>
