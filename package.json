@@ -1,6 +1,6 @@
 {
   "name": "degen-rocket-client",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "license": "MIT",
   "description": "DeFi, NFT, web3, privacy news aggregator for degens",
   "private": true,
