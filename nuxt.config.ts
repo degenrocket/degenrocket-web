@@ -52,6 +52,10 @@ export default defineNuxtConfig({
       // Menu
       showNewPostButtonInMenu: process.env.SHOW_NEW_POST_BUTTON_IN_MENU,
 
+      // Enable shortened URLs for web3 actions
+      enableShortUrlsForWeb3Actions: process.env.ENABLE_SHORT_URLS_FOR_WEB3_ACTIONS,
+      shortUrlsLengthOfWeb3Ids: process.env.SHORT_URLS_LENGTH_OF_WEB3_IDS,
+
       // New web3 actions
       enableNewWeb3ActionsAll: process.env.ENABLE_NEW_WEB3_ACTIONS_ALL,
       enableNewWeb3ActionsPost: process.env.ENABLE_NEW_WEB3_ACTIONS_POST,

@@ -177,6 +177,18 @@ export const useUtils = () => {
     return true
   }
 
+  const isValidUrl = (value?: any): boolean => {
+    if (!value) return false
+    try { 
+        // new URL() constructor is less vulnerable to ReDoS attacks
+        // because it's a built-it JS function that doesn't use regex
+        new URL(value); 
+        return true; 
+    }
+    catch(e) { 
+        return false; 
+    }
+  }
 
   const copyToClipboard = (value: string | number | undefined): void => {
     if (value && (typeof(value) === "string")) {
@@ -190,6 +202,7 @@ export const useUtils = () => {
     hasValue,
     isValidPost,
     areValidPosts,
+    isValidUrl,
     copyToClipboard,
   }
 }

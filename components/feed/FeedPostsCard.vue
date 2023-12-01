@@ -40,15 +40,34 @@
 
     <!-- show title with nuxt-link to signature if post has signature (web3) -->
     <div v-if="post.signature">
+      <!-- short URL -->
       <nuxt-link
-        v-if="post.title"
+        v-if="post.title && enableShortUrlsForWeb3Actions"
+        :to="`/news/${post.signature.slice(0,shortUrlsLengthOfWeb3Ids)}`"
+        class="nuxt-link"
+      >
+        <span @click="postClicked()">{{post.title.slice(0, 100)}}</span>
+      </nuxt-link>
+      <!-- full URL -->
+      <nuxt-link
+        v-if="post.title && !enableShortUrlsForWeb3Actions"
         :to="`/news/${post.signature}`"
         class="nuxt-link"
       >
         <span @click="postClicked()">{{post.title.slice(0, 100)}}</span>
       </nuxt-link>
+
+      <!-- short URL -->
       <nuxt-link
-        v-if="!post.title && post.text"
+        v-if="!post.title && post.text && enableShortUrlsForWeb3Actions"
+        :to="`/news/${post.signature.slice(0,shortUrlsLengthOfWeb3Ids)}`"
+        class="nuxt-link"
+      >
+        <span @click="postClicked()">{{post.text.slice(0, 100)}}</span>
+      </nuxt-link>
+      <!-- full URL -->
+      <nuxt-link
+        v-if="!post.title && post.text && !enableShortUrlsForWeb3Actions"
         :to="`/news/${post.signature}`"
         class="nuxt-link"
       >
@@ -91,6 +110,10 @@
 
 <script setup lang="ts">
 import {Post, PostId} from '@/helpers/interfaces';
+// Short URLs for web3 actions are enabled by default if not disabled in .env
+const env = useRuntimeConfig()?.public
+const enableShortUrlsForWeb3Actions: boolean = env?.enableShortUrlsForWeb3Actions === 'false'? false : true
+const shortUrlsLengthOfWeb3Ids: number = env?.shortUrlsLengthOfWeb3Ids ? Number(env?.shortUrlsLengthOfWeb3Ids) : 20
 const {sliceAddress} = useWeb3()
 const {id} = useRoute().params
 const isSelectedPost = ref<boolean>(false)

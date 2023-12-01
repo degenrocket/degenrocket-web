@@ -21,6 +21,33 @@
     </div>
 
     <!-- web3 -->
+    <span v-if="post.signed_time" class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">
+      {{new Date(Date.parse(post.signed_time)).toDateString()}}
+    </span>
+
+    <span v-if="enableShortUrlsForWeb3Actions && post.signature" class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">
+      -
+      <span>
+        <nuxt-link
+          class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
+          :to="`/news/${post.signature}`"
+        >
+          long
+        </nuxt-link>
+      </span>
+      /
+      <span>
+        <nuxt-link
+          class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
+          :to="`/news/${post.signature.slice(0,shortUrlsLengthOfWeb3Ids)}`"
+        >
+          short
+        </nuxt-link>
+      </span>
+      link
+    </span>
+
+
     <div v-if="post.author" class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">
       Author: {{post.author}}
     </div>
@@ -41,23 +68,45 @@
         :showQrCode="true"
         :showExternalWebsite="true"
       />
-
-      <span v-if="post.signed_time">
-        ({{new Date(Date.parse(post.signed_time)).toDateString()}})
-      </span>
     </div>
+
     <div v-if="post.target">
       <span class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">In reply to: </span>
-      <nuxt-link class="text-colorPrimary-light dark:text-colorPrimary-dark hover:underline" :to="`/news/?p=${post.target}`">
-        <!--
-        Currently, we fetch a post in created() function in _id.vue.
-        targetClicked() is needed if nuxt-link won't update the page.
-        For example, if the current page url already has '/?p=123'
-        then clicking '/?p=456' won't update the page and won't fetch post 456
-        Thus, we emit a 'target-clicked' event up and manually fetch post 456.
-        -->
+      <!--
+      Currently, we fetch a post in created() function in _id.vue.
+      targetClicked() is needed if nuxt-link won't update the page.
+      For example, if the current page url already has '/?p=123'
+      then clicking '/?p=456' won't update the page and won't fetch post 456
+      Thus, we emit a 'target-clicked' event up and manually fetch post 456.
+      -->
+      <!-- short URL enable, ID is not a valid URL -->
+      <nuxt-link
+        v-if="enableShortUrlsForWeb3Actions && !isValidUrl(post.target)"
+        class="text-colorPrimary-light dark:text-colorPrimary-dark hover:underline"
+        :to="`/news/?p=${post.target.slice(0,shortUrlsLengthOfWeb3Ids)}`"
+      >
         <span>
-          {{sliceAddress(post.target, 22, 16)}}
+          {{sliceAddress(post.target, 8, 8)}}
+        </span>
+      </nuxt-link>
+      <!-- full URL, ID is not a valid URL -->
+      <nuxt-link
+        v-if="!enableShortUrlsForWeb3Actions && !isValidUrl(post.target)"
+        class="text-colorPrimary-light dark:text-colorPrimary-dark hover:underline"
+        :to="`/news/?p=${post.target}`"
+      >
+        <span>
+          {{sliceAddress(post.target, 8, 8)}}
+        </span>
+      </nuxt-link>
+      <!-- ID is a valid URL -->
+      <nuxt-link
+        v-if="isValidUrl(post.target)"
+        class="text-colorPrimary-light dark:text-colorPrimary-dark hover:underline"
+        :to="`/news/?p=${post.target}`"
+      >
+        <span>
+          {{post.target.slice(0,100)+'...'}}
         </span>
       </nuxt-link>
     </div>
@@ -128,7 +177,11 @@ const {sliceAddress, randomNumber} = useWeb3()
 const env = useRuntimeConfig()?.public
 const enableMarkdownInPosts: boolean = env?.enableMarkdownInPosts === 'true'? true : false
 const enableEmbedIframeTagsInPosts: boolean = env?.enableEmbedIframeTagsInPosts === 'true'? true : false
+// Short URLs for web3 actions are enabled by default if not disabled in .env
+const enableShortUrlsForWeb3Actions: boolean = env?.enableShortUrlsForWeb3Actions === 'false'? false : true
+const shortUrlsLengthOfWeb3Ids: number = env?.shortUrlsLengthOfWeb3Ids ? Number(env?.shortUrlsLengthOfWeb3Ids) : 20
 const {checkIfSignerAllowedIframe, getArrayOfArraysOfTextAndTags} = useHtmlTags()
+const {isValidUrl} = useUtils()
 
 const props = defineProps<{
   post?: Post

@@ -48,7 +48,14 @@
             />
           </span>
         </span>
-        <nuxt-link :to="`/news/${comment.signature}`" class="nuxt-link text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark">
+        <!-- short URL -->
+        <nuxt-link v-if="comment.signature && enableShortUrlsForWeb3Actions" :to="`/news/${comment.signature.slice(0,shortUrlsLengthOfWeb3Ids)}`" class="nuxt-link text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark">
+          <span v-if="comment.signed_time">
+            ({{new Date(Date.parse(comment.signed_time)).toDateString()}})
+          </span>
+        </nuxt-link>
+        <!-- full URL -->
+        <nuxt-link v-if="comment.signature && !enableShortUrlsForWeb3Actions" :to="`/news/${comment.signature}`" class="nuxt-link text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark">
           <span v-if="comment.signed_time">
             ({{new Date(Date.parse(comment.signed_time)).toDateString()}})
           </span>
@@ -156,6 +163,9 @@ const enableEmbedIframeTagsInComments = env?.enableEmbedIframeTagsInComments ===
 // New web3 actions are enabled by default if not disabled in .env
 const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true
 const enableNewWeb3ActionsReply: boolean = env?.enableNewWeb3ActionsReply === 'false'? false : true
+// Short URLs for web3 actions are enabled by default if not disabled in .env
+const enableShortUrlsForWeb3Actions: boolean = env?.enableShortUrlsForWeb3Actions === 'false'? false : true
+const shortUrlsLengthOfWeb3Ids: number = env?.shortUrlsLengthOfWeb3Ids ? Number(env?.shortUrlsLengthOfWeb3Ids) : 20
 const {checkIfSignerAllowedIframe, getArrayOfArraysOfTextAndTags} = useHtmlTags()
 
 const props = defineProps<{

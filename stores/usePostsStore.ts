@@ -416,6 +416,13 @@ export const usePostsStore = defineStore('postsStore', {
       return posts
     },
 
+    getPostsByShortId(shortId: string): Post[] {
+      const posts = this.allPosts.filter(
+        post => post.signature != null
+        && post.signature.startsWith(shortId))
+      return posts
+    },
+
     async getOrFetchPostsByIds(ids: PostId | PostId[]): Promise<Post[]> {
       // console.log("Need to find posts: ", ids)
 

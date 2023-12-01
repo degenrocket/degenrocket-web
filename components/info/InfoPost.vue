@@ -72,16 +72,21 @@
 
 <script setup lang="ts">
 import {usePostsStore} from '@/stores/usePostsStore'
+import {Post} from '@/helpers/interfaces';
 /* import {Post} from '@/helpers/interfaces'; */
 // New web3 actions are enabled by default if not disabled in .env
 const env = useRuntimeConfig()?.public
+const apiUrl: string = env?.apiURL
 const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true
 const enableNewWeb3ActionsReply: boolean = env?.enableNewWeb3ActionsReply === 'false'? false : true
+// Short URLs for web3 actions are enabled by default if not disabled in .env
+const enableShortUrlsForWeb3Actions: boolean = env?.enableShortUrlsForWeb3Actions === 'false'? false : true
+const shortUrlsLengthOfWeb3Ids: number = env?.shortUrlsLengthOfWeb3Ids ? Number(env?.shortUrlsLengthOfWeb3Ids) : 20
 const postsStore = usePostsStore()
 const params = useRoute().params
 const query = useRoute().query
 const {randomNumber} = useWeb3()
-const {isValidPost} = useUtils()
+const {isValidPost, isValidUrl} = useUtils()
 
 /* console.log("InfoPost is created") */
 
@@ -120,6 +125,50 @@ const updatePost = async (idSigUrl: string): Promise<void> => {
   postsStore.setCurrentPostId(idSigUrl)
 }
 
+// This function takes a full or short ID and returns a full ID, i.e.,
+// it converts a short ID into a full ID or returns an original ID.
+const standardizeId = async (id: string): Promise<string> => {
+  // Handle shortened URLs (id can be URL, ID, signature, short signature)
+  if (id && typeof (id) === 'string') {
+    
+    // A valid URL shouldn't be shortened
+    // so there is not need to check it.
+    if (isValidUrl(id)) {
+      return id
+    }
+
+    if (id.length === shortUrlsLengthOfWeb3Ids && enableShortUrlsForWeb3Actions) {
+      const fullIds = await getOrFetchFullIdsFromShortId(id)
+      if (Array.isArray(fullIds) && fullIds[0] && typeof(fullIds[0].signature) === "string") {
+        // TODO: handle if multiple full IDs match the short ID (collision)
+        return fullIds[0].signature
+      }
+    }
+  }
+  return id
+}
+
+const getOrFetchFullIdsFromShortId = async (shortId: string): Promise<Post[]> => {
+  // Option 1. Get full IDs from the local store (pinia)
+  const postsFromStore = postsStore.getPostsByShortId(shortId)
+  if (postsFromStore && postsFromStore[0] && typeof(postsFromStore[0].signature) === 'string') {
+    return postsFromStore
+  }
+
+  // Option 2. Fetch full IDs from the server.
+  if (!apiUrl) {return []}
+
+  const path: string = `${apiUrl}/api/short-id/search?id=${shortId}`
+
+  const {data, error} = await useFetch(path)
+
+  if (error.value) {
+    console.error(error.value)
+  }
+
+  return data.value
+}
+
 // Construct a search query to find a post in the database.
 // Posts can be fetched using id, signature, or url.
 let searchBy: string = ""
@@ -128,14 +177,14 @@ let searchBy: string = ""
 // params.id: domain.com/news/123 (id)
 // params.id: domain.com/news/0x123 (sig)
 if (params.id && typeof (params.id) === 'string') {
-  searchBy = params.id
+  searchBy = await standardizeId(params.id)
 
 // Examples:
 // query.p:   domain.com/news/?p=123 (id)
 // query.p:   domain.com/news/?p=0x123 (sig)
 // query.p:   domain.com/news/?p=https://abc.com/xyz (url)
 } else if (query.p && typeof (query.p) === 'string') {
-  searchBy = query.p
+  searchBy = await standardizeId(query.p)
 }
 
 await updatePost(searchBy)
@@ -195,8 +244,10 @@ useHead({
 // meaning that the component is destroyed and created again
 // when the key changes.
 watch(() => useRoute().query.p, async (newQueryP) => {
+  console.log("newQueryP:", newQueryP)
   if (newQueryP && typeof (newQueryP) === 'string') {
-    await updatePost(newQueryP)
+    const id = await standardizeId(newQueryP)
+    await updatePost(id)
   }
 })
 </script>
