@@ -244,7 +244,7 @@ useHead({
 // meaning that the component is destroyed and created again
 // when the key changes.
 watch(() => useRoute().query.p, async (newQueryP) => {
-  console.log("newQueryP:", newQueryP)
+  /* console.log("newQueryP:", newQueryP) */
   if (newQueryP && typeof (newQueryP) === 'string') {
     const id = await standardizeId(newQueryP)
     await updatePost(id)

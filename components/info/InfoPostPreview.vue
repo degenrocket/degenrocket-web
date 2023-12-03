@@ -1,5 +1,5 @@
 <template>
-  <div v-if="post">
+  <div v-if="post" class="overflow-auto overflow-wrap break-words">
     <div v-if="post.title" class="text-2xl my-1">
       {{post.title}}
     </div>

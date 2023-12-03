@@ -1,6 +1,6 @@
 <template>
   <div v-if="comment" class="ml-4 mt-2 mb-4 border-l-2 border-bgSecondary-light dark:border-bgSecondary-dark">
-    <div>
+    <div class="overflow-auto overflow-wrap break-words">
       <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
         <span v-if="comment.signer">
           <span v-if="showActionDetails">Author: </span>
