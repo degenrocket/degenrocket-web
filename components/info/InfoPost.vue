@@ -64,8 +64,13 @@
         @reply-submitted="replySubmitted"
       />
     </div>
-    <div v-else class="animate-pulse">
-      <ExtraSpinner />
+    <div v-else>
+      <div v-if="isErrorPostNotFound">
+        The post has not been found.
+      </div>
+      <div v-else class="animate-pulse">
+        <ExtraSpinner />
+      </div>
     </div>
   </div>
 </template>
@@ -87,6 +92,7 @@ const params = useRoute().params
 const query = useRoute().query
 const {randomNumber} = useWeb3()
 const {isValidPost, isValidUrl} = useUtils()
+let isErrorPostNotFound = ref<boolean>(false)
 
 /* console.log("InfoPost is created") */
 
@@ -119,7 +125,16 @@ const replySubmitted = async (target?: string | number | null) => {
 const updatePost = async (idSigUrl: string): Promise<void> => {
   // 1. Make sure that the post is in the store,
   //    otherwise fetch from server and save to store.
-  await postsStore.getOrFetchPostsByIds(idSigUrl)
+  const getOrFetchResult = await postsStore.getOrFetchPostsByIds(idSigUrl)
+
+  if (
+    'error' in getOrFetchResult?.[0] &&
+    getOrFetchResult?.[0]?.error === 'post has not been found'
+  ) {
+    isErrorPostNotFound.value = true
+  } else {
+    isErrorPostNotFound.value = false
+  }
   // 2. Set current post id, so the post can be displayed
   //    in the info section.
   postsStore.setCurrentPostId(idSigUrl)

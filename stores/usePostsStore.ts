@@ -423,7 +423,7 @@ export const usePostsStore = defineStore('postsStore', {
       return posts
     },
 
-    async getOrFetchPostsByIds(ids: PostId | PostId[]): Promise<Post[]> {
+    async getOrFetchPostsByIds(ids: PostId | PostId[]): Promise<Post[] | { error: string }[]> {
       // console.log("Need to find posts: ", ids)
 
       // Concat converts string or number into array
