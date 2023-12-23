@@ -11,8 +11,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "prod": "pm2 start ecosystem-prod.config.js",
-    "stage": "pm2 start ecosystem-stage.config.js",
+    "prod": "npm run build && pm2 start ecosystem-prod.config.js",
+    "stage": "npm run buld && pm2 start ecosystem-stage.config.js",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
