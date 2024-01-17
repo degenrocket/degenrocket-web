@@ -19,9 +19,9 @@
       <p>- Sign all comments and reactions with your Ethereum or Nostr private keys.</p>
       <p>- Never sign any messages that you don't understand.</p>
       <div>
-        - This forum is a part of a
+        - This forum is a part of the
         <a href="https://github.com/degenrocket" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
-          DegenRocket
+          Spasm
           <IconsRocket class="custom-icons" />
         </a>
         network.

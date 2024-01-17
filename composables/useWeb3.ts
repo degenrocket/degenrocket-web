@@ -345,7 +345,8 @@ export const useWeb3 = () => {
       // console.log("path:", path)
 
       const data = {
-        dmpEvent: {
+        // dmpEvent: {
+        unknownEvent: {
           signedString,
           signature,
           signer: signerAddress
@@ -404,7 +405,8 @@ export const useWeb3 = () => {
 
       const path = `${apiURL}/api/submit/`
 
-      const data = { nostrEvent }
+      const data = { unknownEvent: nostrEvent }
+      // const data = { nostrEvent }
 
       const res: string | boolean | null | undefined = await $fetch(path, {
         method: 'POST',
