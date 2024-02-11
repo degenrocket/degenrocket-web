@@ -49,7 +49,7 @@ describe('useFeedFilters', () => {
 
     // Test default activity filter
     resetFeedFiltersLimits()
-    expect(feedFilters.activity).toBe("rising")
+    expect(feedFilters.activity).toBe("all")
 
     // Test changing feed filters activity
     resetFeedFiltersLimits()

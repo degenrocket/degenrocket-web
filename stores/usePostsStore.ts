@@ -2,6 +2,10 @@ import {defineStore} from 'pinia'
 import {useFetch} from '#app'
 import {Post, PostId} from '@/helpers/interfaces'
 import {FeedFilters} from '@/helpers/interfaces'
+
+import {useProfilesStore} from '@/stores/useProfilesStore'
+// const profilesStore = useProfilesStore()
+
 const {feedFilters} = useFeedFilters()
 const {logPosts, logTime} = useLog()
 const {hasValue} = useUtils()
@@ -97,6 +101,15 @@ export const usePostsStore = defineStore('postsStore', {
       this.displayPosts(filters)
       this.fetchingPostsByFilters = false
 
+      // By this time almost all addresses from newly fetched
+      // posts and comments should already be in the list of
+      // addresses that should be checked for profile info
+      // (e.g., username, about, pfp), so we can call the
+      // global update function.
+      const profilesStore = useProfilesStore()
+
+      profilesStore.updateAllProfiles()
+
       // console.log(logTime(), "\nAll fetching is finished, displayFilters updated", "\n=======/")
     },
 
@@ -156,6 +169,12 @@ export const usePostsStore = defineStore('postsStore', {
 
       this.allPosts = sortedPosts
       // console.log("allPosts after saving: ", logPosts(this.allPosts))
+
+      // Add addresses to a list of addresses that should be checked
+      // for profile info (e.g. usernames) during an update function.
+      const profilesStore = useProfilesStore()
+      profilesStore.addAddressesFromPosts(this.allPosts)
+
       return true
     },
 
@@ -472,6 +491,11 @@ export const usePostsStore = defineStore('postsStore', {
 
     async updatePostComments(sigUrlIpfs: string) {
       this.postComments = await this.fetchCommentsBySigUrlIpfs(sigUrlIpfs)
+
+      // Add addresses to a list of addresses that should be checked
+      // for profile info (e.g. usernames) during an update function.
+      const profilesStore = useProfilesStore()
+      profilesStore.addAddressesFromPosts(this.postComments)
     }
   }
 })

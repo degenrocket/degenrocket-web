@@ -1,4 +1,6 @@
+import {bech32} from "bech32"
 import {Post} from "@/helpers/interfaces"
+import DOMPurify from 'dompurify';
 
 export const useUtils = () => {
   // Filter out undefined, null, 0, '', false, NaN, {}, []
@@ -198,11 +200,89 @@ export const useUtils = () => {
     }
   }
 
+  // The Set data structure only stores unique values.
+  // When the array is converted into a Set, any duplicate values
+  // are automatically removed. Then, the spread operator (...)
+  // is used to convert the Set back into an array 1.
+  const removeDuplicatesFromArray = (
+    array: (string | number)[]
+  ): (string | number)[] => {
+    if (!Array.isArray(array)) {
+      return []
+    }
+    return [...new Set(array)];
+  }
+
+  const removeNonStringValuesFromArray = (
+    array: any[]
+  ): (string)[] => {
+    let arrayOfStrings: string[] = []
+  
+    if (!Array.isArray(array)) {
+      return []
+    }
+
+    array.forEach((value) => {
+      if (value && typeof(value) === "string") {
+        arrayOfStrings.push(value)
+      }
+    })
+
+    return arrayOfStrings
+  }
+
+  const emptyAllNestedArraysInsideObject = (obj: any) => {
+    for (let key in obj) {
+      if (Array.isArray(obj[key])) {
+        obj[key] = [];
+      } else if (typeof obj[key] === 'object') {
+        emptyAllNestedArraysInsideObject(obj[key]);
+      }
+    }
+    return obj
+  }
+
+  const pushToArrayIfValueIsUnique = (array: any[], item: any) => {
+    if (!Array.isArray(array)) return
+    if (!array.includes(item)) {
+      array.push(item);
+    }
+  }
+
+  const sanitizeObjectValuesWithDompurify = (obj: any) => {
+    if (typeof(obj) !== "object") return
+
+    Object.keys(obj).forEach(key => {
+      if (typeof obj[key] === 'string') {
+        obj[key] = DOMPurify.sanitize(obj[key]);
+
+      } else if (typeof obj[key] === 'object') {
+        sanitizeObjectValuesWithDompurify(obj[key]);
+
+      } else if (Array.isArray(obj[key])) {
+        obj[key].forEach((item: any, index: number) => {
+          if (typeof item === 'string') {
+            obj[key][index] = DOMPurify.sanitize(item);
+
+          } else if (typeof item === 'object') {
+            sanitizeObjectValuesWithDompurify(item);
+          }
+        });
+      }
+    });
+  }
+
+
   return {
     hasValue,
     isValidPost,
     areValidPosts,
     isValidUrl,
     copyToClipboard,
+    removeDuplicatesFromArray,
+    removeNonStringValuesFromArray,
+    emptyAllNestedArraysInsideObject,
+    pushToArrayIfValueIsUnique,
+    sanitizeObjectValuesWithDompurify
   }
 }

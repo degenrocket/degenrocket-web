@@ -47,17 +47,33 @@
       link
     </span>
 
-
     <div v-if="post.author" class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">
       Author: {{post.author}}
     </div>
     <div v-if="post.signer" class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">
       <span>Author: </span>
       <ExtraBlockies :seed="post.signer" :scale="2" class="inline-block mr-1" />
-      <nuxt-link :to="`/authors/${post.signer}`" class="text-colorPrimary-light dark:text-colorPrimary-dark hover:underline">
-        <span class="signer">
-          {{post.signer.slice(0, 6)}}...{{post.signer.slice(-4)}}
-        </span>
+      <nuxt-link :to="`/authors/${post.signer}`"
+        class="text-colorPrimary-light dark:text-colorPrimary-dark hover:underline">
+
+        <!-- client-only tags solve hydration mismatch warning -->
+        <client-only>
+            <span
+              v-if="getMetadataByAddressNostr(post.signer, 'username') && getMetadataByAddressNostr(post.signer, 'username') !== 'none'"
+              class="ml-1"
+            >
+              <span class="">
+                {{ getMetadataByAddressNostr(post.signer, 'username').slice(0,40) }}
+              </span>
+              <span class="text-sm">
+                (Nostr)
+              </span>
+            </span>
+
+          <span v-else class="">
+            {{post.signer.slice(0, 6)}}...{{post.signer.slice(-4)}}
+          </span>
+        </client-only>
       </nuxt-link>
 
       <ExtraAddressIcons
@@ -173,6 +189,10 @@
 <script setup lang="ts">
 import {marked} from 'marked'
 import {Post} from '@/helpers/interfaces'
+import { storeToRefs } from 'pinia'
+import {useProfilesStore} from '@/stores/useProfilesStore'
+const profilesStore = useProfilesStore()
+const {getMetadataByAddressNostr} = storeToRefs(profilesStore)
 const {sliceAddress, randomNumber} = useWeb3()
 const env = useRuntimeConfig()?.public
 const enableMarkdownInPosts: boolean = env?.enableMarkdownInPosts === 'true'? true : false

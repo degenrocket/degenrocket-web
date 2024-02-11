@@ -1,15 +1,31 @@
 <template>
   <div class="p-2">
-    <div>
-      <ExtraBlockies v-if="author" :seed="author" :scale="10" />
-    </div>
+    <client-only>
+      <div
+        v-if="getMetadataByAddressNostr(author, 'picture') && getMetadataByAddressNostr(author, 'picture') !== 'none'"
+        class="h-20 overflow-hidden"
+      >
+        <img
+          :src="getMetadataByAddressNostr(author, 'picture') as string"
+          alt="Nostr profile picture"
+          class="h-20 object-cover"
+        />
+      </div>
+
+      <div
+        v-else
+        class="h-20 overflow-hidden"
+      >
+        <ExtraBlockies v-if="author" :seed="author" :scale="10" />
+      </div>
+    </client-only>
 
     <div class="mt-2">
       <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
-        Author:
+        Address:
       </div>
       <span class="overflow-auto overflow-wrap break-words">
-      {{ author }}
+        {{ author }}
       </span>
       <ExtraAddressIcons
         v-if="author"
@@ -20,6 +36,50 @@
         :showExternalWebsite="true"
       />
     </div>
+
+    <!-- client-only tags solve hydration mismatch warning -->
+    <client-only>
+      <div v-if="getMetadataByAddressNostr(author, 'username') && getMetadataByAddressNostr(author, 'username') !== 'none'">
+        <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+          Name:
+        </div>
+        <span class="text-xl font-bold">
+          {{ getMetadataByAddressNostr(author, 'username') }}
+        </span>
+        <span class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+          (non-unique Nostr name)
+        </span>
+      </div>
+
+      <div v-if="getMetadataByAddressNostr(author, 'about') && getMetadataByAddressNostr(author, 'about') !== 'none'">
+        <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+          About:
+        </div>
+        <span class="">
+          {{ getMetadataByAddressNostr(author, 'about') }}
+        </span>
+      </div>
+
+      <div v-if="getMetadataByAddressNostr(author, 'website') && getMetadataByAddressNostr(author, 'website') !== 'none'">
+        <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+          Website:
+        </div>
+        <span class="">
+          {{ getMetadataByAddressNostr(author, 'website') }}
+        </span>
+      </div>
+
+      <!-- TODO: messages
+      <div v-if="getMessagesByAddressNostr(author) && hasValue(getMessagesByAddressNostr(author))">
+        <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+          Messages:
+        </div>
+        <span class="">
+          {{ getMessagesByAddressNostr(author) }}
+        </span>
+      </div>
+      -->
+    </client-only>
 
     <div class="mt-4 mb-12">
       All actions:
@@ -45,10 +105,23 @@
 
 <script setup lang="ts">
 import {Post} from '@/helpers/interfaces';
+
+import { storeToRefs } from 'pinia'
+import {useProfilesStore} from '@/stores/useProfilesStore'
+const profilesStore = useProfilesStore()
+const {
+  getMetadataByAddressNostr,
+  // getMessagesByAddressNostr
+} = storeToRefs(profilesStore)
+
 const { id } = useRoute().params
 const author = id
 
-const {areValidPosts, copyToClipboard} = useUtils()
+const {
+  areValidPosts,
+  // hasValue
+} = useUtils()
+
 const apiURL = useRuntimeConfig()?.public?.apiURL
 
 const showActionDetails = ref(false)
@@ -61,7 +134,6 @@ let isError = ref<boolean>(false)
 const path: string = `${apiURL}/api/authors/${author}`
 
 const {data, error} = await useFetch(path)
-/* console.log("data:", data) */
 
 if (error.value) {
   isError.value = true
@@ -76,6 +148,29 @@ const toggleShowActionDetails = (): void => {
     ? 'hide'
     : 'show'
 }
+
+/**
+  Nuxt.js uses server-side rendering (SSR) by default,
+  so JavaScript code is initially run on the server,
+  not in the browser. Since WebSockets are a browser API,
+  they're not available on the server.
+  To resolve this issue, the process.client property is used
+  to conditionally run code only on the client:
+*/
+
+// Add a signer address to a list of addresses that should be
+// updated once everything else is loaded.
+// The update will fetch profiles associated with these addresses.
+if (process.client) {
+  if (
+    author && 
+    typeof(author) === "string"
+  ) {
+    profilesStore.addAddress(author)
+    profilesStore.updateAllProfiles()
+  }
+}
+
 </script>
 
 <style scoped>

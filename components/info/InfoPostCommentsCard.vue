@@ -7,7 +7,26 @@
           <ExtraBlockies :seed="comment.signer" :scale="2" class="inline-block mr-1" />
           <nuxt-link :to="`/authors/${comment.signer}`"
             class="text-colorPrimary-light dark:text-colorPrimary-dark hover:underline">
-            {{sliceAddress(comment.signer, 6, 4)}}
+
+          <!-- client-only tags solve hydration mismatch warning -->
+          <client-only>
+            <span
+              v-if="getMetadataByAddressNostr(comment.signer, 'username') && getMetadataByAddressNostr(comment.signer, 'username') !== 'none'"
+              class="ml-1"
+            >
+              <span class="">
+                {{ getMetadataByAddressNostr(comment.signer, 'username').slice(0,40) }}
+              </span>
+              <span class="text-sm">
+                (Nostr)
+              </span>
+            </span>
+
+            <span v-else class="ml-1" >
+              {{sliceAddress(comment.signer, 6)}}
+            </span>
+          </client-only>
+
           </nuxt-link>
           <ExtraAddressIcons
             v-if="comment.signer"
@@ -63,9 +82,9 @@
       </div>
 
       <div>
-        <h4 v-if="comment.title" class="font-bold ml-1">
+        <h6 v-if="comment.title" class="font-bold">
           {{comment.title}}
-        </h4>
+        </h6>
       </div>
 
       <div v-if="comment.text" class="whitespace-pre-line my-1">
@@ -156,6 +175,13 @@
 <script setup lang="ts">
 import {marked} from 'marked'
 import {Post, PostId} from '@/helpers/interfaces'
+
+// Nostr usernames
+import { storeToRefs } from 'pinia'
+import {useProfilesStore} from '@/stores/useProfilesStore'
+const profilesStore = useProfilesStore()
+const { getMetadataByAddressNostr } = storeToRefs(profilesStore)
+
 const {sliceAddress, randomNumber} = useWeb3()
 const env = useRuntimeConfig()?.public
 const enableMarkdownInComments = env?.enableMarkdownInComments === 'true'? true : false
@@ -215,6 +241,18 @@ if (enableEmbedIframeTagsInComments) {
     const arrayOfArraysOfTextAndTags: string[][] = getArrayOfArraysOfTextAndTags(props?.comment)
     arrayOfTextChunks = arrayOfArraysOfTextAndTags[0]
     arrayOfHtmlTags = arrayOfArraysOfTextAndTags[1]
+  }
+}
+
+// Add addresses to a list of addresses that should be checked
+// for profile info (e.g. usernames) during an update function.
+if (process.client) {
+  if (
+    props?.comment &&
+    'signer' in props?.comment &&
+    typeof(props?.comment.signer) === "string"
+  ) {
+    profilesStore.addAddress(props?.comment?.signer)
   }
 }
 </script>

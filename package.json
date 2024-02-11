@@ -21,6 +21,7 @@
   "devDependencies": {
     "@nuxtjs/color-mode": "^3.2.0",
     "@nuxtjs/tailwindcss": "^6.2.0",
+    "@types/dompurify": "^3.0.5",
     "@vite-pwa/nuxt": "^0.0.7",
     "@vitest/coverage-c8": "^0.31.0",
     "nuxt": "^3.4.2",
@@ -32,9 +33,11 @@
   "dependencies": {
     "@pinia/nuxt": "^0.4.6",
     "bech32": "^2.0.0",
+    "dompurify": "^3.0.8",
     "dotenv": "^16.3.1",
     "ethers": "^6.1.0",
     "marked": "^9.0.1",
+    "nostr-relaypool": "^0.6.30",
     "nostr-tools": "^1.17.0",
     "pinia": "^2.0.30",
     "qrcode.vue": "^3.4.1",

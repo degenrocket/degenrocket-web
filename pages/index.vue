@@ -70,6 +70,11 @@
 
 <script setup lang="ts">
 import {Post} from '@/helpers/interfaces';
+
+// Nostr usernames
+import {useProfilesStore} from '@/stores/useProfilesStore'
+const profilesStore = useProfilesStore()
+
 const {showFeed} = useFeed()
 const {areValidPosts} = useUtils()
 const apiURL = useRuntimeConfig()?.public?.apiURL
@@ -106,6 +111,28 @@ const toggleShowActionDetails = (): void => {
   showActionDetailsText.value = showActionDetailsText.value === 'show'
     ? 'hide'
     : 'show'
+}
+
+// Add addresses to a list of addresses that should be checked
+// for profile info (e.g. usernames) during an update function.
+if (process.client) {
+  if (
+    comments && 
+    // comments is ref, so it's an object, not an array
+    typeof(comments) === "object"
+  ) {
+    profilesStore.addAddressesFromPosts(comments)
+
+    // TODO: how to wait until all comments are fetched
+    // and only then call an update function?
+    // Meanwhile, added a delay with setTimeout.
+    setTimeout(() => {
+      profilesStore.updateAllProfiles()
+    }, 2000)
+    // Another approach is to use setInterval to check if
+    // comments have been downloaded every 1 sec for 10 secs,
+    // add execute the updateAllProfiles() after that.
+  }
 }
 </script>
 

@@ -66,6 +66,19 @@ export default defineNuxtConfig({
       enableNewNostrActionsAll: process.env.ENABLE_NEW_NOSTR_ACTIONS_ALL,
       enableNewEthereumActionsAll: process.env.ENABLE_NEW_ETHEREUM_ACTIONS_ALL,
 
+      // Nostr network
+      enableNostrNetwork: process.env.ENABLE_NOSTR_NETWORK,
+      enableNostrNetworkFetchProfiles: process.env.ENABLE_NOSTR_NETWORK_FETCH_PROFILES,
+      enableNostrNetworkFetchPreferredRelays: process.env.ENABLE_NOSTR_NETWORK_FETCH_PREFERRED_RELAYS,
+      enableNostrNetworkFetchMessages: process.env.ENABLE_NOSTR_NETWORK_FETCH_MESSAGES,
+      enableNostrNetworkUsePreferredRelays: process.env.ENABLE_NOSTR_NETWORK_USE_PREFERRED_RELAYS,
+      enableNostrDisplayProfilesUsernames: process.env.ENABLE_NOSTR_DISPLAY_PROFILES_USERNAMES,
+      enableNostrDisplayProfilesAbouts: process.env.ENABLE_NOSTR_DISPLAY_PROFILES_ABOUTS,
+      enableNostrDisplayProfilesWebsites: process.env.ENABLE_NOSTR_DISPLAY_PROFILES_WEBSITES,
+      enableNostrDisplayProfilesPictures: process.env.ENABLE_NOSTR_DISPLAY_PROFILES_PICTURES,
+      enableNostrDisplayProfilesMessages: process.env.ENABLE_NOSTR_DISPLAY_PROFILES_MESSAGES,
+      nostrDefaultRelays: process.env.NOSTR_DEFAULT_RELAYS,
+
       // Markdown
       enableMarkdownInPosts: process.env.ENABLE_MARKDOWN_IN_POSTS,
       enableMarkdownInComments: process.env.ENABLE_MARKDOWN_IN_COMMENTS,

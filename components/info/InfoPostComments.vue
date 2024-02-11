@@ -48,7 +48,7 @@ const replySubmitted = (target?: string | number | null) => {
 const showActionDetails = ref(false)
 const showActionDetailsText = ref('show')
 
-let comments = reactive<Post[]>([])
+// let comments = reactive<Post[]>([])
 
 let isError = ref<boolean>(false)
 

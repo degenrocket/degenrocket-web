@@ -17,7 +17,25 @@
           class="nuxt-link text-colorNotImportant-light dark:text-colorNotImportant-dark"
         >
           <ExtraBlockies :seed="post.signer" :scale="2" class="inline-block" />
-          {{sliceAddress(post.signer, 6)}}
+
+          <!-- client-only tags solve hydration mismatch warning -->
+          <client-only>
+            <span
+              v-if="getMetadataByAddressNostr(post.signer, 'username') && getMetadataByAddressNostr(post.signer, 'username') !== 'none'"
+              class="ml-1"
+            >
+              <span class="">
+                {{ getMetadataByAddressNostr(post.signer, 'username').slice(0,40) }}
+              </span>
+              <span class="text-sm">
+                (Nostr)
+              </span>
+            </span>
+
+          <span v-else class="ml-1" >
+            {{sliceAddress(post.signer, 6)}}
+          </span>
+          </client-only>
         </nuxt-link>
       </span>
       <span v-if="post.tickers"
@@ -110,6 +128,13 @@
 
 <script setup lang="ts">
 import {Post, PostId} from '@/helpers/interfaces';
+
+// Nostr usernames
+import { storeToRefs } from 'pinia'
+import {useProfilesStore} from '@/stores/useProfilesStore'
+const profilesStore = useProfilesStore()
+const { getMetadataByAddressNostr } = storeToRefs(profilesStore)
+
 // Short URLs for web3 actions are enabled by default if not disabled in .env
 const env = useRuntimeConfig()?.public
 const enableShortUrlsForWeb3Actions: boolean = env?.enableShortUrlsForWeb3Actions === 'false'? false : true
@@ -169,6 +194,18 @@ onUnmounted(() => {
 
 const postClicked = () => {
   hideFeed()
+}
+
+// Add a signer address to a list of addresses that should be
+// updated once everything else is loaded.
+// The update will fetch profiles associated with these addresses.
+if (process.client) {
+  if (
+    props?.post?.signer && 
+    typeof(props.post.signer) === "string"
+  ) {
+    profilesStore.addAddress(props.post.signer)
+  }
 }
 
 </script>

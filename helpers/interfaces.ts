@@ -94,7 +94,9 @@ type SpasmTitleTag = ["spasm_title", string]
 
 type SpasmLicenseTag = ["license", Web3MessageLicense]
 
-type OtherTag = any[]
+// type OtherTag = any[]
+
+type AnyTag = any[]
 
 export interface NostrEvent {
   id?: string,
@@ -103,5 +105,89 @@ export interface NostrEvent {
   kind: number,
   pubkey: string,
   sig?: string,
-  tags: (SpasmTargetTag | SpasmActionTag | SpasmCategoryTag | SpasmTitleTag | SpasmLicenseTag | OtherTag)[],
+  tags?: (SpasmTargetTag | SpasmActionTag | SpasmCategoryTag | SpasmTitleTag | SpasmLicenseTag | AnyTag)[],
 }
+
+export interface NostrEventUnsigned {
+  id?: string
+  content: string
+  created_at: number
+  kind: number
+  pubkey: string
+  tags?: AnyTag[]
+}
+
+export interface NostrEventSignedOpened extends NostrEvent {
+  id: string
+  sig: string
+}
+
+export type DataToExtractFromNostrEventKind0 = "username" | "about" | "website" | "picture"
+
+export type DataToExtractFromNostrEventKind10002 = "relays" | "preferredRelays" | "preferred-relays"
+
+export type DataToExtractFromNostrEvent = DataToExtractFromNostrEventKind0 | DataToExtractFromNostrEventKind10002
+
+// For communication with Nostr relays
+export class ProfileEthereum {
+  // TODO EnsEvent
+  ens: any[];
+
+  constructor() {
+    this.ens = []
+  }
+}
+
+export class ProfileNostr {
+  events: {
+    kind: Record<NostrEventKind, NostrEventSignedOpened[]>,
+  };
+  relays: {
+    checkedRelays: {
+      checkedForEventsOfKind: Record<NostrEventKind, string[]>,
+      hasEventsOfKind: Record<NostrEventKind, string[]>,
+    }
+  };
+
+  constructor() {
+    this.events = {
+      kind: {
+        any: [],
+        0: [],
+        10002: [],
+        1: []
+      }
+    };
+    this.relays = {
+      checkedRelays: {
+        checkedForEventsOfKind: {
+          any: [],
+          0: [],
+          10002: [],
+          1: []
+        },
+        hasEventsOfKind: {
+          any: [],
+          0: [],
+          10002: [],
+          1: []
+        },
+      }
+    };
+  }
+}
+
+export class ProfileSpasm {
+  id: string;
+  ethereum: ProfileEthereum;
+  nostr: ProfileNostr;
+
+  constructor(id?: string) {
+    this.id = id || "";
+    this.ethereum = new ProfileEthereum();
+    this.nostr = new ProfileNostr();
+  }
+}
+
+export type NostrEventKind = 0 | 10002 | 1 | "any"
+

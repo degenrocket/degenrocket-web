@@ -219,3 +219,94 @@ describe('areValidPosts', () => {
     expect(result).toBe(false);
   });
 })
+
+const { sanitizeObjectValuesWithDompurify } = useUtils()
+
+describe('sanitizeObjectValuesWithDompurify', () => {
+  test('should return an object without malicious code', () => {
+// DOMPurify.sanitize('<img src=x onerror=alert(1)//>'); // becomes <img src="x">
+// DOMPurify.sanitize('<svg><g/onload=alert(2)//<p>'); // becomes <svg><g></g></svg>
+// DOMPurify.sanitize('<p>abc<iframe//src=jAva&Tab;script:alert(3)>def</p>'); // becomes <p>abc</p>
+// DOMPurify.sanitize('<math><mi//xlink:href="data:x,<script>alert(4)</script>">'); // becomes <math><mi></mi></math>
+// DOMPurify.sanitize('<TABLE><tr><td>HELLO</tr></TABL>'); // becomes <table><tbody><tr><td>HELLO</td></tr></tbody></table>
+// DOMPurify.sanitize('<UL><li><A HREF=//google.com>click</UL>'); // becomes <ul><li><a href="//google.com">click</a></li></ul>
+    const objectWithMaliciousCode = {
+      kind: 1,
+      created_at: 1337,
+      tags: [
+        [
+          "one",
+          "<img src=x onerror=alert(1)//>"
+        ],
+        [
+          "two",
+          "<svg><g/onload=alert(2)//<p>"
+        ],
+        [
+          "license",
+          "SPDX-License-Identifier: CC0-1.0"
+        ]
+      ],
+      content: "Some malicious content like <TABLE><tr><td>HELLO</tr></TABL>",
+      pubkey: "0x123",
+      object: {
+        string: "<UL><li><A HREF=//google.com>click</UL>",
+        array: [
+          "<p>abc<iframe//src=jAva&Tab;script:alert(3)>def</p>",
+          '<math><mi//xlink:href="data:x,<script>alert(4)</script>">'
+        ]
+      },
+    };
+
+    const objectWithoutMaliciousCode = {
+      kind: 1,
+      created_at: 1337,
+      tags: [
+        [
+          "one",
+          '<img src="x">'
+        ],
+        [
+          "two",
+          "<svg><g></g></svg>"
+        ],
+        [
+          "license",
+          "SPDX-License-Identifier: CC0-1.0"
+        ]
+      ],
+      content: "Some malicious content like <table><tbody><tr><td>HELLO</td></tr></tbody></table>",
+      pubkey: "0x123",
+      object: {
+        string: '<ul><li><a href="//google.com">click</a></li></ul>',
+        array: [
+          "<p>abc</p>",
+          '<math><mi></mi></math>'
+        ]
+      },
+    };
+
+    /**
+     * We should create a deep copy of an object using
+     * JSON.parse and JSON.stringify, e.g.:
+     * const input = JSON.parse(JSON.stringify(validDmpEvent));
+     */
+    const input = JSON.parse(JSON.stringify(objectWithMaliciousCode))
+    const output = JSON.parse(JSON.stringify(objectWithoutMaliciousCode))
+
+    // Currently disabled.
+    // sanitizeObjectValuesWithDompurify(input)
+
+    // expect(input).toEqual(output);
+
+    // DOMPurify does work, I've tested it manually, but
+    // it gives an error when running 'npm test'.
+    // Error:
+    // default.sanitize is not a function
+    // The error suggests that the DOMPurify instance is not
+    // initialized correctly, e.g. because the `window` object
+    // is not available in the testing environment.
+    // TODO: investigate and write tests for DOMPurify
+
+  });
+})
