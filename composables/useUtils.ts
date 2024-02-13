@@ -1,4 +1,3 @@
-import {bech32} from "bech32"
 import {Post} from "@/helpers/interfaces"
 import DOMPurify from 'dompurify';
 
@@ -59,6 +58,30 @@ export const useUtils = () => {
     }
 
     return true
+  }
+
+  const isArrayOfStrings= (array: any): boolean => {
+    if (!Array.isArray(array)) return false
+    if (
+      array.length > 0 &&
+      array.every(element => typeof(element) === "string")
+    ) {
+      return true
+    }
+    return false
+  }
+
+  const isArrayOfStringsWithValues = (array: any): boolean => {
+    if (!Array.isArray(array)) return false
+    if (!hasValue(array)) return false
+    if (
+      array.length > 0 &&
+      array.every(element => typeof(element) === "string") &&
+      array.every(element => hasValue(element))
+    ) {
+      return true
+    }
+    return false
   }
 
   // const post1 = {} // false
@@ -242,11 +265,59 @@ export const useUtils = () => {
     return obj
   }
 
+  const deleteMatchingValuesFromObject = (obj1: any, obj2: any) => {
+    for (let key in obj1) {
+      if (Array.isArray(obj1[key]) && Array.isArray(obj2[key])) {
+        obj1[key] = obj1[key].filter((val: any) => !obj2[key].includes(val));
+      } else if (typeof obj1[key] === 'object' && typeof obj2[key] === 'object') {
+        deleteMatchingValuesFromObject(obj1[key], obj2[key]);
+      }
+      // // Additional logic for handling booleans and strings
+      // else if ((typeof obj1[key] === 'boolean' || typeof obj1[key] === 'string') &&
+      //          (typeof obj2[key] === 'boolean' || typeof obj2[key] === 'string')) {
+      //   // Define behavior for booleans and strings here
+      //   // If you want to delete the value from obj1 if it matches obj2, you could do something like:
+      //   if (obj1[key] === obj2[key]) {
+      //     delete obj1[key];
+      //   }
+      // }
+    }
+    return obj1;
+  };
+
   const pushToArrayIfValueIsUnique = (array: any[], item: any) => {
     if (!Array.isArray(array)) return
     if (!array.includes(item)) {
       array.push(item);
     }
+  }
+
+/**
+ * In JavaScript it's common to create shallow copies using:
+ * let testPost = { ...validPost };
+ * let testPost = Object.assign({}, validPost);
+ * These methods often won't satisfy the needs, because a
+ * shallow copy means creating a new object and copying over
+ * all the properties from the original object. However, if
+ * the property value is a reference to another object
+ * (like an array or another object), the new object will still
+ * hold a reference to the original object, not a copy of it.
+ * So, if you modify the nested object in the new object,
+ * it will also modify the original object.
+ * Another use case is console logging ref objects from e.g.
+ * pinia store, which will be logged as proxy, so we won't know
+ * the values of such objects on the moment of execution, but
+ * we will rather get the final states of such objects.
+ * Making a deep copy of an object allows us to console log
+ * the state of the object at the moment of execution, e.g.:
+ * console.log(deepCopyOfObject(object))
+ * The deep copy of an object can be created using JSON.parse
+ * and JSON.stringify, e.g.:
+ * const copyOfObject = JSON.parse(JSON.stringify(object));
+ */
+  const deepCopyOfObject = (obj: any) => {
+    if (!obj || typeof(obj) !== "object") return {}
+    return JSON.parse(JSON.stringify(obj))
   }
 
   const sanitizeObjectValuesWithDompurify = (obj: any) => {
@@ -275,6 +346,8 @@ export const useUtils = () => {
 
   return {
     hasValue,
+    isArrayOfStrings,
+    isArrayOfStringsWithValues,
     isValidPost,
     areValidPosts,
     isValidUrl,
@@ -282,7 +355,9 @@ export const useUtils = () => {
     removeDuplicatesFromArray,
     removeNonStringValuesFromArray,
     emptyAllNestedArraysInsideObject,
+    deleteMatchingValuesFromObject,
     pushToArrayIfValueIsUnique,
+    deepCopyOfObject,
     sanitizeObjectValuesWithDompurify
   }
 }

@@ -182,10 +182,14 @@ import {
 
 const {
   hasValue,
+  isArrayOfStrings,
+  // isArrayOfStringsWithValues,
   removeDuplicatesFromArray,
   removeNonStringValuesFromArray,
-  emptyAllNestedArraysInsideObject,
+  // emptyAllNestedArraysInsideObject,
+  deleteMatchingValuesFromObject,
   pushToArrayIfValueIsUnique,
+  deepCopyOfObject,
   sanitizeObjectValuesWithDompurify
 } = useUtils()
 
@@ -199,23 +203,34 @@ const {
 interface Addresses {
   foundNothing: string[],
   foundSomething: string[],
-  toBeCheckedFor: {
-    ethereum: {
-      ens: string[],
-    },
-    nostr: {
-      relays: {
-        default: string[],
-        defaultExtended: string[],
-      },
-      kind: {
-        any: string[],
-        0: string[],
-        10002: string[],
-        1: string[],
-      }
-    }
-  }
+  toBeCheckedFor: Queue
+}
+
+// List of addresses to be checked for:
+interface Queue {
+  ethereum: QueueEthereum,
+  nostr: QueueNostr,
+}
+
+interface QueueEthereum {
+  ens: string[],
+}
+
+interface QueueNostr {
+  relays: QueueNostrRelays,
+  kind: QueueNostrKinds
+}
+
+interface QueueNostrRelays {
+    default: string[],
+    defaultExtended: string[],
+}
+
+interface QueueNostrKinds {
+  any: string[],
+  0: string[],
+  10002: string[],
+  1: string[],
 }
 
 export interface ProfilesState {
@@ -497,6 +512,7 @@ actions: {
     // console.log("env this.addresses.toBeCheckedFor.nostr.relays.default:", this.addresses.toBeCheckedFor.nostr.relays.default)
 
     // const time = new Date(Date.now()).toISOString();
+    // console.log(time, "addAddress called for:", address)
 
     if (!hasValue(address)) return
     if (typeof(address) !== "string") return
@@ -570,7 +586,6 @@ actions: {
               addressProfile?.nostr?.events?.kind?.[0]?.length === 0
             )
           ) {
-            // console.log("pushing address for kind[0]:", address)
             this.addresses.toBeCheckedFor.nostr.kind[0].push(address)
           }
         }
@@ -659,7 +674,11 @@ actions: {
     forceUpdate: boolean = false
   ): Promise<void> {
     // const time = new Date(Date.now()).toISOString();
-    // console.log(time, "updateAllProfiles called")
+    // console.log(
+    //   time,
+    //   "updateAllProfiles called for deepCopyOfObject(this.addresses):",
+    //   deepCopyOfObject(this.addresses)
+    // )
 
     // Return early if the update process is already running
     // to avoid concurrent execution, i.e., to prevent sending
@@ -670,6 +689,27 @@ actions: {
     }
 
     this.isUpdatingProfiles = true
+
+    /**
+     * We need to make a deep copy of the object which contains
+     * all the lists of the addresses that have to be checked
+     * for profile info before executing this function,
+     * otherwise new addresses can be concurrently added to the
+     * list while this function is still executing, which will
+     * mess up the logic.
+     * We then should pass the deep copy of this object to all
+     * the functions to make sure that only the addresses that
+     * have been in the lists at the start of this global update
+     * function are being worked on.
+     * At the end of the function, we can clean the current state
+     * queue from addresses that have been checked during this
+     * round of update.
+     * The deep copy is necessary to make sure that we don't
+     * change the original state queue (this.addresses).
+    */
+    const queue: Queue = deepCopyOfObject(
+      this.addresses.toBeCheckedFor
+    )
 
     if (
       protocols &&
@@ -686,17 +726,23 @@ actions: {
       protocols.includes("nostr") &&
       this.enableNostrNetwork
     ) {
-      this.updateAllProfilesNostr(updateType, forceUpdate)
+      this.updateAllProfilesNostr(queue, updateType, forceUpdate)
     }
 
     this.isUpdatingProfiles = false
   },
 
   async updateAllProfilesNostr(
+    queue: Queue | false = false,
     // updateType: UpdateType[] = ["username", "relays", "messages"],
     updateType: UpdateType[] = ["username", "relays"],
     forceUpdate: boolean = false
   ): Promise<void> {
+    if (!queue || !(hasValue(queue?.nostr?.kind))) {
+      // console.log("The Nostr queue is empty, aborting...")
+      return
+    }
+
     // const time = new Date(Date.now()).toISOString();
 
     if (this.isUpdatingProfilesNostr) {
@@ -723,18 +769,16 @@ actions: {
 
     // Get all relays
     const defaultRelays: string[] =
-      this.addresses.toBeCheckedFor.nostr.relays.default
+      queue.nostr.relays.default
 
-    // console.log(`
-    //   this.addresses.toBeCheckedFor.nostr.kind before checking for kinds.,
-    //   kind[0]`,
-    //   this.addresses.toBeCheckedFor.nostr.kind[0], `
-    //   kind[10002]`,
-    //   this.addresses.toBeCheckedFor.nostr.kind[10002], `
-    //   kind[1]`,
-    //   this.addresses.toBeCheckedFor.nostr.kind[1], `
-    //   kind['any']`,
-    //   this.addresses.toBeCheckedFor.nostr.kind['any'],
+    // console.log(
+    //   "deep copy of this.address.toBeCheckedFor.nostr.kind before checking for kinds:",
+    //   deepCopyOfObject(this.addresses.toBeCheckedFor.nostr.kind)
+    // )
+
+    // console.log(
+    //   "queue.nostr.kind before checking for kinds:",
+    //   queue.nostr.kind
     // )
 
     /**
@@ -754,7 +798,10 @@ actions: {
     // will check whether addresses have preferred relays and
     // send requests if and when such relays are found.
     await Promise.all(defaultRelays.map((relay) => {
+      // const time = new Date(Date.now()).toISOString();
+      // console.log(time, "staring Nostr check for:", relay)
       this.checkNostrAddressesFromRelaysForData(
+        queue,
         [],
         [relay],
         updateType,
@@ -805,7 +852,7 @@ actions: {
 
     kinds.forEach((kind) => {
       allAddressesToBeChecked = allAddressesToBeChecked.concat(
-        this.addresses.toBeCheckedFor.nostr.kind[kind]
+        queue.nostr.kind[kind]
       )
       // console.log(
       //   "kind in forEach:", kind,
@@ -860,27 +907,21 @@ actions: {
 
     // Make sure not to clean default relays at:
     // this.addresses.toBeCheckedFor.nostr.relays
-    this.addresses.toBeCheckedFor.nostr.kind = emptyAllNestedArraysInsideObject(
-      this.addresses.toBeCheckedFor.nostr.kind
+    this.addresses.toBeCheckedFor.nostr.kind = deleteMatchingValuesFromObject(
+      this.addresses.toBeCheckedFor.nostr.kind, queue.nostr.kind
     )
 
-    // console.log(time, `
-    //   this.addresses.toBeCheckedFor.nostr.kind after cleaning.,
-    //   kind[0]`,
-    //   this.addresses.toBeCheckedFor.nostr.kind[0], `
-    //   kind[10002]`,
-    //   this.addresses.toBeCheckedFor.nostr.kind[10002], `
-    //   kind[1]`,
-    //   this.addresses.toBeCheckedFor.nostr.kind[1], `
-    //   kind['any']`,
-    //   this.addresses.toBeCheckedFor.nostr.kind['any'],
-    // )
 
     this.isUpdatingProfilesNostr = false
     // console.log(time, "finished updating profiles")
+    // console.log(
+    //   "deep copy of this.addresses.toBeCheckedFor.nostr.kind[0] when updateAllProfilesNostr is finished:",
+    //   deepCopyOfObject(this.addresses.toBeCheckedFor.nostr.kind[0])
+    // )
   },
 
   async checkNostrAddressesFromRelaysForData(
+    queue: Queue | false = false,
     addresses: string[] = [],
     relays: string[] = [],
     // kinds: NostrEventKind[] = [],
@@ -888,6 +929,11 @@ actions: {
     forceUpdate: boolean = false,
     limit: number = 30
   ) {
+    // const time = new Date(Date.now()).toISOString();
+    // console.log(
+    //   time, "checkNostrAddressesFromRelaysForData called",
+    //   "for addresses:", addresses
+    // )
     if (!hasValue(updateType)) return
 
     await Promise.all(updateType.map((dataToCheckFor) => {
@@ -912,17 +958,29 @@ actions: {
       if (hasValue(addresses)) {
         addressesToCheck = addresses
       } else {
-        addressesToCheck = this.addresses
-                               .toBeCheckedFor.nostr.kind[kind]
+        if (queue && hasValue(queue)){
+          addressesToCheck = queue.nostr.kind[kind]
+        }
       }
 
-      this.checkNostrAddressesFromRelaysForKinds(
-        addressesToCheck,
-        relays,
-        [kind],
-        forceUpdate,
-        limit
-      )
+      if (
+        !hasValue(addressesToCheck) ||
+        !isArrayOfStrings(addressesToCheck)
+      ) {
+        return
+
+      }
+
+
+      if (hasValue(addressesToCheck)) {
+        this.checkNostrAddressesFromRelaysForKinds(
+          addressesToCheck,
+          relays,
+          [kind],
+          forceUpdate,
+          limit
+        )
+      }
     }))
   },
 
@@ -964,9 +1022,7 @@ actions: {
       // been checked, e.g. as default relays.
       if (
         hasValue(alreadyCheckedRelays) &&
-        Array.isArray(alreadyCheckedRelays) &&
-        alreadyCheckedRelays[0] && 
-        typeof(alreadyCheckedRelays[0]) === "string"
+        isArrayOfStrings(alreadyCheckedRelays)
       ) {
           preferredRelays = preferredRelays.filter(
             relay => !alreadyCheckedRelays.includes(relay)
@@ -1013,6 +1069,7 @@ actions: {
     //   `for kinds:`,
     //   kinds
     // )
+
     if (!hasValue(addresses)) return
 
     if (
@@ -1057,6 +1114,7 @@ actions: {
             // Don't push, because this address has already been
             // checked with this relay for this event kind.
             // console.log(
+            //   time,
             //   "Already checked relayUrl:", relayUrl,
             //   "for kind:", kind,
             //   "for address:", address
@@ -1073,6 +1131,7 @@ actions: {
           } else {
             // Push address to be checked if unique.
             // console.log(
+            //   time,
             //   "Haven't yet checked relayUrl:", relayUrl,
             //   "for kind:", kind,
             //   "for address:", address
@@ -1084,6 +1143,8 @@ actions: {
         })
       })
     })
+
+    // console.log(time, "addressesToBeChecked after:", addressesToBeChecked)
 
     if (!hasValue(addressesToBeChecked)) return
 

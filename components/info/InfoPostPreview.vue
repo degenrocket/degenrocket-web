@@ -228,6 +228,18 @@ if (enableEmbedIframeTagsInPosts) {
     arrayOfHtmlTags = arrayOfArraysOfTextAndTags[1]
   }
 }
+
+// TODO: how to wait until all feed posts are fetched
+// and only then call an update function?
+// Meanwhile, added a delay with setTimeout.
+if (process.client) {
+  setTimeout(() => {
+    profilesStore.updateAllProfiles()
+  }, 2000)
+  // Another approach is to use setInterval to check if
+  // comments have been downloaded every 1 sec for 10 secs,
+  // add execute the updateAllProfiles() after that.
+}
 </script>
 
 <style scoped>

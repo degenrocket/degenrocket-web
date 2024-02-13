@@ -70,6 +70,95 @@ describe('hasValue function', () => {
   });
 });
 
+const { isArrayOfStrings } = useUtils()
+
+describe('isArrayOfStrings', () => {
+  test('returns true when array has only strings', () => {
+    expect(isArrayOfStrings(["abc", "def"])).toBe(true);
+  });
+
+  test('returns true when array has at least one empty string', () => {
+    expect(
+      isArrayOfStrings(["abc", ""])
+    ).toBe(true);
+  });
+
+  test('returns false when array has at least one non-string value', () => {
+    expect(
+      isArrayOfStrings(["abc", 1])
+    ).toBe(false);
+  });
+
+  test('returns true when array has one empty string', () => {
+    expect( isArrayOfStrings([""])).toBe(true);
+  });
+
+  test('returns false when value is an object', () => {
+    expect( isArrayOfStrings({id: 1})).toBe(false);
+  });
+
+  test('returns false when value is null', () => {
+    expect( isArrayOfStrings(null)).toBe(false);
+  });
+
+  test('returns false when value is undefined', () => {
+    expect( isArrayOfStrings(undefined)).toBe(false);
+  });
+
+  test('returns false when value is an empty string', () => {
+    expect( isArrayOfStrings('')).toBe(false);
+  });
+
+  test('returns false when value is a number', () => {
+    expect( isArrayOfStrings(1)).toBe(false);
+  });
+})
+
+const { isArrayOfStringsWithValues } = useUtils()
+
+describe('isArrayOfStringsWithValues', () => {
+  test('returns true when array has only strings', () => {
+    expect(
+      isArrayOfStringsWithValues(["abc", "def"])
+    ).toBe(true);
+  });
+
+  test('returns false when array has at least one empty string', () => {
+    expect(
+      isArrayOfStringsWithValues(["abc", ""])
+    ).toBe(false);
+  });
+
+  test('returns false when array has at least one non-string value', () => {
+    expect(
+      isArrayOfStringsWithValues(["abc", 1])
+    ).toBe(false);
+  });
+
+  test('returns false when array has one empty string', () => {
+    expect( isArrayOfStringsWithValues([""])).toBe(false);
+  });
+
+  test('returns false when value is an object', () => {
+    expect( isArrayOfStrings({id: 1})).toBe(false);
+  });
+
+  test('returns false when value is null', () => {
+    expect( isArrayOfStringsWithValues(null)).toBe(false);
+  });
+
+  test('returns false when value is undefined', () => {
+    expect( isArrayOfStringsWithValues(undefined)).toBe(false);
+  });
+
+  test('returns false when value is an empty string', () => {
+    expect( isArrayOfStringsWithValues('')).toBe(false);
+  });
+
+  test('returns false when value is a number', () => {
+    expect( isArrayOfStringsWithValues(1)).toBe(false);
+  });
+})
 
 const { isValidPost } = useUtils()
 
@@ -218,6 +307,101 @@ describe('areValidPosts', () => {
     const result = areValidPosts([]);
     expect(result).toBe(false);
   });
+})
+
+const { deleteMatchingValuesFromObject } = useUtils()
+
+describe('deleteMatchingValuesFromObject', () => {
+  test('should return an object with "qwerty"', () => {
+    const input1 = {
+      id: 1,
+      title: "Some title",
+      tags: ["qwerty", "asdfgh"]
+    }
+
+    const input2 = {
+      id: 1,
+      title: "Some title",
+      tags: ["qwerty"]
+    }
+
+    const output = {
+      id: 1,
+      title: "Some title",
+      tags: ["asdfgh"]
+    }
+
+    expect(deleteMatchingValuesFromObject(input1, input2)).toEqual(output);
+  })
+
+  test('should return an object without matching values', () => {
+  // const addresses = {
+    const currentState = {
+      nostr: {
+        kind: {
+          any: [
+            "npub1kwnsd0xwkw03j0d92088vf2a66a9kztsq8ywlp0lrwfwn9yffjqspcmr0z",
+            "npub14slk4lshtylkrqg9z0dvng09gn58h88frvnax7uga3v0h25szj4qzjt5d6"
+          ],
+          0: [
+            "npub1kwnsd0xwkw03j0d92088vf2a66a9kztsq8ywlp0lrwfwn9yffjqspcmr0z",
+            "npub14slk4lshtylkrqg9z0dvng09gn58h88frvnax7uga3v0h25szj4qzjt5d6"
+          ],
+          10002: [
+            "npub14slk4lshtylkrqg9z0dvng09gn58h88frvnax7uga3v0h25szj4qzjt5d6"
+          ],
+          1: [
+            "npub1kwnsd0xwkw03j0d92088vf2a66a9kztsq8ywlp0lrwfwn9yffjqspcmr0z",
+            "npub14slk4lshtylkrqg9z0dvng09gn58h88frvnax7uga3v0h25szj4qzjt5d6"
+          ],
+        }
+      }
+    }
+
+    const checkedState = {
+      nostr: {
+        kind: {
+          any: [
+            "npub14slk4lshtylkrqg9z0dvng09gn58h88frvnax7uga3v0h25szj4qzjt5d6",
+            "npub1kwnsd0xwkw03j0d92088vf2a66a9kztsq8ywlp0lrwfwn9yffjqspcmr0z"
+          ],
+          0: [
+            "npub1kwnsd0xwkw03j0d92088vf2a66a9kztsq8ywlp0lrwfwn9yffjqspcmr0z"
+          ],
+          10002: [
+            "npub1kwnsd0xwkw03j0d92088vf2a66a9kztsq8ywlp0lrwfwn9yffjqspcmr0z"
+          ],
+          1: [
+
+          ],
+        }
+      }
+    }
+
+    const result = {
+      nostr: {
+        kind: {
+          any: [
+          ],
+          0: [
+            "npub14slk4lshtylkrqg9z0dvng09gn58h88frvnax7uga3v0h25szj4qzjt5d6"
+          ],
+          10002: [
+            "npub14slk4lshtylkrqg9z0dvng09gn58h88frvnax7uga3v0h25szj4qzjt5d6"
+          ],
+          1: [
+            "npub1kwnsd0xwkw03j0d92088vf2a66a9kztsq8ywlp0lrwfwn9yffjqspcmr0z",
+            "npub14slk4lshtylkrqg9z0dvng09gn58h88frvnax7uga3v0h25szj4qzjt5d6"
+          ],
+        }
+      }
+    }
+
+    expect(deleteMatchingValuesFromObject(
+      currentState,
+      checkedState
+    )).toEqual(result);
+  })
 })
 
 const { sanitizeObjectValuesWithDompurify } = useUtils()

@@ -107,13 +107,11 @@ export const usePostsStore = defineStore('postsStore', {
       // (e.g., username, about, pfp), so we can call the
       // global update function.
       const profilesStore = useProfilesStore()
-
       profilesStore.updateAllProfiles()
 
       // console.log(logTime(), "\nAll fetching is finished, displayFilters updated", "\n=======/")
     },
 
-    // TODO
     async fetchPostsByIds(ids: PostId[]): Promise<Post[]> {
       // Promise.all and map are used because
       // await doesn't work with array.forEach
@@ -170,10 +168,21 @@ export const usePostsStore = defineStore('postsStore', {
       this.allPosts = sortedPosts
       // console.log("allPosts after saving: ", logPosts(this.allPosts))
 
-      // Add addresses to a list of addresses that should be checked
-      // for profile info (e.g. usernames) during an update function.
-      const profilesStore = useProfilesStore()
-      profilesStore.addAddressesFromPosts(this.allPosts)
+      // Add addresses to a list of addresses that should
+      // be checked for profile info (e.g. usernames) during
+      // an update function.
+      // Currently calling the addAddresses function only on the
+      // client-side, because calling it during the server-side
+      // rendering (SSR) gives an error due to accessing
+      // env vars via useRuntimeConfig() in useProfilesStore().
+      // Calling it only on the client-side means that some
+      // addresses will be missed, but we are also adding all
+      // addresses to the queue when they are rendered in the
+      // UI within (process.client).
+      if (process.client) {
+        const profilesStore = useProfilesStore()
+        profilesStore.addAddressesFromPosts(this.allPosts)
+      }
 
       return true
     },
