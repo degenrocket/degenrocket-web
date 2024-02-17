@@ -9,9 +9,11 @@ import {useProfilesStore} from '@/stores/useProfilesStore'
 const {feedFilters} = useFeedFilters()
 const {logPosts, logTime} = useLog()
 const {hasValue} = useUtils()
+const {getMockPosts, getMockCommentsById} = useMocks()
 
 export interface IPostsState {
   apiUrl: any
+  useMockedDataIfBackendIsDown: any
   allPosts: Post[]
   postComments: Post[]
   displayFilters: FeedFilters
@@ -25,6 +27,7 @@ export interface IPostsState {
 export const usePostsStore = defineStore('postsStore', {
   state: (): IPostsState => ({
     apiUrl: useRuntimeConfig()?.public?.apiURL,
+    useMockedDataIfBackendIsDown: useRuntimeConfig()?.public?.useMockedDataIfBackendIsDown === "true" ? true : false,
 
     // appPosts contains all posts fetched from the server,
     // sorted by date and cleaned from duplicates.
@@ -98,6 +101,16 @@ export const usePostsStore = defineStore('postsStore', {
       // console.log(logTime(), "\nPosts fetched from server according to filters:", logPosts(fetchedPosts.value))
 
       this.savePostsToStore(fetchedPosts.value)
+
+      // Testing locally with mocked data if enabled in .env file
+      if (
+        this.useMockedDataIfBackendIsDown &&
+        !fetchedPosts.value
+      ) {
+        const mockedPosts = getMockPosts()
+        this.savePostsToStore(mockedPosts)
+      }
+
       this.displayPosts(filters)
       this.fetchingPostsByFilters = false
 
@@ -492,6 +505,15 @@ export const usePostsStore = defineStore('postsStore', {
 
       if (error.value) {
         console.error(error.value)
+      }
+
+      // Testing locally with mocked data if enabled in .env file
+      if (
+        this.useMockedDataIfBackendIsDown &&
+        !data.value
+      ) {
+        const mockedComments = getMockCommentsById(sigUrlIpfs)
+        return mockedComments
       }
 
       // console.log("data in fetchCommentsBySigUrlIpfs 586970:", data)

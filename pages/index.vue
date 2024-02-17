@@ -77,7 +77,11 @@ const profilesStore = useProfilesStore()
 
 const {showFeed} = useFeed()
 const {areValidPosts} = useUtils()
+const {getMockComments} = useMocks()
 const apiURL = useRuntimeConfig()?.public?.apiURL
+const useMockedDataIfBackendIsDown = useRuntimeConfig()?.public
+  ?.useMockedDataIfBackendIsDown === "true" ? true : false
+
 // Features are enabled by default if not explicitly disabled in .env
 const ifShowHomeLatestComments = useRuntimeConfig()?.public?.ifShowHomeLatestComments === 'false' ? false : true
 const enableDefaultIntro = useRuntimeConfig()?.public?.enableDefaultIntro === 'false' ? false : true
@@ -100,11 +104,25 @@ const {data, error} = await useFetch(path)
 /* console.log("data:", data) */
 
 if (error.value) {
-  isError.value = true
+  // Don't show an error if testing locally without backend API
+  if (!useMockedDataIfBackendIsDown) {
+    isError.value = true
+  }
   console.error(error.value)
 }
 
-comments = data
+if (
+  data?.value &&
+  areValidPosts(data.value)
+) {
+  comments = data
+// Use mock posts for testing locally without backend
+// if activated in the .env file.
+} else if (
+  useMockedDataIfBackendIsDown
+){
+  comments = getMockComments()
+}
 
 const toggleShowActionDetails = (): void => {
   showActionDetails.value = !showActionDetails.value

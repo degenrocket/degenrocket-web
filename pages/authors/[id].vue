@@ -122,6 +122,11 @@ const {
   // hasValue
 } = useUtils()
 
+const { getMockPostsByAddress} = useMocks()
+
+const useMockedDataIfBackendIsDown = useRuntimeConfig()?.public
+  ?.useMockedDataIfBackendIsDown === "true" ? true : false
+
 const apiURL = useRuntimeConfig()?.public?.apiURL
 
 const showActionDetails = ref(false)
@@ -140,7 +145,18 @@ if (error.value) {
   console.error(error.value)
 }
 
-posts = data
+if (
+  data?.value &&
+  areValidPosts(data.value)
+) {
+  posts = data
+// Use mock posts for testing locally without backend
+// if activated in the .env file.
+} else if (
+  useMockedDataIfBackendIsDown
+){
+  posts = getMockPostsByAddress(author)
+}
 
 const toggleShowActionDetails = (): void => {
   showActionDetails.value = !showActionDetails.value

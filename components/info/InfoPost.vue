@@ -128,6 +128,9 @@ const updatePost = async (idSigUrl: string): Promise<void> => {
   const getOrFetchResult = await postsStore.getOrFetchPostsByIds(idSigUrl)
 
   if (
+    getOrFetchResult &&
+    Array.isArray(getOrFetchResult) &&
+    getOrFetchResult[0] &&
     'error' in getOrFetchResult?.[0] &&
     getOrFetchResult?.[0]?.error === 'post has not been found'
   ) {

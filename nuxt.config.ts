@@ -26,6 +26,9 @@ export default defineNuxtConfig({
     public: {
       apiURL: process.env.API_URL,
 
+      // Testing
+      useMockedDataIfBackendIsDown: process.env.USE_MOCKED_DATA_IF_BACKEND_IS_DOWN,
+
       // Default meta values are used on other pages
       // so it's easy to change values in just one place.
       defaultMetaAppName: process.env.META_APP_NAME,

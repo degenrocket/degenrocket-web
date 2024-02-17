@@ -51,7 +51,7 @@ export interface Post {
   ipfs? : string | null
 
   // web2 & web3
-  tickers?: string[] | null
+  tickers?: string[] | string | null
   title?: string | null
   category?: string | null
   tags?: string[] | null

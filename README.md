@@ -61,6 +61,14 @@ cp .env.example .env
 
 ## Test locally
 
+Install npm packages in the frontend folder.
+
+```
+npm install
+```
+
+Start the app.
+
 ```
 npm run dev
 ```
@@ -87,6 +95,8 @@ Open a browser and test the app at `localhost:3000`.
 - (Optional) Show/hide latest comments in intro in `.env`.
 - (Optional) Show/hide categories filter in feed in `.env`.
 - (Optional) Show/hide guest login option in web3 modal in `.env`.
+
+The full list of settings can be found in `./.env.example`.
 
 #### Advanced customization
 
@@ -145,3 +155,18 @@ pm2 list
 
 Send a message to `degenrocket` on [Session](https://getsession.org) if you need any help.
 
+## For developers
+
+#### Use mock data
+
+If you want to contribute to the UI (frontend) without the
+hassle of setting up the backend and the database, then you
+can use the mock data to pre-populate the client with feed
+posts and latest comments by enabling this environment
+variable in the `./.env` file:
+
+```
+USE_MOCKED_DATA_IF_BACKEND_IS_DOWN=true
+```
+
+Don't forget to restart the app with `npm run dev`.
