@@ -32,35 +32,45 @@
       SHOW FEED
     </button>
 
-    <div v-if="ifShowHomeLatestComments">
-      <div v-if="isError">
-        Failed to download the latest comments. Try again later.
-      </div>
+    <div v-if="ifShowHomeLatestComments" class="mt-2">
+      <client-only fallback-tag="span">
+        <div v-if="isError">
+          <p class="text-colorNotImportant dark:text-colorNotImportant-dark">
+            Failed to download the latest comments. Try again later.
+          </p>
+        </div>
 
-      <div v-if="areValidPosts(comments)">
-        <div v-if="comments[0]">
-          <div class="mt-4 mb-32 border-t border-borderColor-light dark:border-borderColor-dark p-2">
-            Latest comments:
-            
-            <div class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4 hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
-              @click="toggleShowActionDetails()">
-              {{showActionDetailsText}} details
+        <div v-if="areValidPosts(comments)">
+          <div v-if="comments[0]">
+            <div class="mt-4 mb-32 border-t border-borderColor-light dark:border-borderColor-dark p-2">
+              Latest comments:
+              
+              <div class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4 hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
+                @click="toggleShowActionDetails()">
+                {{showActionDetailsText}} details
+              </div>
+
+              <InfoPostCommentsCard
+                v-for="comment in comments"
+                :key="comment.id"
+                :comment="comment"
+                :show-comments-count="true"
+                :show-action-details="showActionDetails"
+              />
+
+              <!--
+              <ExtraLoadMoreButton :what-to-load="'home-comments'" />
+              -->
             </div>
-
-            <InfoPostCommentsCard
-              v-for="comment in comments"
-              :key="comment.id"
-              :comment="comment"
-              :show-comments-count="true"
-              :show-action-details="showActionDetails"
-            />
-
-            <!--
-            <ExtraLoadMoreButton :what-to-load="'home-comments'" />
-            -->
           </div>
         </div>
-      </div>
+        <template #fallback>
+          <!-- this will be rendered on server side -->
+          <p class="animate-pulse text-colorNotImportant dark:text-colorNotImportant-dark">
+            Loading...
+          </p>
+        </template>
+      </client-only>
     </div>
   </div>
   <!--
