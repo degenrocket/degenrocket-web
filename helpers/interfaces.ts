@@ -68,7 +68,7 @@ export interface Post {
   children?: Post[]
 }
 
-export type Web3MessageAction = "post" | "react" | "reply"
+export type Web3MessageAction = "post" | "react" | "reply" | "moderate"
 
 export type Web3MessageLicense = "MIT" | "CC0" | "CC0-1.0" | "SPDX-License-Identifier: CC0-1.0" | "SPDX-License-Identifier: MIT"
 

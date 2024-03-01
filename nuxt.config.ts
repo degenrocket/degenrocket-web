@@ -35,6 +35,10 @@ export default defineNuxtConfig({
       defaultMetaTitle: process.env.META_TITLE,
       defaultMetaDescription: process.env.META_DESCRIPTION,
 
+      // Moderation
+      enableModeration: process.env.ENABLE_MODERATION,
+      moderators: process.env.MODERATORS,
+
       // Default/custom intro and contacts
       enableDefaultIntro: process.env.ENABLE_DEFAULT_INTRO,
       enableDefaultContacts: process.env.ENABLE_DEFAULT_CONTACTS,

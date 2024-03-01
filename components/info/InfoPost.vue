@@ -10,6 +10,10 @@
         :post="postsStore.getPost"
       />
 
+      <InfoPostModeratorBar
+        :post="postsStore.getPost"
+      />
+
       <div v-if="enableNewWeb3ActionsAll && enableNewWeb3ActionsReply">
         <InfoPostCommentInputField
           v-if="postsStore?.getPost.signature || postsStore?.getPost.url || postsStore?.getPost.guid || postsStore?.getPost.ipfs"
