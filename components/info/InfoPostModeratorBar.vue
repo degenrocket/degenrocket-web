@@ -2,6 +2,7 @@
   <div v-if="enableModeration
     && connectedAddress
     && typeof(connectedAddress) === 'string'
+    && moderators.includes(connectedAddress.toLowerCase())
     && (post?.signature || post?.url)"
     class="my-2"
   >
