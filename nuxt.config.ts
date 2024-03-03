@@ -73,6 +73,10 @@ export default defineNuxtConfig({
       enableNewNostrActionsAll: process.env.ENABLE_NEW_NOSTR_ACTIONS_ALL,
       enableNewEthereumActionsAll: process.env.ENABLE_NEW_ETHEREUM_ACTIONS_ALL,
 
+      // White list
+      enableWhitelistForActionPost: process.env.ENABLE_WHITELIST_FOR_ACTION_POST,
+      whitelistedForActionPost: process.env.WHITELISTED_FOR_ACTION_POST,
+
       // Nostr network
       enableNostrNetwork: process.env.ENABLE_NOSTR_NETWORK,
       enableNostrNetworkFetchProfiles: process.env.ENABLE_NOSTR_NETWORK_FETCH_PROFILES,

@@ -1,5 +1,11 @@
 <template>
   <div>
+    <div
+      v-if="errorMessage"
+      class="text-colorRed-light dark:text-colorRed-dark"
+    >
+      {{ errorMessage }}
+    </div>
     <div>Create a new post</div>
     <form class="mb-4" @submit="submitPost">
       <div class="mt-2 text-colorNotImportant-light dark:text-colorNotImportant-dark">Title:</div>
@@ -41,6 +47,8 @@ const userInput = ref<string>('')
 
 const errorTitle = ref<boolean>(false)
 const errorBody = ref<boolean>(false)
+
+const errorMessage = ref<string>('')
 
 watch(
   userInputTitle, async (newTitle: string) => {
@@ -98,6 +106,11 @@ const submitPost = async (e):Promise<void> => {
   if (response && response.res === 'Success. Action has been saved and incremented') {
     /* console.log("Success") */
     userInput.value = ''
+  }
+
+  if (response && response.res === 'ERROR: this address is not whitelisted to submit new posts') {
+    errorMessage.value = 'ERROR: this address is not whitelisted to submit new posts'
+    alert('ERROR: this address is not whitelisted to submit new posts')
   }
 
   // This should be a valid response if
