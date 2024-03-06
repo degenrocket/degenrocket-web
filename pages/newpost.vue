@@ -70,7 +70,10 @@ const env = useRuntimeConfig()?.public
 const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true
 const enableNewWeb3ActionsPost: boolean = env?.enableNewWeb3ActionsPost === 'false'? false : true
 const enableWhitelistForActionPost: boolean = env?.enableWhitelistForActionPost === 'true'? true : false
-const whitelistedForActionPost: string[] = typeof(env?.whitelistedForActionPost) === "string" ? env?.whitelistedForActionPost.split(',') : []
+const whitelistedForActionPost: string[] =
+  typeof(env?.whitelistedForActionPost) === "string"
+  ? env?.whitelistedForActionPost.toLowerCase().split(',')
+  : []
 const {connectedAddress} = useWeb3()
 </script>
 

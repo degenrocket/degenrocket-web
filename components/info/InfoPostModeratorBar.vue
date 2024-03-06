@@ -30,7 +30,10 @@ const moderationResponse = ref<string>("")
 // Environment variables
 const env = useRuntimeConfig()?.public
 const enableModeration: boolean = env?.enableModeration === 'false'? false : true
-const moderators: string[] = typeof(env?.moderators) === "string" ? env?.moderators.split(',') : []
+const moderators: string[] =
+  typeof(env?.moderators) === "string"
+  ? env?.moderators.toLowerCase().split(',')
+  : []
 
 const props = defineProps<{
   post?: Post
