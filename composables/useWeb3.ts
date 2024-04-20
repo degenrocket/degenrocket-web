@@ -206,6 +206,12 @@ export const useWeb3 = () => {
 
       // sign the message
       // const signature: string | undefined = await signString(stringToSign)
+      // TODO: "nostr-tools: `signEvent` is deprecated and will
+      // be removed or changed in the future.
+      // Please use `getSignature` instead."
+      // However, two options below don't work.
+      // const signedNostrEvent: NostrEvent = await window.nostr.getSignature(nostrEventJson)
+      // const signedNostrEvent: NostrEvent = await getSignature(nostrEventJson)
       const signedNostrEvent: NostrEvent = await window.nostr.signEvent(nostrEventJson)
 
       const signature = signedNostrEvent.sig
