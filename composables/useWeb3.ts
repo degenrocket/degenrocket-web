@@ -141,12 +141,20 @@ export const useWeb3 = () => {
     signature: string | undefined
   }
 
+  // const stripHtml = (html?: string | number | boolean) => {
+  //   if (!html || typeof(html) !== "string") return ""
+  //   const doc = new DOMParser().parseFromString(html, 'text/html')
+  //   return doc.body.textContent || ""
+  // }
+
   const submitAction = async (action?: Web3MessageAction, text?: string, target?: string, title?: string): Promise<SubmitActionReturn | false> => {
     // Only try to connect an Ethereum extension.
     // If web3 (Ethereum) is not detected, then the web3
     // modal with different connect options will be shown.
     // if (!signer) { await connectWeb3Authenticator() }
     if (!connectedAddress.value) { await connectWeb3Authenticator() }
+
+    // text = stripHtml(text)
     
     if (connectedKeyType.value === 'ethereum') {
       return submitEthereumAction(action, text, target, title)

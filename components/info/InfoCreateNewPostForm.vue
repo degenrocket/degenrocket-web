@@ -103,15 +103,24 @@ const submitPost = async (e):Promise<void> => {
 
   /* console.log("response:", response) */
 
+  if (
+    response &&
+    response.res &&
+    typeof(response.res) === "string" &&
+    response.res.startsWith("ERROR:")
+  ) {
+    // console.log("response.res:", response.res)
+    errorMessage.value = response.res
+  }
+
   if (response && response.res === 'Success. Action has been saved and incremented') {
     /* console.log("Success") */
     userInput.value = ''
   }
 
-  if (response && response.res === 'ERROR: this address is not whitelisted to submit new posts') {
-    errorMessage.value = 'ERROR: this address is not whitelisted to submit new posts'
-    alert('ERROR: this address is not whitelisted to submit new posts')
-  }
+  /* if (response && response.res === 'ERROR: this address is not whitelisted to submit new posts') { */
+  /*   errorMessage.value = 'ERROR: this address is not whitelisted to submit new posts'              */
+  /* }                                                                                                */
 
   // This should be a valid response if
   // a reply was submitted successfully.

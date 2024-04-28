@@ -1,10 +1,16 @@
 <template>
   <div v-if="target">
+    <div
+      v-if="errorMessage"
+      class="text-colorRed-light dark:text-colorRed-dark"
+    >
+      {{ errorMessage }}
+    </div>
     <form class="mb-10" @submit="submitReply">
       <textarea
       v-model="userInput"
       :placeholder="bodyPlaceholder"
-      class="p-1 bg-bgBase-light dark:bg-bgBase-dark w-[90%] max-w-[700px] h-[160px] rounded-b-lg focus:outline-none border-bgSecondary-light dark:border-bgSecondary-dark border"
+      class="p-1 bg-bgBase-light dark:bg-bgBase-dark w-[90%] max-w-[700px] h-[220px] lg:h-[180px] rounded-b-lg focus:outline-none border-bgSecondary-light dark:border-bgSecondary-dark border"
         :class="errorBody ? 'border-red-400 dark:border-red-400 placeholder:text-red-400' : ''"
       />
       <button type="submit"
@@ -35,6 +41,8 @@ const errorBody = ref(false)
 /* const bodyPlaceholder = ref(`share your wisdom with other degens...
 (basic markdown is enabled, tags are sanitized`) */
 const bodyPlaceholder = ref(commentPlaceholder)
+
+const errorMessage = ref<string>('')
 
 watch(
   userInput, async (newBody) => {
@@ -71,9 +79,17 @@ const submitReply = async (e):Promise<void> => {
   }
 
   /* console.log("response:", response) */
+  if (
+    response &&
+    typeof(response) === "string" &&
+    response.startsWith("ERROR:")
+  ) {
+    errorMessage.value = response
+  }
 
   if (response === 'Success. Action has been saved and incremented') {
     userInput.value = ''
+    errorMessage.value = ''
     emit('reply-submitted', props.target)
   }
 }
