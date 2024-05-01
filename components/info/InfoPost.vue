@@ -4,6 +4,7 @@
       <InfoPostPreview
         :post="postsStore.getPost"
         :key="postsStore?.getPost?.id || postsStore?.getPost?.signature || randomNumber()"
+        class="mb-1"
       />
 
       <InfoPostReactionsBar

@@ -87,7 +87,7 @@
         </h6>
       </div>
 
-      <div v-if="comment.text" class="whitespace-pre-line my-1">
+      <div v-if="comment.text" class="whitespace-pre-line my-1 pl-1">
 
         <!-- No iframe tags -->
         <div v-if="!isSignerAllowedIframe">
