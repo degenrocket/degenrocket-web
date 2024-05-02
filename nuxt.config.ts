@@ -168,6 +168,10 @@ export default defineNuxtConfig({
 
       ifShowCategoriesFilter: process.env.IF_SHOW_CATEGORIES_FILTER,
       ifAllowGuestLogin: process.env.IF_ALLOW_GUEST_LOGIN,
+
+      // Feed filters
+      feedFiltersActivityHot: process.env.FEED_FILTERS_ACTIVITY_HOT,
+      feedFiltersActivityRising: process.env.FEED_FILTERS_ACTIVITY_RISING,
     }
   },
 

@@ -14,6 +14,8 @@ const {getMockPosts, getMockCommentsById} = useMocks()
 export interface IPostsState {
   apiUrl: any
   useMockedDataIfBackendIsDown: any
+  feedFiltersActivityHot: any
+  feedFiltersActivityRising: any
   allPosts: Post[]
   postComments: Post[]
   displayFilters: FeedFilters
@@ -26,8 +28,12 @@ export interface IPostsState {
 
 export const usePostsStore = defineStore('postsStore', {
   state: (): IPostsState => ({
+    // Environment settings:
     apiUrl: useRuntimeConfig()?.public?.apiURL,
     useMockedDataIfBackendIsDown: useRuntimeConfig()?.public?.useMockedDataIfBackendIsDown === "true" ? true : false,
+    feedFiltersActivityHot: Number(useRuntimeConfig()?.public?.feedFiltersActivityHot) || 5,
+    feedFiltersActivityRising: Number(useRuntimeConfig()?.public?.feedFiltersActivityRising) || 3,
+
 
     // appPosts contains all posts fetched from the server,
     // sorted by date and cleaned from duplicates.
@@ -327,9 +333,9 @@ export const usePostsStore = defineStore('postsStore', {
       const filterByActivity = (post: Post): boolean => {
         let value = 0
         if (filters.activity === "hot") {
-          value = 2
+          value = this.feedFiltersActivityHot || 5
         } else if (filters.activity === "rising") {
-          value = 1
+          value = this.feedFiltersActivityRising || 3
         } else {
           return true
         }
