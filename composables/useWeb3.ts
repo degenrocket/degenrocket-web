@@ -4,6 +4,7 @@ import {PostSignature, Web3Message, Web3MessageAction, NostrEvent} from "@/helpe
 import { bech32 } from 'bech32'
 import { validateEvent, verifySignature, getSignature, getEventHash } from 'nostr-tools'
 // import detectEthereumProvider from '@metamask/detect-provider'
+import DOMPurify from 'dompurify';
 
 const isWeb3ModalShown = ref(false)
 const isQrCodeModalShown = ref(false)
@@ -155,7 +156,23 @@ export const useWeb3 = () => {
     if (!connectedAddress.value) { await connectWeb3Authenticator() }
 
     // text = stripHtml(text)
+
+    if (action && typeof(action) === "string") {
+      action = DOMPurify.sanitize(action) as Web3MessageAction
+    }
     
+    if (text && typeof(text) === "string") {
+      text = DOMPurify.sanitize(text)
+    }
+
+    if (target && typeof(target) === "string") {
+      target = DOMPurify.sanitize(target)
+    }
+
+    if (title && typeof(title) === "string") {
+      title = DOMPurify.sanitize(title)
+    }
+
     if (connectedKeyType.value === 'ethereum') {
       return submitEthereumAction(action, text, target, title)
     } else if (connectedKeyType.value === 'nostr') {
