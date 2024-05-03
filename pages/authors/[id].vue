@@ -115,7 +115,16 @@ const {
 } = storeToRefs(profilesStore)
 
 const { id } = useRoute().params
-const author = id
+
+let author = ""
+
+if (id) {
+  if (typeof(id) === "string") {
+    author = id.toLowerCase()
+  } else if (typeof(id) === "number") {
+    author = id.toString()
+  }
+}
 
 const {
   areValidPosts,
