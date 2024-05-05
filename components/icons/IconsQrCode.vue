@@ -7,6 +7,11 @@
 </template>
 
 <script setup lang="ts">
+  /**
+    MIT-licensed Heroicons by steveschoger
+    Website: https://heroicons.dev
+    Git: https://github.com/tailwindlabs/heroicons
+  */
 </script>
 
 <style scoped></style>
