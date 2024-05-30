@@ -77,7 +77,7 @@
 
   blockquote {
     /* @apply p-1 bg-gray-200 rounded-md shadow-md; */
-    @apply pl-4 bg-bgSecondary-light dark:bg-bgSecondary-dark rounded-md shadow-md;
+    @apply mx-1 px-4 bg-bgSecondary-light dark:bg-bgSecondary-dark rounded-md shadow-md;
   }
 
   code {
