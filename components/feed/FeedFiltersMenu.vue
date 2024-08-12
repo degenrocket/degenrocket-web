@@ -89,6 +89,8 @@ const categories: FiltersCategory[] = [
   'defi',
   'nft',
   'privacy',
+  'politics',
+  'tech',
   'any',
 ]
 
