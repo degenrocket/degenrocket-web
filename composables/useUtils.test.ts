@@ -475,21 +475,30 @@ describe('sanitizeObjectValuesWithDompurify', () => {
      * JSON.parse and JSON.stringify, e.g.:
      * const input = JSON.parse(JSON.stringify(validDmpEvent));
      */
-    const input = JSON.parse(JSON.stringify(objectWithMaliciousCode))
-    const output = JSON.parse(JSON.stringify(objectWithoutMaliciousCode))
+    // const input = JSON.parse(JSON.stringify(objectWithMaliciousCode))
+    // const output = JSON.parse(JSON.stringify(objectWithoutMaliciousCode))
 
     // Currently disabled.
+    // Option 1. From spasm.js with isomorphic-dompurify.
+    // spasm.sanitizeEvent(input)
+    // Option 2. Local implementation with DOMPurify.
     // sanitizeObjectValuesWithDompurify(input)
-
     // expect(input).toEqual(output);
 
     // DOMPurify does work, I've tested it manually, but
     // it gives an error when running 'npm test'.
-    // Error:
+    // I've also tested spasm.sanitizeEvent, which uses
+    // isomorphic-dompurify, which uses dompurify with
+    // JSDOM, and it also works, but gives an error when
+    // running 'npm test'.
+    // Error (DOMPurify):
     // default.sanitize is not a function
+    // Error (spasm.sanitizeEvent with isomorphic-dompurify):
+    // spasm.sanitize is not a function
     // The error suggests that the DOMPurify instance is not
     // initialized correctly, e.g. because the `window` object
     // is not available in the testing environment.
+    // spasm.sanitizeEvent() works fine in backend tests.
     // TODO: investigate and write tests for DOMPurify
 
   });
