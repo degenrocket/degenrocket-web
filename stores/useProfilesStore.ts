@@ -177,13 +177,17 @@ import {
   NostrEventSignedOpened,
   DataToExtractFromNostrEventKind0,
   ProfileSpasm,
-  NostrEventKind
+  NostrEventKind,
+  SpasmEventV2
 } from '@/helpers/interfaces'
+import { spasm } from 'spasm.js'
 
 const {
   hasValue,
   isArrayOfStrings,
   // isArrayOfStringsWithValues,
+  isArrayWithValues,
+  isObjectWithValues,
   removeDuplicatesFromArray,
   removeNonStringValuesFromArray,
   // emptyAllNestedArraysInsideObject,
@@ -641,6 +645,7 @@ actions: {
     }
   },
 
+  // TODO delete after full transition to V2
   addAddressFromPost(post: Post): void {
     if (
       hasValue(post) &&
@@ -652,6 +657,7 @@ actions: {
     }
   },
 
+  // TODO delete after full transition to V2
   addAddressesFromPosts(posts: Post[]): void {
     if (!hasValue(posts)) return
     if (!Array.isArray(posts)) return
@@ -665,6 +671,47 @@ actions: {
         this.addAddressFromPost(post)
       }
     })
+  },
+
+  addAddressesFromSpasmEvents(
+    unknownEvents: any[]
+  ): void {
+    const spasmEvents: SpasmEventV2[] | null =
+      spasm.toBeSpasmEventsV2(unknownEvents)
+    if (
+      !spasmEvents || !spasmEvents[0] ||
+      !isObjectWithValues(spasmEvents[0])
+    ) return
+
+    spasmEvents.forEach((event): void => {
+      this.addAddressFromEvent(event)
+    })
+  },
+
+  addAddressFromEvent(
+    unknownEvent: any
+  ): void {
+    const spasmEvent: SpasmEventV2 | null =
+      spasm.toBeSpasmEventV2(unknownEvent)
+    if (!spasmEvent || !isObjectWithValues(spasmEvent)) {return}
+
+    const signers: (string | number)[] =
+      spasm.getVerifiedSigners(spasmEvent)
+
+    if (isArrayWithValues(signers)) {
+      signers.forEach(signer => {
+        if (signer) {
+          if (typeof(signer) === "string") {
+            this.addAddress(signer)
+          } else if (typeof(signer) === "number") {
+            const signerAsString = String(signer)
+            if (signerAsString) {
+              this.addAddress(signerAsString)
+            }
+          }
+        }
+      })
+    }
   },
 
   async updateAllProfiles(

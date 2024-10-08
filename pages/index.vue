@@ -40,7 +40,7 @@
           </p>
         </div>
 
-        <div v-if="areValidPosts(comments)">
+        <div v-if="areValidSpasmEventsV2(comments)">
           <div v-if="comments[0]">
             <div class="mt-4 mb-32 border-t border-borderColor-light dark:border-borderColor-dark p-2">
               Latest comments:
@@ -50,9 +50,9 @@
                 {{showActionDetailsText}} details
               </div>
 
-              <InfoPostCommentsCard
+              <InfoEventCommentsCard
                 v-for="comment in comments"
-                :key="comment.id"
+                :key="comment.ids?.[0]?.value"
                 :comment="comment"
                 :show-comments-count="true"
                 :show-action-details="showActionDetails"
@@ -79,15 +79,16 @@
 </template>
 
 <script setup lang="ts">
-import {Post} from '@/helpers/interfaces';
+import {SpasmEventV2} from '@/helpers/interfaces';
+import { spasm } from 'spasm.js'
 
 // Nostr usernames
 import {useProfilesStore} from '@/stores/useProfilesStore'
 const profilesStore = useProfilesStore()
 
 const {showFeed} = useFeed()
-const {areValidPosts} = useUtils()
-const {getMockComments} = useMocks()
+const {areValidSpasmEventsV2} = useUtils()
+const {getMockSpasmEventComments} = useMocks()
 const apiURL = useRuntimeConfig()?.public?.apiURL
 const useMockedDataIfBackendIsDown = useRuntimeConfig()?.public
   ?.useMockedDataIfBackendIsDown === "true" ? true : false
@@ -104,11 +105,11 @@ const enableCustomContacts = useRuntimeConfig()?.public?.enableCustomContacts ==
 const showActionDetails = ref(false)
 const showActionDetailsText = ref('show')
 
-let comments = reactive<Post[]>([])
+let comments = reactive<SpasmEventV2[]>([])
 
 let isError = ref<boolean>(false)
 
-const path: string = `${apiURL}/api/comments`
+const path: string = `${apiURL}/api/events?webType=false&action=reply&category=any&source=false&activity=all&keyword=false&limit=25`
 
 const {data, error} = await useFetch(path)
 /* console.log("data:", data) */
@@ -121,17 +122,18 @@ if (error.value) {
   console.error(error.value)
 }
 
-if (
-  data?.value &&
-  areValidPosts(data.value)
-) {
-  comments = data
+if (data?.value) {
+  const spasmEvents: SpasmEventV2[] | null =
+    spasm.convertManyToSpasm(data.value)
+  if (spasmEvents && areValidSpasmEventsV2(spasmEvents)) {
+    comments = spasmEvents
+  }
 // Use mock posts for testing locally without backend
 // if activated in the .env file.
 } else if (
   useMockedDataIfBackendIsDown
-){
-  comments = getMockComments()
+) {
+  comments = getMockSpasmEventComments()
 }
 
 const toggleShowActionDetails = (): void => {
@@ -149,7 +151,7 @@ if (process.client) {
     // comments is ref, so it's an object, not an array
     typeof(comments) === "object"
   ) {
-    profilesStore.addAddressesFromPosts(comments)
+    profilesStore.addAddressesFromSpasmEvents(comments)
 
     // TODO: how to wait until all comments are fetched
     // and only then call an update function?

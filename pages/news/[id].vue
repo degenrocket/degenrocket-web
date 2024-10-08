@@ -1,5 +1,5 @@
 <template>
-  <InfoPost />
+  <InfoEvent />
 </template>
 
 <script setup lang="ts">

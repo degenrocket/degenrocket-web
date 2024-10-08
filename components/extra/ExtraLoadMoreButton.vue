@@ -10,9 +10,9 @@
 </template>
 
 <script setup lang="ts">
-import {usePostsStore} from '@/stores/usePostsStore'
-const postsStore = usePostsStore()
-const {increaseFeedFiltersLimits} = useFeedFilters()
+import {useEventsStore} from '@/stores/useEventsStore'
+const eventsStore = useEventsStore()
+const {increaseFeedFiltersLimits} = useFeedEventsFilters()
 
 type WhatToLoad = "feed-posts" | "post-comments" | "home-comments"
 
@@ -28,7 +28,7 @@ const props = withDefaults(
 const loading = computed(():boolean => {
   if (!props) { return false}
   if (props.whatToLoad === "feed-posts") {
-    return postsStore.fetchingPostsByFilters
+    return eventsStore.fetchingPostsByFilters
   } else if (props.whatToLoad === "post-comments") {
     // TODO
     /* return postsStore.fetchingPostComments */

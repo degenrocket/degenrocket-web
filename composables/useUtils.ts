@@ -1,4 +1,4 @@
-import {Post} from "@/helpers/interfaces"
+import {Post, SpasmEventV2} from "@/helpers/interfaces"
 import DOMPurify from 'dompurify';
 
 export const useUtils = () => {
@@ -60,7 +60,7 @@ export const useUtils = () => {
     return true
   }
 
-  const isArrayOfStrings= (array: any): boolean => {
+  const isArrayOfStrings = (array: any): boolean => {
     if (!Array.isArray(array)) return false
     if (
       array.length > 0 &&
@@ -82,6 +82,33 @@ export const useUtils = () => {
       return true
     }
     return false
+  }
+
+  const isArrayWithValues = (array: any): boolean => {
+    if (!array) return false
+    if (!Array.isArray(array)) return false
+    if (!hasValue(array)) return false
+    return true
+  }
+
+  const isStringOrNumber = (val: any): boolean => {
+    if (!val && val !== 0) return false
+    if (typeof(val) === "string") return true
+    if (typeof(val) === "number") return true
+    return false
+  }
+
+  const isNumberOrString = isStringOrNumber
+  const ifStringOrNumber = isStringOrNumber
+  const ifNumberOrString = isStringOrNumber
+
+  const isObjectWithValues = (val: any): boolean => {
+    if (!val) return false
+    if (Array.isArray(val)) return false
+    if (typeof(val) !== "object") return false
+    if (Object.keys(val).length === 0) return false
+
+    return true
   }
 
   // const post1 = {} // false
@@ -200,6 +227,121 @@ export const useUtils = () => {
     }
 
     return true
+  }
+
+  const isValidSpasmEventV2 = (
+    event?: SpasmEventV2 | null
+  ): boolean => {
+    if (!event) { return false }
+    if (!isObjectWithValues(event)) { return false }
+
+    if (
+      !("type" in event) || !event.type ||
+      event.type !== "SpasmEventV2"
+    ) { return false }
+
+    if (
+      !event.signatures && !event.ids &&
+      !event.authors && !event.action &&
+      !event.title && !event.content
+    ) { return false }
+
+    if (event.signatures) {
+      if (!Array.isArray(event.signatures)) { return false }
+      if (!event.authors && !event.ids) { return false }
+      if (event.action === 'reply' && !event.parent) {
+        return false
+      } 
+      if (event.action === 'react' && !event.parent) {
+        return false
+      } 
+    }
+
+    if (event.ids) {
+      if (!Array.isArray(event.ids)) { return false }
+    }
+
+    if (event.authors) {
+      if (!Array.isArray(event.authors)) { return false }
+    }
+
+    return true
+  }
+
+  const areValidSpasmEventsV2 = (
+    events?: SpasmEventV2[]
+  ): boolean => {
+    if (!events) { return false }
+    if (!isArrayWithValues(events)) { return false }
+
+    if (!events?.length) { return false }
+
+    let areAllEventsValid: boolean = true
+    events.forEach(function (event) {
+      if (!isValidSpasmEventV2(event)) {
+        areAllEventsValid = false
+      }
+    })
+
+    if (!areAllEventsValid) { return false }
+
+    return true
+  }
+
+  const toBeTimestamp = (time: any): number | undefined => {
+   const date = new Date(time);
+   const timestamp = date.getTime();
+
+    // Check if the timestamp is NaN, indicating an invalid date
+    if (Number.isNaN(timestamp)) {
+      return undefined;
+    }
+
+    // Optional
+    // Standardize the timestamp to 10 characters (seconds)
+    // by rounding down the timestamp to the nearest second.
+    // if (timestamp.toString().length > 10) {
+    //   timestamp = Math.floor(timestamp / 1000) * 1000;
+    // }
+
+   return timestamp;
+  }
+
+  const toBeLongTimestamp = (
+    value: string | number
+  ): number | null => {
+    if (!value || !isStringOrNumber) return null
+    let timestamp = toBeTimestamp(value)
+    if (!timestamp) return null
+    // Some timestamps are 10 digits long, so we
+    // need to standardize them to 13 digits
+    if (String(timestamp) && String(timestamp).length === 10) {
+      timestamp = timestamp * 1000;
+    }
+    if (
+      timestamp && typeof(timestamp) === "number" &&
+      String(timestamp) && String(timestamp).length >= 13
+    ) {
+      return timestamp
+    } else {
+      return null
+    }
+  }
+
+  const toBeFullTimestamp = toBeLongTimestamp
+  const toBeStandardizedTimestamp = toBeLongTimestamp
+  const toBeStandardTimestamp = toBeLongTimestamp
+
+  const toBeDate = (value: string | number): string => {
+    if (!value || !isStringOrNumber) return ""
+    let timestamp = toBeLongTimestamp(value)
+    if (!timestamp) return ""
+    const date = new Date(Number(timestamp)).toDateString()
+    if (date && typeof(date) === "string") {
+      return date
+    } else {
+      return ""
+    }
   }
 
   const isValidUrl = (value?: any): boolean => {
@@ -513,7 +655,6 @@ export const useUtils = () => {
     }
 
     let sum = getNumberHashFromValue(value)
-    console.log("sum:", sum)
 
     const getUsernameFromNumber = (value: number) => {
       // Use the sum to determine the index for selecting a word from each array
@@ -569,8 +710,21 @@ export const useUtils = () => {
     hasValue,
     isArrayOfStrings,
     isArrayOfStringsWithValues,
+    isArrayWithValues,
+    isStringOrNumber,
+    isNumberOrString,
+    ifStringOrNumber,
+    ifNumberOrString,
+    isObjectWithValues,
     isValidPost,
     areValidPosts,
+    isValidSpasmEventV2,
+    areValidSpasmEventsV2,
+    toBeTimestamp,
+    toBeFullTimestamp,
+    toBeStandardizedTimestamp,
+    toBeStandardTimestamp,
+    toBeDate,
     isValidUrl,
     copyToClipboard,
     removeDuplicatesFromArray,

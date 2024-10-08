@@ -1,3 +1,4 @@
+import {Post, SpasmEventV2} from '@/helpers/interfaces';
 import {describe, it, test, expect, assert} from 'vitest';
 import { useUtils } from './useUtils';
 
@@ -172,41 +173,41 @@ describe('isValidPost', () => {
   });
 
   test('returns false when post is an empty array', () => {
-    expect(isValidPost([])).toBe(false);
+    expect(isValidPost([] as Post)).toBe(false);
   });
 
   test('returns false when post has no values for signature, url, or id', () => {
-    expect(isValidPost({ foo: 'bar' })).toBe(false);
+    expect(isValidPost({ foo: 'bar' } as Post)).toBe(false);
   });
 
   test('returns true when post has a signature with action "post"', () => {
     const post = { signature: 'foo', action: 'post' };
-    expect(isValidPost(post)).toBe(true);
+    expect(isValidPost(post as Post)).toBe(true);
   });
 
   test('returns false when post has a signature with an invalid action', () => {
     const post = { signature: 'foo', action: 'invalid' };
-    expect(isValidPost(post)).toBe(false);
+    expect(isValidPost(post as Post)).toBe(false);
   });
 
   test('returns true when post has a signature with action "reply" and a target', () => {
     const post = { signature: 'foo', action: 'reply', target: 'bar' };
-    expect(isValidPost(post)).toBe(true);
+    expect(isValidPost(post as Post)).toBe(true);
   });
 
   test('returns false when post has a signature with action "reply" and no target', () => {
     const post = { signature: 'foo', action: 'reply' };
-    expect(isValidPost(post)).toBe(false);
+    expect(isValidPost(post as Post)).toBe(false);
   });
 
   test('returns true when post has a signature with action "react" and a target', () => {
     const post = { signature: 'foo', action: 'react', target: 'bar' };
-    expect(isValidPost(post)).toBe(true);
+    expect(isValidPost(post as Post)).toBe(true);
   });
 
   test('returns false when post has a signature with action "react" and no target', () => {
     const post = { signature: 'foo', action: 'react' };
-    expect(isValidPost(post)).toBe(false);
+    expect(isValidPost(post as Post)).toBe(false);
   });
 
   test('returns true when post has a url', () => {
@@ -300,6 +301,164 @@ describe('areValidPosts', () => {
 
   test('areValidPosts returns false if posts is not an array', async () => {
     const result = areValidPosts({});
+    expect(result).toBe(false);
+  });
+
+  test('areValidPosts returns false if posts is an empty array', async () => {
+    const result = areValidPosts([]);
+    expect(result).toBe(false);
+  });
+})
+
+const { isValidSpasmEventV2 } = useUtils()
+
+describe('isValidSpasmEventV2', () => {
+  test('returns false when event is undefined', () => {
+    expect(isValidSpasmEventV2(undefined)).toBe(false);
+  });
+
+  test('returns false when event is an empty object', () => {
+    expect(isValidSpasmEventV2({} as SpasmEventV2)).toBe(false);
+  });
+
+  // test('returns false when event is an empty array', () => {
+  //   expect(isValidSpasmEventV2([] as SpasmEventV2)).toBe(false);
+  // });
+
+  test('returns false when event has no values for signatures, ids, authors, action, title, content', () => {
+    expect(isValidSpasmEventV2({ type: 'SpasmEventV2', foo: 'bar' } as SpasmEventV2)).toBe(false);
+  });
+
+  test('returns true when event has signatures with authors and action "post"', () => {
+    const event: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      signatures: [ { value: 'foo' } ],
+      authors: [ { addresses: [ { value: 'bar' } ] } ],
+      action: 'post'
+    };
+    expect(isValidSpasmEventV2(event as SpasmEventV2)).toBe(true);
+  });
+
+  test('returns false when event has signatures without authors or ids', () => {
+    const event: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      signatures: [ { value: 'foo' } ],
+      action: 'post'
+    };
+    expect(isValidSpasmEventV2(event as SpasmEventV2)).toBe(false);
+  });
+
+  test('returns false when event has action "reply" without a parent', () => {
+    const event: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      signatures: [ { value: 'foo' } ],
+      authors: [ { addresses: [ { value: 'bar' } ] } ],
+      action: 'reply'
+    };
+    expect(isValidSpasmEventV2(event as SpasmEventV2)).toBe(false);
+  });
+
+  test('returns true when event has action "reply" with a parent', () => {
+    const event: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      signatures: [ { value: 'foo' } ],
+      authors: [ { addresses: [ { value: 'bar' } ] } ],
+      action: 'reply',
+      parent: { ids: [ { value: 'id' } ] }
+    };
+    expect(isValidSpasmEventV2(event as SpasmEventV2)).toBe(true);
+  });
+
+  test('returns false when event has action "react" without a parent', () => {
+    const event: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      signatures: [ { value: 'foo' } ],
+      authors: [ { addresses: [ { value: 'bar' } ] } ],
+      action: 'react'
+    };
+    expect(isValidSpasmEventV2(event as SpasmEventV2)).toBe(false);
+  });
+
+  test('returns true when event has action "react" with a parent', () => {
+    const event: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      signatures: [ { value: 'foo' } ],
+      authors: [ { addresses: [ { value: 'bar' } ] } ],
+      action: 'react',
+      parent: { ids: [ { value: 'id' } ] }
+    };
+    expect(isValidSpasmEventV2(event as SpasmEventV2)).toBe(true);
+  });
+
+  test('returns true when event has ids', () => {
+    const event: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      ids: [ { value: '123' } ]
+    };
+    expect(isValidSpasmEventV2(event as SpasmEventV2)).toBe(true);
+  });
+});
+
+
+const { areValidSpasmEventsV2 } = useUtils()
+
+describe('areValidSpasmEventsV2', () => {
+  test('areValidSpasmEventsV2 returns true if all events are valid', () => {
+    const validPost: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      ids: [ { value: '123' } ]
+    };
+
+    const validPostSig: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      signatures: [ { value: 'foo' } ],
+      authors: [ { addresses: [ { value: 'bar' } ] } ],
+      action: 'react',
+      parent: { ids: [ { value: 'id' } ] }
+    };
+
+    const validPosts1 = [validPost];
+    const result1 = areValidSpasmEventsV2(validPosts1);
+    expect(result1).toBe(true);
+
+    const validPosts2 = [validPost, validPostSig];
+    const result2 = areValidSpasmEventsV2(validPosts2);
+    expect(result2).toBe(true);
+  });
+
+  test('areValidPosts returns false if any post is invalid', () => {
+    const validPost: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      ids: [ { value: '123' } ]
+    };
+
+    const invalidPostNoIdsSigsEtc: SpasmEventV2 = {
+      type: 'SpasmEventV2', 
+      source: { name: "source"}
+    };
+
+    const invalidPostSigActionButNoParent: SpasmEventV2 = {
+      type: 'SpasmEventV2',
+      signatures: [ { value: 'foo' } ],
+      action: 'post'
+    };
+
+    const invalidPosts1 = [validPost, invalidPostNoIdsSigsEtc];
+    const result1 = areValidSpasmEventsV2(invalidPosts1);
+    expect(result1).toBe(false);
+
+    const invalidPosts2 = [validPost, invalidPostSigActionButNoParent];
+    const result2 = areValidSpasmEventsV2(invalidPosts2);
+    expect(result2).toBe(false);
+  });
+
+  test('areValidSpasmEventsV2 returns false if posts is undefined', async () => {
+    const result = areValidSpasmEventsV2(undefined);
+    expect(result).toBe(false);
+  });
+
+  test('areValidPosts returns false if posts is not an array', async () => {
+    const result = areValidSpasmEventsV2({} as SpasmEventV2[]);
     expect(result).toBe(false);
   });
 

@@ -148,7 +148,12 @@ export const useWeb3 = () => {
   //   return doc.body.textContent || ""
   // }
 
-  const submitAction = async (action?: Web3MessageAction, text?: string, target?: string, title?: string): Promise<SubmitActionReturn | false> => {
+  const submitAction = async (
+    action?: Web3MessageAction,
+    text?: string,
+    target?: string,
+    title?: string
+  ): Promise<SubmitActionReturn | false> => {
     // Only try to connect an Ethereum extension.
     // If web3 (Ethereum) is not detected, then the web3
     // modal with different connect options will be shown.

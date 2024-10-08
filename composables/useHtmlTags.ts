@@ -1,4 +1,10 @@
-import {Post} from '@/helpers/interfaces'
+import {Post, SpasmEventV2} from '@/helpers/interfaces'
+import { spasm } from 'spasm.js'
+
+const {
+  isValidSpasmEventV2,
+  isArrayWithValues
+} = useUtils()
 
 /**
  * Allowing external content to be embedded into a website with
@@ -144,6 +150,32 @@ export const useHtmlTags = () => {
     return finalArrayOfArrays
   }
 
+  // Parent function
+  const getArrayOfArraysOfTextAndTagsV2 = (
+    event: SpasmEventV2
+  ): string[][] | null => {
+    if (!event || !isValidSpasmEventV2(event)) { return null }
+    if (
+      !event.content ||
+      typeof(event.content) !== 'string'
+    ) { return null }
+
+    // Check if everything is allowed according to .env settings
+    if (!checkIfEverythingIsAllowedV2(event)) {
+      return [[event.content]]
+    }
+
+    // Check if text has any URLs
+    if (!checkIfTextHasUrl(event.content)) {
+      return [[event.content]]
+    }
+
+    // Split text into two arrays of text chunks and URL chunks
+    const finalArrayOfArrays = splitTextIntoChunks(event.content)
+
+    return finalArrayOfArrays
+  }
+
   // Split text into array of text chunks and array of URL chunks.
   //
   // Function returns an array of two arrays:
@@ -281,10 +313,42 @@ export const useHtmlTags = () => {
     return true
   }
 
+  const checkIfEverythingIsAllowedV2 = (
+    event: SpasmEventV2
+  ): boolean => {
+    // Check if iframe tags are enabled for whitelisted users
+    if (!enableEmbedIframeTagsForSelectedUsers) { return false }
+
+    // Since embedding videos via iframe tags is an
+    // additional attack vector, let's check again
+    // if the signer is allowed to embed iframe tags.
+    const signers: (string | number)[] | null =
+      spasm.getVerifiedSigners(event)
+
+    if (!signers || !isArrayWithValues(signers)) {
+      return false
+    }
+
+    let isAtLeastOneSignerAllowed: boolean = false
+    
+    signers.forEach(signer => {
+      if (
+        signer && String(signer) &&
+        checkIfSignerAllowedIframe(String(signer))
+      ) { isAtLeastOneSignerAllowed = true }
+    })
+
+    if (!isAtLeastOneSignerAllowed) { return false }
+
+    // Return true if everything is good
+    return true
+  }
+
   return {
     checkIfSignerAllowedIframe,
     checkIfUrlIsAllowedIframeDomain,
     getArrayOfArraysOfTextAndTags,
+    getArrayOfArraysOfTextAndTagsV2,
     splitTextIntoChunks,
     checkIfTextHasUrl,
   }
