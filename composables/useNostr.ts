@@ -3,20 +3,38 @@ import {
   DataToExtractFromNostrEventKind0,
   DataToExtractFromNostrEventKind10002,
   DataToExtractFromNostrEvent,
-  ProfileSpasm
+  ProfileSpasm,
+  // NostrEvent,
+  NostrSpasmEventSignedOpened,
+  SpasmEventBodySignedClosedV2,
+  SpasmEventV2
 } from "@/helpers/interfaces";
 import {bech32} from "bech32"
+import {
+  // validateEvent,
+  verifySignature,
+  // getSignature,
+  // getEventHash
+} from 'nostr-tools'
+import {RelayPool} from "nostr-relaypool";
 import {useUtils} from './useUtils';
-const {hasValue} = useUtils()
+
+const {
+  hasValue,
+  isArrayWithValues,
+  isObjectWithValues,
+} = useUtils()
 
 export const useNostr = () => {
-  // Npub to hex with 3 functions.
-  // Npub to hex. Function 1.
   const convertBech32ToHex = (bech32Key: string) => {
     if (!bech32Key || typeof(bech32Key) !== "string") return bech32Key
 
-    if (!bech32Key.startsWith('npub')) {
-      console.error(bech32Key, "is invalid bech32 string. It should start with 'npub'.");
+    if (
+      !bech32Key.startsWith('npub') &&
+      !bech32Key.startsWith('note') &&
+      !bech32Key.startsWith('nevent')
+    ) {
+      console.error(bech32Key, "is invalid bech32 nostr string. It should start with 'npub' or 'note' or 'nevent'.");
       return bech32Key
     }
 
@@ -36,7 +54,16 @@ export const useNostr = () => {
       hexKey += ('0' + (byte & 0xFF).toString(16)).slice(-2);
     }
 
-      return hexKey;
+    if (
+      bech32Key.length === 68 &&
+      bech32Key.startsWith("nevent") &&
+      hexKey.length === 68
+    ) {
+      // Remove leading 0020
+      hexKey = hexKey.slice(4)
+    } 
+
+    return hexKey;
 
     } catch (error) {
       console.error(error)
@@ -44,36 +71,48 @@ export const useNostr = () => {
     }
   }
 
-  // Npub to hex. Function 2.
+  // Npub to hex.
   // One address.
   const convertNpubOrHexAddressToHex = (
-    addressNpubOrHex: string
+    npubNoteNeventHex: string
   ): string => {
-    if (!addressNpubOrHex) return ""
-    if (typeof(addressNpubOrHex) !== "string") return ""
+    if (!npubNoteNeventHex) return ""
+    if (typeof(npubNoteNeventHex) !== "string") return ""
     // Ethereum addresses start with "0x"
-    if (addressNpubOrHex.startsWith("0x")) return ""
+    if (npubNoteNeventHex.startsWith("0x")) return ""
 
     let addressHex: string = ""
 
     if (
       // Address is npub
-      addressNpubOrHex.startsWith("npub") &&
-      addressNpubOrHex.length === 63
+      npubNoteNeventHex.startsWith("npub") &&
+      npubNoteNeventHex.length === 63
     ) {
-      addressHex = convertBech32ToHex(addressNpubOrHex)
+      addressHex = convertBech32ToHex(npubNoteNeventHex)
+    } else if (
+      // String is note
+      npubNoteNeventHex.startsWith("note") &&
+      npubNoteNeventHex.length === 63
+    ) {
+      addressHex = convertBech32ToHex(npubNoteNeventHex)
+    } else if (
+      // String is note
+      npubNoteNeventHex.startsWith("nevent") &&
+      npubNoteNeventHex.length === 68
+    ) {
+      addressHex = convertBech32ToHex(npubNoteNeventHex)
     } else if (
       // Address is already hex
-      !addressNpubOrHex.startsWith("npub") &&
-      addressNpubOrHex.length === 64
+      !npubNoteNeventHex.startsWith("npub") &&
+      npubNoteNeventHex.length === 64
     ) {
-      addressHex = addressNpubOrHex
+      addressHex = npubNoteNeventHex
     }
 
     return addressHex
   }
 
-  // Npub to hex. Function 3.
+  // Npub to hex.
   // Multiple addresses.
   const convertNpubOrHexAddressesToHex = (
     addressesNpubOrHex: string | string[]
@@ -123,11 +162,11 @@ export const useNostr = () => {
     return arrayOfAddressesHex
   }
 
-  // Hex to npub with 3 functions.
-  // Hex to npub. Function 1.
+  // Hex to npub, note.
   const convertHexToBech32 = (
     hexKey: string,
-    prefix?: string
+    // nevent currently doesn't work properly
+    prefix: "npub" | "note" | "nevent" = "npub"
   ): string => {
     try {
       // Convert private or public key from HEX to bech32
@@ -150,7 +189,7 @@ export const useNostr = () => {
     }
   }
 
-  // Hex to npub. Function 2.
+  // Hex to npub.
   // One address.
   const convertHexOrNpubAddressToNpub = (
     addressNpubOrHex: string
@@ -179,7 +218,7 @@ export const useNostr = () => {
     return addressNpub
   }
 
-  // Hex to npub. Function 3.
+  // Hex to npub.
   // Multiple addresses.
   const convertHexAddressesToNpub = (
     addressesNpubOrHex: string | string []
@@ -226,6 +265,108 @@ export const useNostr = () => {
 
     return arrayOfAddressesNpub
   }
+
+  // Hex to note.
+  // One address.
+  const convertHexNoteNeventIdToNote = (
+    id: string,
+  ): string => {
+    if (!id) return ""
+    if (typeof(id) !== "string") return ""
+    // Dmp ids start with "0x"
+    if (id.startsWith("0x")) return ""
+    // Spasm ids start with "spasm"
+    if (id.startsWith("spasm")) return ""
+
+    let idNote: string = ""
+
+    if (
+      // Id is hex
+      !id.startsWith("note") &&
+      !id.startsWith("nevent") &&
+      id.length === 64
+    ) {
+      idNote = convertHexToBech32(id, "note")
+    } else if (
+      // Id is nevent
+      id.startsWith("nevent") &&
+      id.length === 68
+    ) {
+      idNote = convertHexToBech32(
+        convertNpubOrHexAddressToHex(id),
+        "note"
+      )
+    } else if (
+      // Id is already note
+      id.startsWith("note") &&
+      id.length === 63
+    ) {
+      idNote = id
+    }
+
+    return idNote
+  }
+
+  // Hex, note, nevent to note
+  // Multiple addresses.
+  const convertHexNoteNeventIdsToNote = (
+    idsHexNoteNevent: string | string []
+  ): string[] => {
+    const arrayOfIdsNote: string[] = []
+
+    if (!hasValue(idsHexNoteNevent)) return arrayOfIdsNote
+
+    // Passed value is one address (as a string)
+    if (
+      idsHexNoteNevent &&
+      typeof(idsHexNoteNevent) === "string"
+    ) {
+      const idNote = convertHexNoteNeventIdToNote(idsHexNoteNevent)
+      if (
+        idNote &&
+        typeof(idNote) === "string"
+      ) {
+        arrayOfIdsNote.push(idNote)
+      }
+      return arrayOfIdsNote
+    }
+
+    // Passed value is an array of addresses
+    if (Array.isArray(idsHexNoteNevent)) {
+      idsHexNoteNevent.forEach((
+        addressNpubOrHex: string
+      ): void => {
+        if (
+          addressNpubOrHex &&
+          typeof(addressNpubOrHex) === "string"
+        ) {
+          const idNote = convertHexNoteNeventIdToNote(addressNpubOrHex)
+          if (
+            idNote &&
+            typeof(idNote) === "string"
+          ) {
+            arrayOfIdsNote.push(idNote)
+          }
+        }
+      })
+      return arrayOfIdsNote
+    }
+
+    return arrayOfIdsNote
+  }
+
+  // Aliases
+  const convertHexOrNpubAddressesToNpub =
+    convertHexAddressesToNpub
+
+  const toBeHex = convertNpubOrHexAddressToHex
+  const toBeHexes = convertNpubOrHexAddressesToHex
+
+  const toBeNpub = convertHexOrNpubAddressToNpub
+  const toBeNpubs = convertHexOrNpubAddressesToNpub
+
+  const toBeNote = convertHexNoteNeventIdToNote
+  const toBeNotes = convertHexNoteNeventIdsToNote
 
   const extractDataFromNostrEvent = (
     event: NostrEventSignedOpened,
@@ -428,6 +569,194 @@ export const useNostr = () => {
     return preferredRelays
   }
 
+  const getHardcodedNostrRelays = (): string[] => {
+    return [
+      "wss://nos.lol",
+      "wss://relay.damus.io",
+      "wss://relay.primal.net",
+      "wss://relay.nostr.band",
+
+      // can fetch, but cannot submit:
+      // "wss://relay.snort.social",
+      // "wss://relay.nostrplebs.com",
+      // "wss://eden.nostr.land",
+      // "wss://nostr.wine",
+      // "wss://relay.plebstr.com",
+      // "wss://purplepag.es",
+    ]
+  }
+
+  const getDefaultNostrRelays = (): string[] => {
+    const defaultNostrRelays: string[] = []
+    const envRelaysString = 
+      useRuntimeConfig()?.public?.nostrDefaultRelays
+    if (
+      envRelaysString && typeof(envRelaysString) === "string"
+    ) {
+      const envRelaysArray = envRelaysString.split(',')
+      if (
+        envRelaysArray && isArrayWithValues(envRelaysArray)
+      ) {
+        envRelaysArray.forEach(relayUrl => {
+          if (
+            relayUrl && typeof(relayUrl) === "string" &&
+            relayUrl.startsWith("wss:\/\/")
+          ) {
+            defaultNostrRelays.push(relayUrl)
+          }
+        })
+      }
+    }
+    return defaultNostrRelays
+  }
+
+  const getNostrRelays = (
+    profile?: ProfileSpasm
+  ): string[] | null => {
+    // There are three methods to get different sets of relays:
+    // 1. Get user's preferred relays from a special Nostr event,
+    // 2. Get default relays specified by the instance admin,
+    // 3. Get hardcoded relays.
+
+    if (profile && isObjectWithValues(profile)) {
+      const preferredRelays: string[] =
+        getPreferredRelaysFromProfile(profile)
+        if (
+          preferredRelays &&
+          isArrayWithValues(preferredRelays)
+        ) { return preferredRelays }
+    }
+    
+    const defaultRelays = getDefaultNostrRelays()
+    if (
+      isArrayWithValues(defaultRelays)
+    ) { return defaultRelays }
+
+    const hardcodedRelays = getHardcodedNostrRelays()
+    if (
+      isArrayWithValues(hardcodedRelays)
+    ) { return hardcodedRelays }
+
+    return null
+  }
+
+  const sendEventToNostrNetwork = async (
+    unknownEvent?:
+      SpasmEventBodySignedClosedV2 |
+      SpasmEventV2 |
+      NostrEventSignedOpened |
+      NostrSpasmEventSignedOpened
+  ): Promise<boolean> => {
+    if (!unknownEvent) return false
+    // TODO toBeNostr
+    // TODO extractNostrEvent (from sibling)
+    const nostrEventSigned =
+      unknownEvent as NostrSpasmEventSignedOpened
+
+    // verify the signature
+    const isSignatureValid: boolean =
+      verifySignature(nostrEventSigned)
+    if (!isSignatureValid) return false
+    console.log("isSignatureValid:", isSignatureValid)
+    console.log("nostrEventSigned:", nostrEventSigned)
+
+    const relays = getNostrRelays()
+    // const relays = [
+      // "wss://nos.lol",
+      // "wss://relay.damus.io",
+      // "wss://relay.primal.net",
+      // "wss://relay.nostr.band",
+
+      // can fetch, but cannot submit:
+      // "wss://relay.snort.social",
+      // "wss://relay.nostrplebs.com",
+      // "wss://eden.nostr.land",
+      // "wss://nostr.wine",
+      // "wss://relay.plebstr.com",
+      // "wss://purplepag.es",
+    // ]
+    if (!relays) return false
+    let relayPool = new RelayPool(relays);
+    // let relayPool = new RelayPool();
+    relayPool.publish(nostrEventSigned, relays)
+
+    // TODO receive event or confirmation from Nostr relays
+    return true
+  }
+
+  interface NostrNetworkFiltersConfig {
+    ids?: string[]
+    authors?: string[]
+    kinds?: number[]
+    since?: number
+    until?: number
+    limit?: number
+    tags?: { tagName: string, tagValue: string[] }[]
+  }
+
+  type NostrNetworkFilters = {
+    ids?: string[]
+    authors?: string[]
+    kinds?: number[]
+    since?: number
+    until?: number
+    limit?: number
+    // tags
+  } & Record<string, string[]>
+
+  const assembleNostrNetworkFilters = (
+    filtersConfig: NostrNetworkFiltersConfig
+  ): NostrNetworkFilters | null => {
+    if (
+      !filtersConfig || !isObjectWithValues(filtersConfig)
+    ) return null
+    const filters: NostrNetworkFilters = {}
+    if (
+      "ids" in filtersConfig && filtersConfig.ids &&
+      isArrayWithValues(filtersConfig.ids)
+    ) { filters.ids = filtersConfig.ids }
+    if (
+      "authors" in filtersConfig && filtersConfig.authors &&
+      isArrayWithValues(filtersConfig.authors)
+    ) { filters.authors = filtersConfig.authors }
+    if (
+      "kinds" in filtersConfig && filtersConfig.kinds &&
+      isArrayWithValues(filtersConfig.kinds)
+    ) { filters.kinds = filtersConfig.kinds }
+    if (
+      "since" in filtersConfig && filtersConfig.since &&
+      typeof(filtersConfig.since) === "number"
+    ) { filters.since = filtersConfig.since }
+    if (
+      "until" in filtersConfig && filtersConfig.until &&
+      typeof(filtersConfig.until) === "number"
+    ) { filters.until = filtersConfig.until }
+    if (
+      "limit" in filtersConfig && filtersConfig.limit &&
+      typeof(filtersConfig.limit) === "number"
+    ) {
+      filters.limit = filtersConfig.limit
+    } else {
+      filters.limit = 30
+    }
+    if (
+      "tags" in filtersConfig && filtersConfig.tags &&
+      isArrayWithValues(filtersConfig.tags)
+    ) {
+      filtersConfig.tags.forEach(tag => {
+        if (
+          "tagName" in tag && tag.tagName
+          && typeof(tag.tagName) === "string" &&
+          "tagValue" in tag && tag.tagValue
+          && typeof(tag.tagValue) === "string"
+        ) { filters[tag.tagName] = tag.tagValue }
+      })
+    }
+    if (isObjectWithValues(filters)) {
+      return filters
+    } else { return null }
+  }
+
   return {
     convertBech32ToHex,
     convertNpubOrHexAddressToHex,
@@ -435,7 +764,19 @@ export const useNostr = () => {
     convertHexToBech32,
     convertHexOrNpubAddressToNpub,
     convertHexAddressesToNpub,
+    convertHexOrNpubAddressesToNpub,
+    toBeHex,
+    toBeHexes,
+    toBeNpub,
+    toBeNpubs,
+    toBeNote,
+    toBeNotes,
     extractDataFromNostrEvent,
     getPreferredRelaysFromProfile,
+    getHardcodedNostrRelays,
+    getDefaultNostrRelays,
+    assembleNostrNetworkFilters,
+    getNostrRelays,
+    sendEventToNostrNetwork,
   }
 }

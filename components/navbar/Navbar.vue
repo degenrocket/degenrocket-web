@@ -20,7 +20,7 @@
     </div>
     <div
       class="ml-2 mr-1 inline-block text-center float-right"
-      @click="showWeb3Modal">
+      @click="showWeb3Modal()">
       <span v-if="connectedAddress" class="text-sm lg:text-lg inline-block min-w-[100px] lg:min-w-[120px] border-2 rounded-lg border-bgSecondary-light dark:border-bgSecondary-dark cursor-pointer text-colorGreen-light dark:text-colorGreen-dark hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
         <!-- :key rerenders the component when account changes -->
         <ExtraBlockies :seed="connectedAddress" :key="connectedAddress" :scale="2" class="inline-block" />

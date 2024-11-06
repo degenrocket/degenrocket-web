@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import {useEventsStore} from '@/stores/useEventsStore'
 const eventsStore = useEventsStore()
-const {submitAction} = useWeb3()
+const {submitSingleSignedEventV2} = useWeb3()
 
 const props = defineProps<{
   target?: string | null
@@ -51,7 +51,7 @@ const buttonClicked = async () => {
   /* console.log("buttonClicked") */
   if (!props.reaction || !props.target) { return }
   const result =
-    await submitAction('react', props.reaction, props.target, '')
+    await submitSingleSignedEventV2('react', props.reaction, props.target, '')
   if (result) {
     const { res } = result
     if (

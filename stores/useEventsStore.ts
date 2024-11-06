@@ -2,11 +2,15 @@ import {defineStore} from 'pinia'
 import {useFetch} from '#app'
 import {
   FeedFilters,
-  SpasmEventV2
+  NostrEventSignedOpened,
+  ProfileSpasm,
+  SpasmEventV2,
+  NostrNetworkFiltersConfig
 } from '@/helpers/interfaces'
 
 import {useProfilesStore} from '@/stores/useProfilesStore'
 import { spasm } from 'spasm.js'
+import {RelayPool} from "nostr-relaypool";
 // const profilesStore = useProfilesStore()
 
 const {feedFilters} = useFeedEventsFilters()
@@ -16,13 +20,21 @@ const {
   isValidSpasmEventV2,
   areValidSpasmEventsV2,
   isArrayWithValues,
+  isArrayOfStrings,
   isObjectWithValues,
-  isStringOrNumber
+  isStringOrNumber,
+  sanitizeObjectValuesWithDompurify
 } = useUtils()
 const {
   getMockEvents,
   // getMockCommentsById
 } = useMocks()
+
+const {
+  assembleNostrNetworkFilters,
+  getNostrRelays,
+  toBeHex
+} = useNostr()
 
 export interface PostsState {
   apiUrl: any
@@ -249,6 +261,11 @@ export const useEventsStore = defineStore('postsStore', {
 
       this.saveEventsToStore(fetchedEvents)
 
+      // Add addresses to a list of addresses that should be checked
+      // for profile info (e.g. usernames) during an update function.
+      const profilesStore = useProfilesStore()
+      profilesStore.addAddressesFromSpasmEvents(fetchedEvents)
+
       return fetchedEvents
     },
 
@@ -277,11 +294,21 @@ export const useEventsStore = defineStore('postsStore', {
         fetchedResult.value &&
         isObjectWithValues(fetchedResult.value)
       ) {
-        const spasmEvent: SpasmEventV2 | null =
-          spasm.convertToSpasm(fetchedResult.value)
-        if (spasmEvent) {
-          return spasmEvent
-        } else { return null }
+        // Error
+        if (
+          "error" in fetchedResult.value &&
+          fetchedResult.value.error &&
+          typeof(fetchedResult.value.error) === "string"
+        ) {
+          return null
+        // Not error
+        } else {
+          const spasmEvent: SpasmEventV2 | null =
+            spasm.convertToSpasm(fetchedResult.value)
+          if (spasmEvent) {
+            return spasmEvent
+          } else { return null }
+        }
       } else { return null }
     },
 
@@ -582,7 +609,13 @@ export const useEventsStore = defineStore('postsStore', {
     },
 
     setCurrentPostId(id: (string | number)): void {
-      this.currentEventId = id
+      if (!id || !isStringOrNumber(id)) return
+      let newId = String(id)
+      if (newId.length === 63 && newId.startsWith('note')) {
+        const hex = toBeHex(newId)
+        if (hex && typeof(hex) === "string") { newId = hex } 
+      }
+      this.currentEventId = newId
     },
 
     async updateCurrentPost():Promise<void> {
@@ -691,6 +724,77 @@ export const useEventsStore = defineStore('postsStore', {
       // for profile info (e.g. usernames) during an update function.
       const profilesStore = useProfilesStore()
       profilesStore.addAddressesFromSpasmEvents([eventWithComments])
+    },
+
+    async fetchFromNostrNetworkByIds(
+      ids: string[],
+      customRelays?: string[] | null,
+      profile?: ProfileSpasm
+    ): Promise<NostrEventSignedOpened | null> {
+      return this.fetchFromNostrNetworkByFilters(
+        {ids: ids}, customRelays, profile
+      )
+    },
+
+    async fetchFromNostrNetworkByFilters(
+      filtersConfig: NostrNetworkFiltersConfig,
+      customRelays?: string[] | null,
+      profile?: ProfileSpasm
+    ): Promise<NostrEventSignedOpened | null> {
+      const filters = assembleNostrNetworkFilters(filtersConfig)
+      if (!filters) return null
+      if (!isObjectWithValues(filters)) return null
+
+      let relays: string[] | null
+      if (
+        customRelays && hasValue(customRelays) &&
+        isArrayOfStrings(customRelays)
+      ) {
+        relays = customRelays
+      } else {
+        relays = getNostrRelays(profile)
+      }
+      if (!relays || !isArrayWithValues(relays)) return null
+      console.log("relays:", relays)
+
+      let relayPool = new RelayPool(relays);
+      relayPool.subscribe(
+        [filters],
+        relays,
+
+        // onEvent
+        // (event, isAfterEose, relayUrl) => {
+        (event, _, relayUrl) => {
+          sanitizeObjectValuesWithDompurify(event)
+
+          // console.log(event, relayUrl)
+
+          // const eventsStore = useEventsStore()
+          const spasmEventV2: SpasmEventV2 | null =
+            spasm.convertToSpasm(event)
+          if (spasmEventV2 && isValidSpasmEventV2(spasmEventV2)) {
+            // eventsStore.saveEventsToStore([spasmEventV2])
+            this.saveEventsToStore([spasmEventV2])
+          }
+          // if (process.client) {}
+        },
+
+        // maxDelayms (doesn't work with onEose)
+        undefined,
+
+        // onEose - End Of Subscription Events (EOSE)
+        // (relayUrl, minCreatedAt) => {
+        (_, __) => {}
+      );
+
+      relayPool.onerror((err, relayUrl) => {
+        console.error("RelayPool error", err, " from relay ", relayUrl);
+      });
+      relayPool.onnotice((relayUrl, notice) => {
+        console.error("RelayPool notice", notice, " from relay ", relayUrl);
+      });
+
+      return null
     }
   }
 })

@@ -28,7 +28,15 @@ const externalWebsiteUrl = ref("")
 if (props.value && typeof(props.value) === "string") {
   if (props.value.startsWith('0x')) {
     protocol.value = "ethereum"
-  } else if (props.value.startsWith('npub')) {
+  } else if (
+    (
+      props.value.startsWith('npub') &&
+      props.value.length === 63
+    ) || (
+      props.value.startsWith('note') &&
+      props.value.length === 63
+    )
+  ) {
     protocol.value = "nostr"
   }
 }

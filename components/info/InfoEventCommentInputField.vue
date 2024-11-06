@@ -1,5 +1,5 @@
 <template>
-  <div v-if="target">
+  <div v-if="targetIds">
     <div
       v-if="errorMessage"
       class="text-colorRed-light dark:text-colorRed-dark"
@@ -17,23 +17,58 @@
         class="block min-w-[200px] min-h-[40px] text-colorPrimary-light dark:text-colorPrimary-dark border-2 border-colorPrimary-light dark:border-colorPrimary-dark rounded-lg hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
         Sign reply
       </button>
+
+      <!-- Networks -->
+      <div v-if="connectedAddressNostr" class="my-1 mt-2">
+        Submit to networks:
+        <span class="ml-2">
+          <!--
+          <input disabled checked
+            type="checkbox" class="h-5 w-5"
+          />
+          -->
+          <input
+            type="checkbox"
+            class="h-4 w-4"
+            v-model="isNetworkSpasmSelected"
+          />
+          <label class="ml-1">Spasm</label>
+        </span>
+        <span class="ml-3">
+          <input
+            type="checkbox"
+            class="h-4 w-4"
+            v-model="isNetworkNostrSelected"
+          />
+          <label class="ml-1">Nostr</label>
+        </span>
+      </div>
     </form>
   </div>
 </template>
 
 <script setup lang="ts">
 /* import {usePostsStore} from '@/stores/usePostsStore' */
+
+import {SpasmEventIdV2} from '@/helpers/interfaces';
+
 /* const postsStore = usePostsStore()                   */
 const env = useRuntimeConfig()?.public
 const commentPlaceholder = env?.commentPlaceholder
-const {submitAction} = useWeb3()
+const {
+  submitSingleSignedEventV2,
+  connectedAddressNostr,
+  isNetworkSpasmSelected,
+  isNetworkNostrSelected
+} = useWeb3()
+const {isStringOrNumber} = useUtils()
 
 const props = defineProps<{
-  target?: string | number | null
+  targetIds?: SpasmEventIdV2[] | null
 }>()
 
 const emit = defineEmits<{
-  (e: 'reply-submitted', target?: string | number | null): void
+  (e: 'reply-submitted', targets?: (string | number)[] | null): void
 }>()
 
 const userInput = ref('')
@@ -56,7 +91,7 @@ watch(
 )
 
 // TODO
-const submitReply = async (e):Promise<void> => {
+const submitReply = async (e: any):Promise<void> => {
   e.preventDefault()
   /* console.log("userInput", userInput.value) */
   /* console.log("submitReply for target:", props.target) */
@@ -69,16 +104,23 @@ const submitReply = async (e):Promise<void> => {
   
   let response = null
   // It's a comment if there is target (action = 'reply'). 
-  if (typeof(props?.target) === 'string') {
-    const result = await submitAction(
-      'reply', userInput.value, props?.target, ''
+  if (props?.targetIds && Array.isArray(props?.targetIds)) {
+    const parentIds: (string | number)[] = []
+    props?.targetIds.forEach(id => {
+      if (
+        id && "value" in id && id.value &&
+        isStringOrNumber(id.value)
+      ) { parentIds.push(id.value) }
+    })
+    const result = await submitSingleSignedEventV2(
+      'reply', userInput.value, parentIds, ''
     )
     if (result && result.res) {
       response = result.res
     }
   } else {
   // It's a new post if there is no target (action = 'post').
-    const result = await submitAction('post', userInput.value, '', '')
+    const result = await submitSingleSignedEventV2('post', userInput.value, '', '')
     if (result && result.res) {
       response = result.res
     }
@@ -99,7 +141,22 @@ const submitReply = async (e):Promise<void> => {
   ) {
     userInput.value = ''
     errorMessage.value = ''
-    emit('reply-submitted', props.target)
+    const targets: (string | number)[] = []
+    if (props.targetIds && Array.isArray(props.targetIds)) {
+      props.targetIds.forEach(id => {
+        if ("value" in id && id.value) {
+          targets.push(id.value)
+        }
+      })
+    }
+    emit('reply-submitted', targets)
+  }
+
+  if (
+    response && typeof(response) === "string" &&
+    response === 'Sorry, but you\'ve already submitted the same action'
+  ) {
+    alert("You've already submitted this comment to this post")
   }
 }
 

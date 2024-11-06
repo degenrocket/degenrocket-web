@@ -23,8 +23,9 @@
 
 <script setup lang="ts">
 import {SpasmEventV2} from '@/helpers/interfaces'
+import { spasm } from 'spasm.js'
 const {connectedAddress} = useWeb3()
-const {submitAction} = useWeb3()
+const {submitSingleSignedEventV2} = useWeb3()
 const moderationResponse = ref<string>("")
 
 // Environment variables
@@ -40,8 +41,11 @@ const props = defineProps<{
 }>()
 
 const buttonClicked = async (text: string) => {
-  const target: string = String(props?.event?.ids?.[0]?.value) || ""
-  const result = await submitAction('moderate', text, target, '')
+  /* const target: string = String(props?.event?.ids?.[0]?.value) || "" */
+  /* const targets = props?.event?.ids */
+  const targets = spasm.getAllEventIds(props?.event)
+  if (!targets || !Array.isArray(targets)) return
+  const result = await submitSingleSignedEventV2('moderate', text, targets, '')
   if (result) {
     const { res } = result
     if (res === 'Success. Action saved and target deleted') {

@@ -1,19 +1,57 @@
 import {ref, readonly} from "vue";
 import {ethers, JsonRpcApiProvider, JsonRpcSigner} from "ethers";
-import {PostSignature, Web3Message, Web3MessageAction, NostrEvent} from "@/helpers/interfaces";
+import {
+  PostSignature,
+  Web3Message,
+  Web3MessageAction,
+  NostrEvent,
+  SpasmEventBodyV2,
+  SpasmEventIdV2,
+  SpasmEventBodySignedClosedV2,
+  SpasmEventV2,
+  SpasmEventEnvelopeV2,
+  // NostrEventSignedOpened,
+  NostrSpasmEventSignedOpened,
+  NostrSpasmEvent,
+  NostrEventSignedOpened
+} from "@/helpers/interfaces";
 import { bech32 } from 'bech32'
 import { validateEvent, verifySignature, getSignature, getEventHash } from 'nostr-tools'
 // import detectEthereumProvider from '@metamask/detect-provider'
 import DOMPurify from 'dompurify';
+import { spasm } from 'spasm.js'
+import { useUtils } from './useUtils';
+import { useNostr } from './useNostr';
+const {
+  hasValue,
+  // isValidSpasmEventV2,
+  // areValidSpasmEventsV2,
+  isArrayWithValues,
+  isObjectWithValues,
+  isStringOrNumber,
+  toBeString
+} = useUtils()
+const {
+  sendEventToNostrNetwork,
+  toBeHex,
+  toBeNote
+} = useNostr()
 
 const isWeb3ModalShown = ref(false)
 const isQrCodeModalShown = ref(false)
 const pendingAuthentication = ref(false)
+const isMultiSign = ref(false)
+const isNetworkSpasmSelected = ref(true)
+const isNetworkNostrSelected = ref(false)
 const qrCodeValue = ref<string | undefined>('')
 let provider: JsonRpcApiProvider | undefined
 let signer: JsonRpcSigner | undefined
 const connectedAddress = ref<string | undefined>('')
-const connectedKeyType = ref<string | undefined>('')
+const connectedAddressNostr = ref<string | undefined>('')
+const connectedAddressEthereum = ref<string | undefined>('')
+const connectedKeyType =
+  ref<"ethereum" | "nostr" | "" | null | undefined>(null)
+const assembledMessage = ref({})
 
 export const useWeb3 = () => {
   const showWeb3Modal = (): void => {
@@ -38,6 +76,30 @@ export const useWeb3 = () => {
     if (value && typeof(value) === "string") {
       qrCodeValue.value = value
     }
+  }
+
+  const selectNetworkSpasm = (): void => {
+    isNetworkSpasmSelected.value = true
+  }
+
+  const deselectNetworkSpasm = (): void => {
+    isNetworkSpasmSelected.value = false
+  }
+
+  const selectNetworkNostr = (): void => {
+    isNetworkNostrSelected.value = true
+  }
+
+  const deselectNetworkNostr = (): void => {
+    isNetworkNostrSelected.value = false
+  }
+
+  const turnOnMultiSign = (): void => {
+    isMultiSign.value = true
+  }
+
+  const turnOffMultiSign = (): void => {
+    isMultiSign.value = false
   }
 
   const connectWeb3Authenticator = async (): Promise<boolean> => {
@@ -66,10 +128,8 @@ export const useWeb3 = () => {
   const detectProvider = async (): Promise<boolean> => {
     // provider.value = await detectEthereumProvider()
     // TODO use RPC provider if BrowserProvider is not detected
-    // console.log("provider before:", provider)
     if (window?.ethereum) {
       provider = new ethers.BrowserProvider(window.ethereum)
-      // console.log("provider after:", provider)
       return provider ? true : false
     }
     isWeb3ModalShown.value = true
@@ -78,17 +138,13 @@ export const useWeb3 = () => {
 
   // provider.getSigner() prompts a user to connect an account
   const setSigner = async (): Promise<void> => {
-    // console.log("signer before:", signer)
     signer = await provider?.getSigner()
-    // console.log("signer after:", signer)
   }
 
   const setRandomSigner = (): void => {
     // console.log("setSigner called")
-    // console.log("signer before:", signer)
     signer = ethers.Wallet.createRandom()
     setConnectedAddress(signer?.address, 'ethereum')
-    // console.log("signer after:", signer)
   }
 
   // provider.getSigner() prompts a user to connect an account
@@ -122,6 +178,11 @@ export const useWeb3 = () => {
     if (address && typeof (address) === 'string') {
       connectedAddress.value = address
       connectedKeyType.value = keyType
+      if (keyType === "ethereum") {
+        connectedAddressEthereum.value = address
+      } else if (keyType === "nostr") {
+        connectedAddressNostr.value = address
+      }
       return true
     } else {
       connectedAddress.value = ""
@@ -133,8 +194,18 @@ export const useWeb3 = () => {
   const disconnectAccount = (): void => {
     connectedAddress.value = ""
     connectedKeyType.value = ""
+    connectedAddressEthereum.value = ""
+    connectedAddressNostr.value = ""
     signer = undefined
     provider = undefined
+  }
+
+  const removeAddressEthereum = (): void => {
+    connectedAddressEthereum.value = ""
+  }
+
+  const removeAddressNostr = (): void => {
+    connectedAddressNostr.value = ""
   }
 
   interface SubmitActionReturn {
@@ -142,11 +213,382 @@ export const useWeb3 = () => {
     signature: string | undefined
   }
 
-  // const stripHtml = (html?: string | number | boolean) => {
-  //   if (!html || typeof(html) !== "string") return ""
-  //   const doc = new DOMParser().parseFromString(html, 'text/html')
-  //   return doc.body.textContent || ""
-  // }
+  interface SubmitEventV2Return {
+    res: string | boolean | null | undefined,
+    id?: string | number
+    // signature: string | undefined
+  }
+
+  const assembleSpasmEventBodyV2 = (
+    dirtyAction: Web3MessageAction,
+    dirtyContent?: string,
+    dirtyParentIds?: (string | number) | (string | number)[],
+    dirtyTitle?: string
+  ): SpasmEventBodyV2 | null => {
+    if (!toBeString(dirtyAction)) return null
+    const action = DOMPurify.sanitize(toBeString(dirtyAction)) as Web3MessageAction
+    if (!action) return null
+    let content = DOMPurify.sanitize(toBeString(dirtyContent))
+    const title = DOMPurify.sanitize(toBeString(dirtyTitle))
+    if (action === "react") {
+      content = content.toLowerCase()
+    }
+
+    // Concat converts string or number into array
+    let parentIds: (string | number)[] = []
+    if (dirtyParentIds) {
+      parentIds = parentIds.concat(dirtyParentIds)
+    }
+    // spasm.sanitizeEvent() can also sanitize an array
+    spasm.sanitizeEvent(parentIds)
+
+    const spasmEventBodyV2: SpasmEventBodyV2 = {
+      type: "SpasmEventBodyV2"
+    }
+
+    if (action && typeof(action) === "string") {
+      spasmEventBodyV2.action = action
+    }
+
+    if (content && typeof(content) === "string") {
+      spasmEventBodyV2.content = content
+    }
+
+    if (title && typeof(title) === "string") {
+      spasmEventBodyV2.title = title
+    }
+
+    const finalParentIds: SpasmEventIdV2[] = []
+    if (parentIds && isArrayWithValues(parentIds)) {
+      parentIds.forEach(parentId => {
+        if (isStringOrNumber(parentId)) {
+          finalParentIds.push({ value: parentId })
+        }
+      })
+    }
+
+    if (isArrayWithValues(finalParentIds)) {
+      spasmEventBodyV2.parent = { ids: finalParentIds }
+    }
+
+    spasmEventBodyV2.timestamp = Date.now()
+    spasmEventBodyV2.license = 'SPDX-License-Identifier: CC0-1.0'
+    spasmEventBodyV2.protocol = {
+      name: "spasm", version: "2.0.0"
+    }
+
+    // Advanced multi-signing
+    if (isMultiSign) {
+      spasmEventBodyV2.authors ??= []
+      spasmEventBodyV2.authors[0] ??= {}
+      spasmEventBodyV2.authors[0].addresses ??= []
+      if (
+        connectedAddressEthereum.value &&
+        typeof(connectedAddressEthereum.value) === "string"
+      ) {
+        spasmEventBodyV2.authors[0].addresses.push({ 
+          // value: connectedAddressEthereum.value,
+          value: connectedAddressEthereum.value.toLowerCase(),
+          format: { name: "ethereum-pubkey" }
+        })
+      }
+      if (
+        connectedAddressNostr.value &&
+        typeof(connectedAddressNostr.value) === "string"
+      ) {
+        spasmEventBodyV2.authors[0].addresses.push({ 
+          // value: toBeHex(connectedAddressNostr.value),
+          value: toBeHex(connectedAddressNostr.value)
+            .toLowerCase(),
+          format: { name: "nostr-hex" }
+        })
+      }
+    // Default single signing
+    } else {
+      if (
+        !connectedAddress.value
+        // !connectedAddress.value &&
+        // !signer?.address &&
+        // !connectedAddressEthereum.value &&
+        // !connectedAddressNostr.value
+      ) return null
+      // const signerAddress = signer?.address?.toLowerCase()
+      const signerAddress = connectedAddress.value
+      if (!signerAddress) return null
+      spasmEventBodyV2.authors ??= []
+      if (spasmEventBodyV2.authors[0]) {
+        spasmEventBodyV2.authors[0].addresses ??= []
+        if (connectedKeyType.value === "ethereum") {
+          spasmEventBodyV2.authors[0].addresses.push({ 
+            value: signerAddress,
+            format: { name: "ethereum-pubkey" }
+          })
+        } else if (connectedKeyType.value === "nostr") {
+          spasmEventBodyV2.authors[0].addresses.push({ 
+            value: toBeHex(signerAddress),
+            format: { name: "nostr-hex" }
+          })
+        }
+      } else {
+        if (connectedKeyType.value === "ethereum") {
+          spasmEventBodyV2.authors = [{
+            addresses: [{
+              value: signerAddress,
+              format: { name: "ethereum-pubkey" }
+            }]
+          }]
+        } else if (connectedKeyType.value === "nostr") {
+          spasmEventBodyV2.authors = [{
+            addresses: [{
+              value: toBeHex(signerAddress),
+              format: { name: "nostr-hex" }
+            }]
+          }]
+        }
+      }
+    }
+
+    if (isObjectWithValues(spasmEventBodyV2)) {
+      return spasmEventBodyV2
+    } else {
+      return null
+    }
+  }
+
+  const signSpasmEventBodyV2 = async (
+    spasmEventBodyV2: SpasmEventBodyV2,
+    signWith?: "ethereum" | "nostr"
+  ): Promise<
+    SpasmEventBodySignedClosedV2 |
+    NostrSpasmEventSignedOpened |
+    null
+  > => {
+    if (
+      !spasmEventBodyV2 ||
+      !isObjectWithValues(spasmEventBodyV2)
+    ) { return null }
+    if (!signWith) {
+      if (
+        connectedKeyType.value &&
+        typeof(connectedKeyType.value) === "string" &&
+        (
+          connectedKeyType.value === "ethereum" ||
+          connectedKeyType.value === "nostr"
+        )
+      ) { signWith = connectedKeyType.value }
+    }
+    if (!signWith) { return null }
+
+    if (signWith === "ethereum") {
+      const eventSigned =
+        await signSpasmEventBodyV2WithEthereum(spasmEventBodyV2)
+      if (eventSigned) {
+        return eventSigned
+      }
+    } else if (signWith === "nostr") {
+      const eventSigned =
+        await signSpasmEventBodyV2WithNostr(spasmEventBodyV2)
+      if (eventSigned) {
+        return eventSigned
+      }
+    }
+    return null
+  }
+
+  const signSpasmEventBodyV2WithEthereum = async (
+    spasmEventBodyV2: SpasmEventBodyV2
+  ): Promise<SpasmEventBodySignedClosedV2 | null> => {
+    if (
+      !spasmEventBodyV2 ||
+      !isObjectWithValues(spasmEventBodyV2)
+    ) { return null }
+    try {
+      const stringToSign: string =
+        JSON.stringify(spasmEventBodyV2)
+      if (!stringToSign) return null
+
+      // sign the message
+      const signature: string | null =
+        await signString(stringToSign)
+      if (!signature) return null
+
+      if (!signer?.address) return null
+      const signerAddress = signer?.address?.toLowerCase()
+      if (!signerAddress) return null
+
+      // verify the signature
+      const isSignatureValid: boolean = verifyEthereumSignature(
+        stringToSign, signature, signerAddress
+      )
+      if (!isSignatureValid) return null
+
+      const signedEvent: SpasmEventBodySignedClosedV2 = {
+        type: "SpasmEventBodySignedClosedV2",
+        signedString: stringToSign,
+        signature,
+        signer: signerAddress
+      }
+      return signedEvent
+    } catch (err) {
+      console.error(err);
+      return null
+    }
+  }
+
+  const signSpasmEventBodyV2WithNostr = async (
+    spasmEventBodyV2: SpasmEventBodyV2
+  ): Promise<NostrSpasmEventSignedOpened | null> => {
+    if (
+      !spasmEventBodyV2 ||
+      !isObjectWithValues(spasmEventBodyV2)
+    ) { return null }
+    try {
+      const nostrEventUnsigned: NostrSpasmEvent =
+        spasm.convertToNostr(spasmEventBodyV2)
+      if (!nostrEventUnsigned) return null
+
+      // add ID to Nostr event
+      nostrEventUnsigned.id = getEventHash(nostrEventUnsigned)
+      const nostrEventSigned: NostrSpasmEventSignedOpened =
+        await window.nostr.signEvent(nostrEventUnsigned)
+
+      // verify the signature
+      if (!nostrEventSigned.sig) return null
+      const isSignatureValid: boolean =
+        verifySignature(nostrEventSigned)
+      if (!isSignatureValid) return null
+
+      return nostrEventSigned
+    } catch (err) {
+      console.error(err);
+      return null
+    }
+  }
+
+  const sendEventV2ToNetworks = async (
+    event: SpasmEventBodySignedClosedV2 | NostrSpasmEventSignedOpened | SpasmEventV2,
+    sendTo: ("spasm" | "nostr")[] = ["spasm"]
+  ): Promise<string | boolean | null | undefined> => {
+    if (!event || !isObjectWithValues(event)) return null
+    if (!sendTo || !isArrayWithValues(sendTo)) return null
+    try {
+      if (sendTo && isArrayWithValues(sendTo)) {
+        if (sendTo?.includes("nostr")) {
+          sendEventToNostrNetwork(event)
+        }
+        if (sendTo?.includes("spasm")) {
+          return sendEventV2ToSpasm(event)
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      return null
+    }
+    return null
+  }
+
+  const sendEventV2ToSpasm = async (
+    event: SpasmEventBodySignedClosedV2 | NostrSpasmEventSignedOpened | SpasmEventV2
+  ): Promise<string | boolean | null | undefined> => {
+    if (!event || !isObjectWithValues(event)) return null
+    try {
+      const {apiURL} = useRuntimeConfig()?.public
+
+      const envelope: SpasmEventEnvelopeV2 | null =
+        spasm.convertToSpasmEventEnvelope(event, "2.0.0")
+      if (!envelope) return null
+
+      const path = `${apiURL}/api/submit/`
+
+      const res: string | boolean | null | undefined =
+        await $fetch(path, {
+        method: 'POST',
+        body: envelope
+      });
+
+      return res
+
+    } catch (err) {
+      console.error(err)
+      return null
+    }
+  }
+
+  const submitSingleSignedEventV2 = async (
+    dirtyAction: Web3MessageAction,
+    dirtyContent?: string,
+    dirtyParentIds?: (string | number) | (string | number)[],
+    dirtyTitle?: string
+  ): Promise<SubmitEventV2Return | null> => {
+    // Only try to connect an Ethereum extension.
+    // If web3 (Ethereum) is not detected, then the web3
+    // modal with different connect options will be shown.
+    // if (!signer) { await connectWeb3Authenticator() }
+    if (!connectedAddress.value) {
+      await connectWeb3Authenticator()
+    }
+
+    // assemble event
+    const spasmEventBodyV2: SpasmEventBodyV2 | null =
+      assembleSpasmEventBodyV2(
+        dirtyAction, dirtyContent, dirtyParentIds, dirtyTitle
+    )
+    if (!spasmEventBodyV2) return null
+
+    // sign event
+    const signedEvent:
+      SpasmEventBodySignedClosedV2 |
+      NostrSpasmEventSignedOpened |
+      null = await signSpasmEventBodyV2(spasmEventBodyV2)
+    if (!signedEvent) return null
+
+    // broadcast event
+    const sendTo: ("spasm" | "nostr")[] = []
+    if (isNetworkSpasmSelected.value) { sendTo.push("spasm") }
+    if (
+      // Currently, Spasm reactions are converted to Nostr kind 1
+      // events, so they aren't broadcasted to the Nostr network.
+      isNetworkNostrSelected.value && dirtyAction !== "react"
+    ) { sendTo.push("nostr") }
+    const res: string | boolean | null | undefined =
+      await sendEventV2ToNetworks(signedEvent, sendTo)
+
+    // ID is returned so a user can be redirected
+    // to a newly created post or a comment/reply
+    const id = spasm.extractIdByFormat(signedEvent, {
+      name: "spasmid"
+    })
+    if (res) {
+      if (id && typeof(id) === "string") {
+        return { res, id }
+      } else { return { res } }
+    } else { return null }
+  }
+
+  const signMessageWithEthereum = async (
+    dirtyAction: Web3MessageAction,
+    dirtyContent?: string,
+    dirtyParentIds?: (string | number) | (string | number)[],
+    dirtyTitle?: string
+  ): Promise<void> => {
+    // Only try to connect an Ethereum extension.
+    // If web3 (Ethereum) is not detected, then the web3
+    // modal with different connect options will be shown.
+    // if (!signer) { await connectWeb3Authenticator() }
+    if (!connectedAddress.value) {
+      await connectWeb3Authenticator()
+    }
+
+    // assemble Spasm Body V2
+    const spasmEventBodyV2: SpasmEventBodyV2 | null =
+      assembleSpasmEventBodyV2(
+        dirtyAction, dirtyContent, dirtyParentIds, dirtyTitle
+    )
+
+    if (!spasmEventBodyV2) { return }
+
+    assembledMessage.value = spasmEventBodyV2
+  }
 
   const submitAction = async (
     action?: Web3MessageAction,
@@ -159,8 +601,6 @@ export const useWeb3 = () => {
     // modal with different connect options will be shown.
     // if (!signer) { await connectWeb3Authenticator() }
     if (!connectedAddress.value) { await connectWeb3Authenticator() }
-
-    // text = stripHtml(text)
 
     if (action && typeof(action) === "string") {
       action = DOMPurify.sanitize(action) as Web3MessageAction
@@ -197,7 +637,7 @@ export const useWeb3 = () => {
       // console.log("stringToSign:", stringToSign)
 
       // sign the message
-      const signature: string | undefined = await signString(stringToSign)
+      const signature: string | null = await signString(stringToSign)
 
       if (!signature) return false
       if (!signer?.address) return false
@@ -209,7 +649,7 @@ export const useWeb3 = () => {
 
       if (!isSignatureValid) return false
 
-      // send data to backed
+      // send data to backend
       const res: string | boolean | null | undefined = await submitSignature(stringToSign, signature, signerAddress)
 
       // signature is returned so a user can be redirected
@@ -269,23 +709,25 @@ export const useWeb3 = () => {
     }
   }
 
-  const signString = async (stringToSign: string): Promise<string | undefined> => {
+  const signString = async (stringToSign: string): Promise<string | null> => {
     // TODO: delete signer, because use connectWeb3Authenticator
     if (!signer) { signer = await provider?.getSigner() }
 
     const message = stringToSign
     // console.log("message:", message)
-    let signature: string | undefined
+    let signature: string | undefined | null
 
     try {
       signature = await signer?.signMessage(message)
       // console.log("signature:", signature)
 
-      return signature
+      if (
+        signature && typeof(signature) === "string"
+      ) { return signature } else { return null }
 
     } catch (err) {
       console.error('signString failed', err)
-      return undefined
+      return null
     }
   }
 
@@ -475,25 +917,121 @@ export const useWeb3 = () => {
   }
 
   // Utils
-  const sliceAddress = (address?: string | PostSignature, start: number = 6, end: number = 4) => {
-    return address ? `${address.slice(0, start)}...${address.slice(-end)}` : ''
+  const sliceAddress = (
+    address?: string | PostSignature,
+    start: number = 6,
+      end: number = 4
+  ) => {
+    return address
+      ? `${address.slice(0, start)}...${address.slice(-end)}`
+      : ''
   }
 
-  const randomNumber = (min = 1, max = 1000000) => Math.floor(Math.random() * (max - min + 1)) + min
+  const randomNumber = (min = 1, max = 1000000) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min
+  }
+
+  const toBeShortId = (
+    longId: string | number
+  ): string => {
+    const env = useRuntimeConfig()?.public
+    const enableShortUrlsForWeb3Actions: boolean =
+      env?.enableShortUrlsForWeb3Actions === 'false'? false : true
+    const shortUrlsLengthOfWeb3Ids: number =
+      env?.shortUrlsLengthOfWeb3Ids
+        ? Number(env?.shortUrlsLengthOfWeb3Ids)
+        : 20
+
+    if (!longId) return ""
+    const id: string = String(longId)
+    if (!id || typeof(id) !== "string") return ""
+    // Environment variables
+    if (!enableShortUrlsForWeb3Actions) { return id }
+    const shortId = id.slice(0,shortUrlsLengthOfWeb3Ids)
+    if (!shortId) return ""
+    return shortId
+  }
+  
+  const extractIdForDisplay = (
+    event: SpasmEventV2
+  ): string => {
+    const spasmEvent = spasm.toBeSpasmEventV2(event)
+    if (!spasmEvent) return ""
+    
+    // Nostr ID has higher priority because the Nostr network
+    // can only be queried with Nostr IDs, while Spasm instances
+    // can be queried with both Nostr and Spasm IDs.
+    const nostrId =
+      spasm.extractIdByFormat(event, { name: "nostr-hex" })
+    if (nostrId && typeof(nostrId) === "string") {
+      return toBeNote(nostrId)
+    }
+
+    const spasmId = spasm.extractIdByFormat(event, {
+      name: "spasmid", version: "01"
+    })
+    if (spasmId && typeof(spasmId) === "string") {
+      return toBeShortId(spasmId)
+    }
+
+    return ""
+  }
+
+  const extractParentIdForDisplay = (
+    event: SpasmEventV2
+  ): string => {
+    const spasmEvent = spasm.toBeSpasmEventV2(event)
+    if (!spasmEvent) return ""
+
+    // Nostr ID has higher priority because the Nostr network
+    // can only be queried with Nostr IDs, while Spasm instances
+    // can be queried with both Nostr and Spasm IDs.
+    const nostrId =
+      spasm.extractParentIdByFormat(event, { name: "nostr-hex" })
+    if (nostrId && typeof(nostrId) === "string") {
+      return toBeNote(nostrId)
+    }
+
+    const spasmId = spasm.extractParentIdByFormat(event, {
+      name: "spasmid", version: "01"
+    })
+    if (spasmId && typeof(spasmId) === "string") {
+      return toBeShortId(spasmId)
+    }
+
+    const dmpId = spasm.extractParentIdByFormat(event, {
+      name: "ethereum-sig"
+    })
+    if (dmpId && typeof(dmpId) === "string") {
+      return toBeShortId(dmpId)
+    }
+
+
+    return ""
+  }
+    
 
   return {
     isWeb3ModalShown: readonly(isWeb3ModalShown),
     isQrCodeModalShown: readonly(isQrCodeModalShown),
     qrCodeValue: readonly(qrCodeValue),
     pendingAuthentication: readonly(pendingAuthentication),
+    isMultiSign: readonly(isMultiSign),
     connectedAddress: readonly(connectedAddress),
+    connectedAddressEthereum: readonly(connectedAddressEthereum),
+    connectedAddressNostr: readonly(connectedAddressNostr),
     connectedKeyType: readonly(connectedKeyType),
     signer: signer ? readonly(signer) : undefined,
+    assembledMessage: readonly(assembledMessage),
+    isNetworkSpasmSelected,
+    isNetworkNostrSelected,
     showWeb3Modal,
     hideWeb3Modal,
     showQrCodeModal,
     hideQrCodeModal,
     setQrCodeValue,
+    turnOnMultiSign,
+    turnOffMultiSign,
     connectWeb3Authenticator,
     detectProvider,
     setSigner,
@@ -502,9 +1040,21 @@ export const useWeb3 = () => {
     listAccounts,
     setConnectedAddress,
     disconnectAccount,
+    removeAddressEthereum,
+    removeAddressNostr,
+    // submitEventV2,
+    signMessageWithEthereum,
     submitAction,
     connectNostrExtension,
     sliceAddress,
     randomNumber,
+    // V2
+    selectNetworkSpasm,
+    deselectNetworkSpasm,
+    selectNetworkNostr,
+    deselectNetworkNostr,
+    submitSingleSignedEventV2,
+    extractIdForDisplay,
+    extractParentIdForDisplay
   }
 }

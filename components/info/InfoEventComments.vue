@@ -41,11 +41,11 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'reply-submitted', target?: string | number | null): void
+  (e: 'reply-submitted', targets?: (string | number)[] | null): void
 }>()
 
-const replySubmitted = (target?: string | number | null) => {
-  emit('reply-submitted', target)
+const replySubmitted = (targets?: (string | number)[] | null) => {
+  emit('reply-submitted', targets)
 }
 
 const showActionDetails = ref(false)

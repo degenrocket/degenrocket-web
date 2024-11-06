@@ -7,7 +7,25 @@
           typeof(connectedAddress) === 'string'"
           class="mt-2 mb-4"
         >
-          Connected address: {{ connectedAddress }}
+          <div>
+            Connected main address: {{ sliceAddress(connectedAddress, 8, 6) }}
+            <ExtraAddressIcons
+              v-if="connectedAddress"
+              :key="connectedAddress"
+              :value="connectedAddress"
+              :showCopyToClipboard="true"
+              :showQrCode="true"
+              :showExternalWebsite="true"
+            />
+          </div>
+          <!--
+          <div>
+            Connected Ethereum address: {{ connectedAddressEthereum }}
+          </div>
+          <div>
+            Connected Nostr address: {{ connectedAddressNostr }}
+          </div>
+          -->
         </div>
 
       <!-- White list is disabled, everybody can create posts -->
@@ -67,14 +85,23 @@
 <script setup lang="ts">
 // New web3 actions are enabled by default if not disabled in .env
 const env = useRuntimeConfig()?.public
-const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true
-const enableNewWeb3ActionsPost: boolean = env?.enableNewWeb3ActionsPost === 'false'? false : true
-const enableWhitelistForActionPost: boolean = env?.enableWhitelistForActionPost === 'true'? true : false
+const enableNewWeb3ActionsAll: boolean =
+  env?.enableNewWeb3ActionsAll === 'false'? false : true
+const enableNewWeb3ActionsPost: boolean =
+  env?.enableNewWeb3ActionsPost === 'false'? false : true
+const enableWhitelistForActionPost: boolean =
+  env?.enableWhitelistForActionPost === 'true'? true : false
 const whitelistedForActionPost: string[] =
   typeof(env?.whitelistedForActionPost) === "string"
   ? env?.whitelistedForActionPost.toLowerCase().split(',')
   : []
-const {connectedAddress} = useWeb3()
+const {
+  connectedAddress,
+  /* assembledMessage, */
+  /* connectedAddressEthereum, */
+  /* connectedAddressNostr,    */
+  sliceAddress
+} = useWeb3()
 </script>
 
 <style scoped></style>

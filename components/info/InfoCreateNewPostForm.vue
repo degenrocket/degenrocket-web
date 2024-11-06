@@ -19,19 +19,124 @@
       <textarea
         v-model="userInput"
         :placeholder="bodyPlaceholder"
-        class="p-1 bg-bgBase-light dark:bg-bgBase-dark border-bgSecondary-light dark:border-bgSecondary-dark w-[90%] max-w-[700px] h-60 focus:outline-none rounded-b-lg border-2"
+        class="block p-1 bg-bgBase-light dark:bg-bgBase-dark border-bgSecondary-light dark:border-bgSecondary-dark w-[90%] max-w-[700px] h-60 lg:h-48 focus:outline-none rounded-b-lg border-2"
         :class="errorBody ? 'border-red-400 dark:border-red-400 placeholder:text-red-400' : ''"
       />
-      <button type="submit"
-        class="block min-w-[200px] min-h-[40px] text-colorPrimary-light dark:text-colorPrimary-dark border-2 border-colorPrimary-light dark:border-colorPrimary-dark rounded-lg hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
-        Sign reply
+      <button
+        v-if="!showAdvanced"
+        type="submit"
+        class="inline px-6 lg:min-w-[200px] min-h-[40px] text-colorPrimary-light dark:text-colorPrimary-dark border-2 border-colorPrimary-light dark:border-colorPrimary-dark rounded-lg hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
+        Sign message
       </button>
+      <!-- TODO advanced is hidden -->
+      <span class="hidden ml-2 cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4 hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
+        @click="toggleShowAdvanced()">
+        {{showAdvancedText}} advanced
+      </span>
+
+      <!-- Networks -->
+      <div v-if="connectedAddressNostr" class="my-1 mt-2">
+        Submit to networks:
+        <span class="ml-2">
+          <!--
+          <input disabled checked
+            type="checkbox" class="h-5 w-5"
+          />
+          -->
+          <input
+            type="checkbox"
+            class="h-4 w-4"
+            v-model="isNetworkSpasmSelected"
+          />
+          <label class="ml-1">Spasm</label>
+        </span>
+        <span class="ml-3">
+          <input
+            type="checkbox"
+            class="h-4 w-4"
+            v-model="isNetworkNostrSelected"
+          />
+          <label class="ml-1">Nostr</label>
+        </span>
+      </div>
+
+      <!-- Advanced (multi-signing) -->
+      <div v-if="showAdvanced" class="mt-1">
+        Sign with multiple private keys:
+          <div v-if="connectedAddressEthereum">
+            Ethereum: {{ sliceAddress(connectedAddressEthereum, 8, 6) }}
+            <span
+              @click="showWeb3Modal"
+              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+            > change </span> /
+            <span
+              @click="removeAddressEthereum"
+              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+            > remove </span>
+          </div>
+          <div v-else>
+            <span
+              @click="showWeb3Modal"
+              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+            >
+              Click to connect Ethereum
+            </span>
+          </div>
+          <div v-if="connectedAddressNostr">
+            Nostr: {{ sliceAddress(connectedAddressNostr, 8) }}
+            <span
+              @click="showWeb3Modal"
+              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+            >
+              change
+            </span>
+              /
+            <span
+              @click="removeAddressNostr"
+              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+            >
+              remove
+            </span>
+          </div>
+          <div v-else>
+            <span
+              @click="showWeb3Modal"
+              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+            >
+              Click to connect Nostr
+            </span>
+          </div>
+          <div v-if="connectedAddressEthereum && connectedAddressNostr">
+            <div
+              class="block hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+              @click="signWithEthereum"
+            >
+              Sign with Ethereum
+            </div>
+            <div class="block hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark">
+              Sign with Nostr
+            </div>
+          </div>
+      </div>
     </form>
   </div>
 </template>
 
 <script setup lang="ts">
-const {submitAction} = useWeb3()
+const {
+  submitSingleSignedEventV2,
+  connectedAddressEthereum,
+  connectedAddressNostr,
+  showWeb3Modal,
+  sliceAddress,
+  removeAddressEthereum,
+  removeAddressNostr,
+  turnOnMultiSign,
+  turnOffMultiSign,
+  signMessageWithEthereum,
+  isNetworkSpasmSelected,
+  isNetworkNostrSelected,
+} = useWeb3()
 const env = useRuntimeConfig()?.public
 const postPlaceholder = env?.postPlaceholder
 
@@ -49,6 +154,9 @@ const errorTitle = ref<boolean>(false)
 const errorBody = ref<boolean>(false)
 
 const errorMessage = ref<string>('')
+
+const showAdvanced = ref(false)
+const showAdvancedText = ref('show')
 
 watch(
   userInputTitle, async (newTitle: string) => {
@@ -69,6 +177,18 @@ watch(
     }
   }
 )
+
+const toggleShowAdvanced = (): void => {
+  showAdvanced.value = !showAdvanced.value
+  showAdvancedText.value = showAdvancedText.value === 'show'
+    ? 'hide'
+    : 'show'
+  if (showAdvanced.value) {
+    turnOnMultiSign()
+  } else {
+    turnOffMultiSign()
+  }
+}
 
 const submitPost = async (e):Promise<void> => {
   e.preventDefault()
@@ -94,14 +214,14 @@ const submitPost = async (e):Promise<void> => {
 
   // It's a comment if there is a target (action = 'reply'). 
   if (props.target && typeof(props?.target) === 'string') {
-    response = await submitAction('reply', userInput.value, props?.target, '')
+    response = await submitSingleSignedEventV2('reply', userInput.value, props?.target, '')
 
-  } else {
   // It's a new post if there is no target (action = 'post').
-    response = await submitAction('post', userInput.value, '', userInputTitle.value)
+  } else {
+    response = await submitSingleSignedEventV2('post', userInput.value, '', userInputTitle.value)
   }
 
-  /* console.log("response:", response) */
+  console.log("response:", response)
 
   if (
     response &&
@@ -113,9 +233,19 @@ const submitPost = async (e):Promise<void> => {
     errorMessage.value = response.res
   }
 
-  if (response && response.res === 'Success. Action has been saved and incremented') {
-    /* console.log("Success") */
-    userInput.value = ''
+  if (response && response.res === 'Success. The event was saved into database') {
+
+    if (response.id && typeof(response.id) === "string") {
+      const router = useRouter()
+      router.push(`/news/${response.id}`)
+
+      setTimeout(() => {
+        userInput.value = ''
+        userInputTitle.value = ''
+        errorBody.value = false
+        errorTitle.value = false
+      }, 2000)
+    }
   }
 
   /* if (response && response.res === 'ERROR: this address is not whitelisted to submit new posts') { */
@@ -124,21 +254,43 @@ const submitPost = async (e):Promise<void> => {
 
   // This should be a valid response if
   // a reply was submitted successfully.
-  if (response && response.res === 'Action has been saved, but count was not incremented') {
-    // Redirect a user to a newly created post,
-    // signature is also an ID of a new post.
-    const router = useRouter()
-    router.push(`/news/${response.signature}`)
+  /* if (response && response.res === 'Action has been saved, but count was not incremented') { */
+  /*   // Redirect a user to a newly created post,                                              */
+  /*   // signature is also an ID of a new post.                                                */
+  /*   const router = useRouter()                                                               */
+  /*   router.push(`/news/${response.signature}`)                                               */
+  /*                                                                                            */
+  /*   // setTimeout() is used to prevent blinking when input fields                            */
+  /*   // are emptied before a user is redirected to a new post.                                */
+  /*   setTimeout(() => {                                                                       */
+  /*     userInput.value = ''                                                                   */
+  /*     userInputTitle.value = ''                                                              */
+  /*     errorBody.value = false                                                                */
+  /*     errorTitle.value = false                                                               */
+  /*   }, 2000)                                                                                 */
+  /* }                                                                                          */
+}
 
-    // setTimeout() is used to prevent blinking when input fields
-    // are emptied before a user is redirected to a new post.
-    setTimeout(() => {
-      userInput.value = ''
-      userInputTitle.value = ''
-      errorBody.value = false
-      errorTitle.value = false
-    }, 2000)
+const signWithEthereum = async (e: any):Promise<void> => {
+  e.preventDefault()
+
+  // highlight a title input field if a title is empty
+  if (!userInputTitle.value) {
+    errorTitle.value = true
+    titlePlaceholder.value = 'title is required'
+    return
   }
+
+  // highlight a body input field if a body is empty
+  if (!userInput.value) {
+    errorBody.value = true
+    bodyPlaceholder.value = 'this field is required'
+    return
+  }
+
+  const response = await signMessageWithEthereum(
+    'post', userInput.value, '', userInputTitle.value
+  )
 }
 
 </script>

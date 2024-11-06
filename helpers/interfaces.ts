@@ -763,6 +763,26 @@ export interface KnownPostOrEventInfo {
 
 export type PrivateKeyType = "ethereum" | "nostr"
 
+export interface NostrNetworkFiltersConfig {
+  ids?: string[]
+  authors?: string[]
+  kinds?: number[]
+  since?: number
+  until?: number
+  limit?: number
+  tags?: { tagName: string, tagValue: string[] }[]
+}
+
+export type NostrNetworkFilters = {
+  ids?: string[]
+  authors?: string[]
+  kinds?: number[]
+  since?: number
+  until?: number
+  limit?: number
+  // tags
+} & Record<string, string[]>
+
 ////////////////
 // Spasm V2
 

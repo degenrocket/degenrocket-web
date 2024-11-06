@@ -19,7 +19,7 @@
       <div v-if="enableNewWeb3ActionsAll && enableNewWeb3ActionsReply">
         <InfoEventCommentInputField
           v-if="eventsStore.getPost.ids?.[0]?.value"
-          :target="eventsStore.getPost.ids?.[0]?.value"
+          :targetIds="eventsStore.getPost.ids"
           @reply-submitted="replySubmitted"
         />
       </div>
@@ -76,7 +76,51 @@
     -->
     <div v-if="!eventsStore.getPost || !isValidSpasmEventV2(eventsStore?.getPost)">
       <div v-if="isErrorEventNotFound">
-        The event has not been found.
+        <div v-if="eventId">
+          <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+            Event ID:
+          </div>
+          <div class="overflow-auto overflow-wrap break-words">
+            {{eventId}}
+            <ExtraAddressIcons
+              v-if="eventId"
+              :key="eventId"
+              :value="eventId"
+              :showCopyToClipboard="true"
+              :showQrCode="true"
+              :showExternalWebsite="true"
+            />
+          </div>
+        </div>
+
+        <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+          Spasm network:
+        </div>
+        <div>
+          Event not found on this instance.
+        </div>
+
+        <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
+          Nostr network:
+        </div>
+        <div v-if="!isNostrEvent">
+          <div>Not a valid Nostr ID.</div>
+        </div>
+        <div v-if="isNostrEvent">
+          <div>Event has a valid Nostr ID.</div>
+          <button
+            @click="searchNostrNetwork()"
+            class="px-3 py-2 mx-0 mt-2 mb-2 border-2 rounded-lg border-colorPrimary-light dark:border-colorPrimary-dark text-colorPrimary-light dark:text-colorPrimary-dark hover:bg-bgHover-light dark:hover:bg-bgHover-dark"
+          >
+            Search on Nostr network
+          </button>
+          <div v-if="getNostrRelays()">
+            Using these Nostr relays:
+            <div v-for="relay in getNostrRelays()" class="">
+              {{relay}}
+            </div>
+          </div>
+        </div>
       </div>
       <div v-else class="animate-pulse">
         <ExtraSpinner />
@@ -88,34 +132,30 @@
 <script setup lang="ts">
 import {useEventsStore} from '@/stores/useEventsStore'
 import {SpasmEventV2} from '@/helpers/interfaces';
-/* import {Post} from '@/helpers/interfaces'; */
 // New web3 actions are enabled by default if not disabled in .env
 const env = useRuntimeConfig()?.public
-/* const apiUrl: string = env?.apiURL */
 const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true
 const enableNewWeb3ActionsReply: boolean = env?.enableNewWeb3ActionsReply === 'false'? false : true
-// Short URLs for web3 actions are enabled by default if not disabled in .env
-/* const enableShortUrlsForWeb3Actions: boolean = env?.enableShortUrlsForWeb3Actions === 'false'? false : true         */
-/* const shortUrlsLengthOfWeb3Ids: number = env?.shortUrlsLengthOfWeb3Ids ? Number(env?.shortUrlsLengthOfWeb3Ids) : 20 */
 const eventsStore = useEventsStore()
 const params = useRoute().params
 const query = useRoute().query
 const {randomNumber} = useWeb3()
 const {
   isValidSpasmEventV2,
-  /* isValidUrl,           */
-  /* isArrayWithValues,    */
-  /* areValidSpasmEventsV2 */
+  isArrayWithValues,
+  isStringOrNumber
 } = useUtils()
+const {
+  toBeHex,
+  getNostrRelays,
+} = useNostr()
 let isErrorEventNotFound = ref<boolean>(false)
-
-/* console.log("InfoPost is created") */
+let isNostrEvent = ref<boolean>(false)
 
 const replySubmitted = async (
-  target?: string | number | null
+  targets?: string | number[] | null
 ): Promise<void> => {
-  if (!target) { return }
-  /* console.log('reply was submitted for target:', target) */
+  if (!targets || !isArrayWithValues(targets)) { return }
   const event = eventsStore.getPost
 
   // Refetch all the comments if a user submitted a new reply
@@ -131,83 +171,89 @@ const replySubmitted = async (
   await updateEventWithComments(searchBy)
 }
 
-const updateEvent = async (
-  id: string | number
-): Promise<void> => {
-  if (!id) { return }
-  // 1. Make sure that the post is in the store,
-  //    otherwise fetch from server and save to store.
-  const getOrFetchResult: SpasmEventV2[] | null =
-    await eventsStore.getOrFetchPostsByIds(id)
-
-  if (
-    getOrFetchResult &&
-    Array.isArray(getOrFetchResult) &&
-    getOrFetchResult[0] &&
-    'error' in getOrFetchResult?.[0] &&
-    (
-      getOrFetchResult?.[0]?.error === 'post has not been found' ||
-      getOrFetchResult?.[0]?.error === 'event has not been found'
-    )
-  ) {
-    isErrorEventNotFound.value = true
-  } else {
-    isErrorEventNotFound.value = false
-  }
-  // 2. Set current post id, so the post can be displayed
-  //    in the info section.
-  eventsStore.setCurrentPostId(id)
-}
-
 const updateEventWithComments = async (
   id: string | number
 ): Promise<void> => {
   if (!id) { return }
   // 1. Make sure that the post is in the store,
   //    otherwise fetch from server and save to store.
-  const getOrFetchResult: SpasmEventV2[] | null =
+  const result: SpasmEventV2[] | null =
     await eventsStore.fetchAndSaveEventsWithCommentsByIds([id])
 
   if (
-    getOrFetchResult &&
-    Array.isArray(getOrFetchResult) &&
-    getOrFetchResult[0] &&
-    'error' in getOrFetchResult?.[0] &&
-    (
-      getOrFetchResult?.[0]?.error === 'post has not been found' ||
-      getOrFetchResult?.[0]?.error === 'event has not been found'
-    )
+    result && isArrayWithValues(result) &&
+    result[0] && isValidSpasmEventV2(result[0])
   ) {
-    isErrorEventNotFound.value = true
-  } else {
     isErrorEventNotFound.value = false
+  } else {
+    isErrorEventNotFound.value = true
   }
-  // 2. Set current post id, so the post can be displayed
-  //    in the info section.
+
   eventsStore.setCurrentPostId(id)
+}
+
+const searchNostrNetwork = async (
+): Promise<void> => {
+  console.log("searching")
+  await eventsStore.fetchFromNostrNetworkByIds([searchBy])
 }
 
 // Construct a search query to find a post in the database.
 // Posts can be fetched using id, signature, or url.
+let eventId: string = ""
 let searchBy: string = ""
 
 // Examples:
 // params.id: domain.com/news/123 (id)
 // params.id: domain.com/news/0x123 (sig)
 if (params.id && typeof (params.id) === 'string') {
-  /* searchBy = await standardizeId(params.id) */
-  searchBy = params.id
-
+  eventId = params.id
 // Examples:
 // query.p:   domain.com/news/?p=123 (id)
 // query.p:   domain.com/news/?p=0x123 (sig)
 // query.p:   domain.com/news/?p=https://abc.com/xyz (url)
 } else if (query.p && typeof (query.p) === 'string') {
-  /* searchBy = await standardizeId(query.p) */
-  searchBy = query.p
+  eventId = query.p
 }
 
-await updateEvent(searchBy)
+// Convert Nostr's note ID to hex ID
+const setSearchBy = (
+  newId: string | number
+) => {
+  if (!newId || !isStringOrNumber(newId)) return
+  const newIdString = String(newId)
+  if (
+    !newIdString ||
+    typeof(newIdString) !== "string"
+  ) return
+  if (
+    newIdString.length === 63 &&
+    newIdString.startsWith('note')
+  ) {
+    const eventIdHex = toBeHex(newIdString)
+      // Valid Nostr ID
+    if (eventIdHex && typeof(eventIdHex) === "string") {
+      searchBy = eventIdHex
+      isNostrEvent.value = true
+    } else {
+      // Invalid Nostr's note ID
+      searchBy = newIdString
+    }
+    // Not Nostr's note ID
+  } else { searchBy = newIdString }
+}
+
+setSearchBy(eventId)
+
+// Server-side rendering (SSR) is currently disabled because
+// default event sanitization with DOMPurify inside
+// spasm.convertToSpasm() doesn't work during SSR.
+/* await updateEvent(searchBy) */
+
+// setCurrentPostId() is used to immediately show selected
+// event if it's already in the store. After that we fetch
+// event with the tree (comments) from the server.
+eventsStore.setCurrentPostId(searchBy)
 
 onMounted(async () => {
   // By some reason fetching does not work from onMounted.
@@ -274,9 +320,15 @@ watch(() => useRoute().query.p, async (newQueryP) => {
   /* console.log("newQueryP:", newQueryP) */
   if (newQueryP && typeof (newQueryP) === 'string') {
     /* const id = await standardizeId(newQueryP) */
-    const id = newQueryP
-    await updateEvent(id)
-    await eventsStore.updateEventComments(id)
+    const newId = newQueryP
+    eventId = newId
+    setSearchBy(newId)
+    console.log("searchBy:", searchBy)
+    console.log("eventId:", eventId)
+    /* await updateEvent(id) */
+    eventsStore.setCurrentPostId(newId)
+    await updateEventWithComments(newId)
+    /* await eventsStore.updateEventComments(id) */
   }
 })
 </script>

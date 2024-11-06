@@ -1387,8 +1387,13 @@ actions: {
       )
     ) {
       const kind = event.kind
-      this.profiles[index]
-      .nostr.events.kind[kind].push(event)
+      pushToArrayIfValueIsUnique(
+        this.profiles[index]
+          .nostr.events.kind[kind],
+          event
+      )
+      // this.profiles[index]
+      // .nostr.events.kind[kind].push(event)
 
       // Add a relay url to various lists to avoid using it
       // if it doesn't have events for this address.

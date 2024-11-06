@@ -105,36 +105,68 @@ const enableCustomContacts = useRuntimeConfig()?.public?.enableCustomContacts ==
 const showActionDetails = ref(false)
 const showActionDetailsText = ref('show')
 
-let comments = reactive<SpasmEventV2[]>([])
+// reactive<> works buggy inside onMounted(), so using ref<>
+/* let comments = reactive<SpasmEventV2[]>([]) */
+let comments = ref<SpasmEventV2[]>([])
 
 let isError = ref<boolean>(false)
 
-const path: string = `${apiURL}/api/events?webType=false&action=reply&category=any&source=false&activity=all&keyword=false&limit=25`
+onMounted(async () => {
+  // Using nextTick(), otherwise onMounted() works buggy
+  await nextTick()
 
-const {data, error} = await useFetch(path)
-/* console.log("data:", data) */
+  // Comments are fetched inside onMounted() because event
+  // sanitization with DOMPurify inside convertManyToSpasm()
+  // works only in a browser environment (client-side).
+  const path: string = `${apiURL}/api/events?webType=false&action=reply&category=any&source=false&activity=all&keyword=false&limit=25`
 
-if (error.value) {
-  // Don't show an error if testing locally without backend API
-  if (!useMockedDataIfBackendIsDown) {
-    isError.value = true
+  const {data, error} = await useFetch(path)
+  /* console.log("data:", data) */
+
+  if (error.value) {
+    // Don't show an error if testing locally without backend API
+    if (!useMockedDataIfBackendIsDown) {
+      isError.value = true
+    }
+    console.error(error.value)
   }
-  console.error(error.value)
-}
 
-if (data?.value) {
-  const spasmEvents: SpasmEventV2[] | null =
-    spasm.convertManyToSpasm(data.value)
-  if (spasmEvents && areValidSpasmEventsV2(spasmEvents)) {
-    comments = spasmEvents
+  if (data?.value) {
+    const spasmEvents: SpasmEventV2[] | null =
+      spasm.convertManyToSpasm(data.value)
+    if (spasmEvents && areValidSpasmEventsV2(spasmEvents)) {
+      comments.value = spasmEvents
+    }
+  // Use mock posts for testing locally without backend
+  // if activated in the .env file.
+  } else if (
+    useMockedDataIfBackendIsDown
+  ) {
+    comments.value = getMockSpasmEventComments()
   }
-// Use mock posts for testing locally without backend
-// if activated in the .env file.
-} else if (
-  useMockedDataIfBackendIsDown
-) {
-  comments = getMockSpasmEventComments()
-}
+
+  // Add addresses to a list of addresses that should be checked
+  // for profile info (e.g. usernames) during an update function.
+  if (process.client) {
+    if (
+      comments.value && 
+      // comments is ref, so it's an object, not an array
+      typeof(comments.value) === "object"
+    ) {
+      profilesStore.addAddressesFromSpasmEvents(comments.value)
+
+      // TODO: how to wait until all comments are fetched
+      // and only then call an update function?
+      // Meanwhile, added a delay with setTimeout.
+      setTimeout(() => {
+        profilesStore.updateAllProfiles()
+      }, 2000)
+      // Another approach is to use setInterval to check if
+      // comments have been downloaded every 1 sec for 10 secs,
+      // add execute the updateAllProfiles() after that.
+    }
+  }
+})
 
 const toggleShowActionDetails = (): void => {
   showActionDetails.value = !showActionDetails.value
@@ -143,27 +175,6 @@ const toggleShowActionDetails = (): void => {
     : 'show'
 }
 
-// Add addresses to a list of addresses that should be checked
-// for profile info (e.g. usernames) during an update function.
-if (process.client) {
-  if (
-    comments && 
-    // comments is ref, so it's an object, not an array
-    typeof(comments) === "object"
-  ) {
-    profilesStore.addAddressesFromSpasmEvents(comments)
-
-    // TODO: how to wait until all comments are fetched
-    // and only then call an update function?
-    // Meanwhile, added a delay with setTimeout.
-    setTimeout(() => {
-      profilesStore.updateAllProfiles()
-    }, 2000)
-    // Another approach is to use setInterval to check if
-    // comments have been downloaded every 1 sec for 10 secs,
-    // add execute the updateAllProfiles() after that.
-  }
-}
 </script>
 
 <style scoped>
