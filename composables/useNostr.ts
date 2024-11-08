@@ -18,6 +18,7 @@ import {
 } from 'nostr-tools'
 import {RelayPool} from "nostr-relaypool";
 import {useUtils} from './useUtils';
+import { spasm } from 'spasm.js'
 
 const {
   hasValue,
@@ -641,17 +642,15 @@ export const useNostr = () => {
   }
 
   const sendEventToNostrNetwork = async (
-    unknownEvent?:
-      SpasmEventBodySignedClosedV2 |
-      SpasmEventV2 |
-      NostrEventSignedOpened |
-      NostrSpasmEventSignedOpened
+    spasmEvent: SpasmEventV2
   ): Promise<boolean> => {
-    if (!unknownEvent) return false
-    // TODO toBeNostr
-    // TODO extractNostrEvent (from sibling)
-    const nostrEventSigned =
-      unknownEvent as NostrSpasmEventSignedOpened
+    if (!spasmEvent) return false
+    const nostrEventSigned:
+      NostrSpasmEventSignedOpened |
+      NostrSpasmEventSignedOpened
+      = spasm.extractSignedNostrEvent(spasmEvent)
+    if (!nostrEventSigned) return false
+    if (!isObjectWithValues(nostrEventSigned)) return false
 
     // verify the signature
     const isSignatureValid: boolean =

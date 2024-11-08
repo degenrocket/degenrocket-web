@@ -51,7 +51,15 @@ const connectedAddressNostr = ref<string | undefined>('')
 const connectedAddressEthereum = ref<string | undefined>('')
 const connectedKeyType =
   ref<"ethereum" | "nostr" | "" | null | undefined>(null)
-const assembledMessage = ref({})
+// const assembledMessage = ref({})
+const savedSpasmEventBodyV2: Ref<SpasmEventBodyV2 | null> =
+  ref(null)
+const spasmEventSignedWithEthereum: Ref<SpasmEventV2 | null> =
+  ref(null)
+const spasmEventSignedWithNostr: Ref<SpasmEventV2 | null> =
+  ref(null)
+const savedMergedMultiSignedSpasmEventV2:
+  Ref<SpasmEventV2 | null> = ref(null)
 
 export const useWeb3 = () => {
   const showWeb3Modal = (): void => {
@@ -172,6 +180,7 @@ export const useWeb3 = () => {
   }
 
   const setConnectedAddress = (address?: string, keyType?: string): boolean => {
+    resetMultiSigning()
     // type can be 'ethereum', 'nostr', etc.
     keyType = keyType ?? 'ethereum'
 
@@ -200,12 +209,20 @@ export const useWeb3 = () => {
     provider = undefined
   }
 
+  const resetMultiSigning = (): void => {
+    spasmEventSignedWithEthereum.value = null
+    spasmEventSignedWithNostr.value = null
+    savedMergedMultiSignedSpasmEventV2.value = null
+  }
+
   const removeAddressEthereum = (): void => {
     connectedAddressEthereum.value = ""
+    resetMultiSigning()
   }
 
   const removeAddressNostr = (): void => {
     connectedAddressNostr.value = ""
+    resetMultiSigning()
   }
 
   interface SubmitActionReturn {
@@ -225,6 +242,7 @@ export const useWeb3 = () => {
     dirtyParentIds?: (string | number) | (string | number)[],
     dirtyTitle?: string
   ): SpasmEventBodyV2 | null => {
+    savedSpasmEventBodyV2.value = null
     if (!toBeString(dirtyAction)) return null
     const action = DOMPurify.sanitize(toBeString(dirtyAction)) as Web3MessageAction
     if (!action) return null
@@ -267,6 +285,7 @@ export const useWeb3 = () => {
       })
     }
 
+    // TODO add parent authors to mentions
     if (isArrayWithValues(finalParentIds)) {
       spasmEventBodyV2.parent = { ids: finalParentIds }
     }
@@ -349,6 +368,7 @@ export const useWeb3 = () => {
     }
 
     if (isObjectWithValues(spasmEventBodyV2)) {
+      savedSpasmEventBodyV2.value = spasmEventBodyV2
       return spasmEventBodyV2
     } else {
       return null
@@ -358,11 +378,7 @@ export const useWeb3 = () => {
   const signSpasmEventBodyV2 = async (
     spasmEventBodyV2: SpasmEventBodyV2,
     signWith?: "ethereum" | "nostr"
-  ): Promise<
-    SpasmEventBodySignedClosedV2 |
-    NostrSpasmEventSignedOpened |
-    null
-  > => {
+  ): Promise<SpasmEventV2 | null> => {
     if (
       !spasmEventBodyV2 ||
       !isObjectWithValues(spasmEventBodyV2)
@@ -382,22 +398,19 @@ export const useWeb3 = () => {
     if (signWith === "ethereum") {
       const eventSigned =
         await signSpasmEventBodyV2WithEthereum(spasmEventBodyV2)
-      if (eventSigned) {
-        return eventSigned
-      }
+      if (eventSigned) { return eventSigned }
     } else if (signWith === "nostr") {
       const eventSigned =
         await signSpasmEventBodyV2WithNostr(spasmEventBodyV2)
-      if (eventSigned) {
-        return eventSigned
-      }
+      if (eventSigned) { return eventSigned }
     }
     return null
   }
 
   const signSpasmEventBodyV2WithEthereum = async (
     spasmEventBodyV2: SpasmEventBodyV2
-  ): Promise<SpasmEventBodySignedClosedV2 | null> => {
+  ): Promise<SpasmEventV2 | null> => {
+    spasmEventSignedWithEthereum.value = null
     if (
       !spasmEventBodyV2 ||
       !isObjectWithValues(spasmEventBodyV2)
@@ -428,7 +441,15 @@ export const useWeb3 = () => {
         signature,
         signer: signerAddress
       }
-      return signedEvent
+
+      const spasmEvent: SpasmEventV2 =
+        spasm.convertToSpasm(signedEvent)
+      if (spasmEvent) {
+        spasmEventSignedWithEthereum.value = spasmEvent
+        return spasmEvent
+      } else {
+        return null
+      }
     } catch (err) {
       console.error(err);
       return null
@@ -437,7 +458,8 @@ export const useWeb3 = () => {
 
   const signSpasmEventBodyV2WithNostr = async (
     spasmEventBodyV2: SpasmEventBodyV2
-  ): Promise<NostrSpasmEventSignedOpened | null> => {
+  ): Promise<SpasmEventV2 | null> => {
+    spasmEventSignedWithNostr.value = null
     if (
       !spasmEventBodyV2 ||
       !isObjectWithValues(spasmEventBodyV2)
@@ -458,7 +480,13 @@ export const useWeb3 = () => {
         verifySignature(nostrEventSigned)
       if (!isSignatureValid) return null
 
-      return nostrEventSigned
+      const spasmEvent: SpasmEventV2 =
+        spasm.convertToSpasm(nostrEventSigned)
+
+      if (spasmEvent && isObjectWithValues(spasmEvent)) {
+        spasmEventSignedWithNostr.value = spasmEvent
+        return spasmEvent
+      } else { return null }
     } catch (err) {
       console.error(err);
       return null
@@ -466,7 +494,7 @@ export const useWeb3 = () => {
   }
 
   const sendEventV2ToNetworks = async (
-    event: SpasmEventBodySignedClosedV2 | NostrSpasmEventSignedOpened | SpasmEventV2,
+    event: SpasmEventV2,
     sendTo: ("spasm" | "nostr")[] = ["spasm"]
   ): Promise<string | boolean | null | undefined> => {
     if (!event || !isObjectWithValues(event)) return null
@@ -488,7 +516,10 @@ export const useWeb3 = () => {
   }
 
   const sendEventV2ToSpasm = async (
-    event: SpasmEventBodySignedClosedV2 | NostrSpasmEventSignedOpened | SpasmEventV2
+    event:
+      SpasmEventBodySignedClosedV2 |
+      NostrSpasmEventSignedOpened |
+      SpasmEventV2
   ): Promise<string | boolean | null | undefined> => {
     if (!event || !isObjectWithValues(event)) return null
     try {
@@ -514,6 +545,39 @@ export const useWeb3 = () => {
     }
   }
 
+  const submitMultiSignedEventV2 = async (
+  ): Promise<SubmitEventV2Return | null> => {
+    if (!savedMergedMultiSignedSpasmEventV2.value) {
+      return null
+    }
+    const signedEvent: SpasmEventV2 =
+      savedMergedMultiSignedSpasmEventV2.value
+    if (!signedEvent) return null
+
+    // broadcast event
+    const sendTo: ("spasm" | "nostr")[] = []
+    if (isNetworkSpasmSelected.value) { sendTo.push("spasm") }
+    if (
+      // Currently, Spasm reactions are converted to Nostr kind 1
+      // events, so they aren't broadcasted to the Nostr network.
+      isNetworkNostrSelected.value &&
+      signedEvent.action !== "react"
+    ) { sendTo.push("nostr") }
+    const res: string | boolean | null | undefined =
+      await sendEventV2ToNetworks(signedEvent, sendTo)
+
+    // ID is returned so a user can be redirected
+    // to a newly created post or a comment/reply
+    const id = spasm.extractIdByFormat(signedEvent, {
+      name: "spasmid"
+    })
+    if (res) {
+      if (id && typeof(id) === "string") {
+        return { res, id }
+      } else { return { res } }
+    } else { return null }
+  }
+
   const submitSingleSignedEventV2 = async (
     dirtyAction: Web3MessageAction,
     dirtyContent?: string,
@@ -536,10 +600,8 @@ export const useWeb3 = () => {
     if (!spasmEventBodyV2) return null
 
     // sign event
-    const signedEvent:
-      SpasmEventBodySignedClosedV2 |
-      NostrSpasmEventSignedOpened |
-      null = await signSpasmEventBodyV2(spasmEventBodyV2)
+    const signedEvent: SpasmEventV2 | null =
+      await signSpasmEventBodyV2(spasmEventBodyV2)
     if (!signedEvent) return null
 
     // broadcast event
@@ -570,7 +632,7 @@ export const useWeb3 = () => {
     dirtyContent?: string,
     dirtyParentIds?: (string | number) | (string | number)[],
     dirtyTitle?: string
-  ): Promise<void> => {
+  ): Promise<void | null> => {
     // Only try to connect an Ethereum extension.
     // If web3 (Ethereum) is not detected, then the web3
     // modal with different connect options will be shown.
@@ -585,9 +647,32 @@ export const useWeb3 = () => {
         dirtyAction, dirtyContent, dirtyParentIds, dirtyTitle
     )
 
-    if (!spasmEventBodyV2) { return }
+    if (!spasmEventBodyV2) return null
 
-    assembledMessage.value = spasmEventBodyV2
+    // sign event
+    const signedEvent: SpasmEventV2 | null =
+      await signSpasmEventBodyV2(spasmEventBodyV2, "ethereum")
+    if (!signedEvent) return null
+  }
+
+  const signSavedMessageWithNostr = async (
+  ): Promise<void | null> => {
+    if (!savedSpasmEventBodyV2.value) { return null }
+    const spasmEventBodyV2: SpasmEventBodyV2 | null =
+      savedSpasmEventBodyV2.value
+    if (!spasmEventBodyV2) return null
+    // sign event
+    const signedEvent: SpasmEventV2 | null =
+      await signSpasmEventBodyV2(spasmEventBodyV2, "nostr")
+    if (!signedEvent) return null
+    if (!spasmEventSignedWithEthereum.value) return null
+    const mergedEvent: SpasmEventV2 | null =
+      spasm.mergeSpasmEventsV2(
+        [signedEvent, spasmEventSignedWithEthereum.value]
+    )
+    if (mergedEvent && isObjectWithValues(mergedEvent)) {
+      savedMergedMultiSignedSpasmEventV2.value = mergedEvent
+    }
   }
 
   const submitAction = async (
@@ -1022,7 +1107,13 @@ export const useWeb3 = () => {
     connectedAddressNostr: readonly(connectedAddressNostr),
     connectedKeyType: readonly(connectedKeyType),
     signer: signer ? readonly(signer) : undefined,
-    assembledMessage: readonly(assembledMessage),
+    // assembledMessage: readonly(assembledMessage),
+    spasmEventSignedWithEthereum:
+      readonly(spasmEventSignedWithEthereum),
+    spasmEventSignedWithNostr:
+      readonly(spasmEventSignedWithNostr),
+    savedMergedMultiSignedSpasmEventV2:
+      readonly(savedMergedMultiSignedSpasmEventV2),
     isNetworkSpasmSelected,
     isNetworkNostrSelected,
     showWeb3Modal,
@@ -1040,10 +1131,12 @@ export const useWeb3 = () => {
     listAccounts,
     setConnectedAddress,
     disconnectAccount,
+    resetMultiSigning,
     removeAddressEthereum,
     removeAddressNostr,
     // submitEventV2,
     signMessageWithEthereum,
+    signSavedMessageWithNostr,
     submitAction,
     connectNostrExtension,
     sliceAddress,
@@ -1054,6 +1147,7 @@ export const useWeb3 = () => {
     selectNetworkNostr,
     deselectNetworkNostr,
     submitSingleSignedEventV2,
+    submitMultiSignedEventV2,
     extractIdForDisplay,
     extractParentIdForDisplay
   }

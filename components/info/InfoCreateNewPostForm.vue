@@ -29,7 +29,7 @@
         Sign message
       </button>
       <!-- TODO advanced is hidden -->
-      <span class="hidden ml-2 cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4 hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
+      <span class="ml-2 cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4 hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
         @click="toggleShowAdvanced()">
         {{showAdvancedText}} advanced
       </span>
@@ -63,79 +63,134 @@
       <!-- Advanced (multi-signing) -->
       <div v-if="showAdvanced" class="mt-1">
         Sign with multiple private keys:
-          <div v-if="connectedAddressEthereum">
-            Ethereum: {{ sliceAddress(connectedAddressEthereum, 8, 6) }}
-            <span
-              @click="showWeb3Modal"
-              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
-            > change </span> /
-            <span
-              @click="removeAddressEthereum"
-              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
-            > remove </span>
+        <div v-if="connectedAddressEthereum">
+          Ethereum: {{ sliceAddress(connectedAddressEthereum, 8, 6) }}
+          <span
+            @click="showWeb3Modal"
+            class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+          > change </span> /
+          <span
+            @click="removeAddressEthereum"
+            class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+          > remove </span>
+        </div>
+        <div v-else>
+          <span
+            @click="showWeb3Modal"
+            class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+          >
+            Click to connect Ethereum
+          </span>
+        </div>
+        <div v-if="connectedAddressNostr">
+          Nostr: {{ sliceAddress(connectedAddressNostr, 8) }}
+          <span
+            @click="showWeb3Modal"
+            class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+          >
+            change
+          </span>
+            /
+          <span
+            @click="removeAddressNostr"
+            class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+          >
+            remove
+          </span>
+        </div>
+        <div v-else>
+          <span
+            @click="showWeb3Modal"
+            class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+          >
+            Click to connect Nostr
+          </span>
+        </div>
+        <div v-if="connectedAddressEthereum && connectedAddressNostr">
+          <div
+            v-if="!spasmEventSignedWithEthereum"
+            class="block hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+            @click="signWithEthereum()"
+          >
+            Sign with Ethereum
           </div>
-          <div v-else>
-            <span
-              @click="showWeb3Modal"
-              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
-            >
-              Click to connect Ethereum
-            </span>
+          <div v-if="spasmEventSignedWithEthereum">
+            Ethereum: signed
           </div>
-          <div v-if="connectedAddressNostr">
-            Nostr: {{ sliceAddress(connectedAddressNostr, 8) }}
-            <span
-              @click="showWeb3Modal"
-              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
-            >
-              change
-            </span>
-              /
-            <span
-              @click="removeAddressNostr"
-              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
-            >
-              remove
-            </span>
+          <div
+            v-if="!spasmEventSignedWithNostr && spasmEventSignedWithEthereum"
+            class="block hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
+            @click="signWithNostr()"
+          >
+            Sign with Nostr
           </div>
-          <div v-else>
-            <span
-              @click="showWeb3Modal"
-              class="hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
-            >
-              Click to connect Nostr
-            </span>
+          <div v-if="spasmEventSignedWithNostr">
+            Nostr: signed
           </div>
-          <div v-if="connectedAddressEthereum && connectedAddressNostr">
-            <div
-              class="block hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark"
-              @click="signWithEthereum"
-            >
-              Sign with Ethereum
-            </div>
-            <div class="block hover:underline cursor-pointer text-colorPrimary-light dark:text-colorPrimary-dark">
-              Sign with Nostr
-            </div>
-          </div>
+        </div>
+        <div
+          v-if="errorMessageMultiSign"
+          class="text-colorRed-light dark:text-colorRed-dark"
+        > ERROR: {{ errorMessageMultiSign }}
+        </div>
+        <button
+          v-if="spasmEventSignedWithEthereum && spasmEventSignedWithNostr"
+          class="inline px-6 lg:min-w-[200px] min-h-[40px] text-colorPrimary-light dark:text-colorPrimary-dark border-2 border-colorPrimary-light dark:border-colorPrimary-dark rounded-lg hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
+          Submit to
+          <span v-if="isNetworkSpasmSelected">Spasm</span>
+          <span
+            v-if="isNetworkSpasmSelected && isNetworkNostrSelected"
+          > and
+          </span>
+          <span v-if="isNetworkNostrSelected">Nostr</span>
+        </button>
       </div>
+
     </form>
+    <DevOnly>
+      <div>
+        Signed with Ethereum:
+        <br/>
+        {{ spasmEventSignedWithEthereum }}
+      </div>
+      <div>
+        Signed with Nostr:
+        <br/>
+        {{ spasmEventSignedWithNostr }}
+      </div>
+      <div class="mb-8">
+        Multi signed with Ethereum and Nostr:
+        <br/>
+        {{ savedMergedMultiSignedSpasmEventV2 }}
+        <br/>
+        Number of siblings:
+        {{ savedMergedMultiSignedSpasmEventV2?.siblings?.length }}
+      </div>
+    </DevOnly>
   </div>
 </template>
 
 <script setup lang="ts">
 const {
   submitSingleSignedEventV2,
+  submitMultiSignedEventV2,
   connectedAddressEthereum,
   connectedAddressNostr,
   showWeb3Modal,
   sliceAddress,
   removeAddressEthereum,
   removeAddressNostr,
+  resetMultiSigning,
   turnOnMultiSign,
   turnOffMultiSign,
   signMessageWithEthereum,
+  signSavedMessageWithNostr,
   isNetworkSpasmSelected,
   isNetworkNostrSelected,
+  isMultiSign,
+  spasmEventSignedWithEthereum,
+  spasmEventSignedWithNostr,
+  savedMergedMultiSignedSpasmEventV2
 } = useWeb3()
 const env = useRuntimeConfig()?.public
 const postPlaceholder = env?.postPlaceholder
@@ -154,6 +209,7 @@ const errorTitle = ref<boolean>(false)
 const errorBody = ref<boolean>(false)
 
 const errorMessage = ref<string>('')
+const errorMessageMultiSign = ref<string>('')
 
 const showAdvanced = ref(false)
 const showAdvancedText = ref('show')
@@ -162,6 +218,7 @@ watch(
   userInputTitle, async (newTitle: string) => {
     if (newTitle) {
       errorTitle.value = false
+      resetMultiSigning()
     } else {
       /* errorTitle.value = true */
     }
@@ -172,6 +229,7 @@ watch(
   userInput, async (newBody: string) => {
     if (newBody) {
       errorBody.value = false
+      resetMultiSigning()
     } else {
       /* errorBody.value = true */
     }
@@ -190,35 +248,55 @@ const toggleShowAdvanced = (): void => {
   }
 }
 
-const submitPost = async (e):Promise<void> => {
+const submitPost = async (e: any):Promise<void> => {
   e.preventDefault()
-  /* console.log("userInputTitle", userInputTitle.value) */
-  /* console.log("userInput", userInput.value) */
-  /* console.log("submitPost for props.target:", props.target) */
+  errorMessageMultiSign.value = ''
 
-  // highlight a title input field if a title is empty
-  if (!userInputTitle.value) {
-    errorTitle.value = true
-    titlePlaceholder.value = 'title is required'
-    return
-  }
-
-  // highlight a body input field if a body is empty
-  if (!userInput.value) {
-    errorBody.value = true
-    bodyPlaceholder.value = 'this field is required'
-    return
-  }
-  
   let response
 
-  // It's a comment if there is a target (action = 'reply'). 
-  if (props.target && typeof(props?.target) === 'string') {
-    response = await submitSingleSignedEventV2('reply', userInput.value, props?.target, '')
+  // Multi signed message
+  if (isMultiSign.value && showAdvanced.value) {
+    if (!spasmEventSignedWithEthereum.value) {
+    console.log("spasmEventSignedWithEthereum.value:", spasmEventSignedWithEthereum.value)
+      errorMessageMultiSign.value =
+        "Message is not signed with Ethereum yet"
+    } else if (!spasmEventSignedWithNostr.value) {
+      errorMessageMultiSign.value =
+        "Message is not signed with Nostr yet"
+    } else if (!savedMergedMultiSignedSpasmEventV2.value) {
+      errorMessageMultiSign.value =
+        "Something went wrong. Try signing with Ethereum and Nostr again."
+    }
+    response = await submitMultiSignedEventV2()
 
-  // It's a new post if there is no target (action = 'post').
+  // Single signed message
   } else {
-    response = await submitSingleSignedEventV2('post', userInput.value, '', userInputTitle.value)
+    // highlight a title input field if a title is empty
+    if (!userInputTitle.value) {
+      errorTitle.value = true
+      titlePlaceholder.value = 'title is required'
+      return
+    }
+
+    // highlight a body input field if a body is empty
+    if (!userInput.value) {
+      errorBody.value = true
+      bodyPlaceholder.value = 'this field is required'
+      return
+    }
+    
+    // It's a comment if there is a target (action = 'reply'). 
+    if (props.target && typeof(props?.target) === 'string') {
+      response = await submitSingleSignedEventV2(
+        'reply', userInput.value, props?.target, ''
+      )
+
+    // It's a new post if there is no target (action = 'post').
+    } else {
+      response = await submitSingleSignedEventV2(
+        'post', userInput.value, '', userInputTitle.value
+      )
+    }
   }
 
   console.log("response:", response)
@@ -271,9 +349,8 @@ const submitPost = async (e):Promise<void> => {
   /* }                                                                                          */
 }
 
-const signWithEthereum = async (e: any):Promise<void> => {
-  e.preventDefault()
-
+const signWithEthereum = async ():Promise<void> => {
+  errorMessageMultiSign.value = ''
   // highlight a title input field if a title is empty
   if (!userInputTitle.value) {
     errorTitle.value = true
@@ -291,7 +368,17 @@ const signWithEthereum = async (e: any):Promise<void> => {
   const response = await signMessageWithEthereum(
     'post', userInput.value, '', userInputTitle.value
   )
+  // TODO
+  /* const response = await submitSingleSignedEventV2(   */
+  /*   'post', userInput.value, '', userInputTitle.value */
+  /* )                                                   */
 }
+
+const signWithNostr = async ():Promise<void> => {
+  errorMessageMultiSign.value = ''
+  await signSavedMessageWithNostr()
+}
+
 
 </script>
 
