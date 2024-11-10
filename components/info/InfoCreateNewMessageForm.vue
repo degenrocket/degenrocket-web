@@ -1,6 +1,5 @@
 <template>
   <div>
-    New Form
     <div
       v-if="errorMessage"
       class="text-colorRed-light dark:text-colorRed-dark"
