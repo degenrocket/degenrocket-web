@@ -1,21 +1,26 @@
 <template>
   <div>
+    New Form
     <div
       v-if="errorMessage"
       class="text-colorRed-light dark:text-colorRed-dark"
     >
       {{ errorMessage }}
     </div>
-    <div>Create a new post</div>
-    <form class="mb-4" @submit="submitPost">
-      <div class="mt-2 text-colorNotImportant-light dark:text-colorNotImportant-dark">Title:</div>
-      <input
-        v-model="userInputTitle"
-        :placeholder="titlePlaceholder"
-        class="p-1 bg-bgBase-light dark:bg-bgBase-dark border-bgSecondary-light dark:border-bgSecondary-dark w-[90%] max-w-[700px] focus:outline-none border-2"
-        :class="errorTitle ? 'border-red-400 dark:border-red-400 placeholder:text-red-400' : ''"
-      >
-      <div class="mt-2 text-colorNotImportant-light dark:text-colorNotImportant-dark">Body:</div>
+    <div v-if="formAction === 'post'">Create a new post</div>
+    <form class="mb-4" @submit="submitMessage">
+      <div v-if="formAction === 'post'">
+        <div class="mt-2 text-colorNotImportant-light dark:text-colorNotImportant-dark">Title:</div>
+        <input
+          v-model="userInputTitle"
+          :placeholder="titlePlaceholder"
+          class="p-1 bg-bgBase-light dark:bg-bgBase-dark border-bgSecondary-light dark:border-bgSecondary-dark w-[90%] max-w-[700px] focus:outline-none border-2"
+          :class="errorTitle ? 'border-red-400 dark:border-red-400 placeholder:text-red-400' : ''"
+        >
+      </div>
+      <div
+        v-if="formAction === 'post'"
+        class="mt-2 text-colorNotImportant-light dark:text-colorNotImportant-dark">Body:</div>
       <textarea
         v-model="userInput"
         :placeholder="bodyPlaceholder"
@@ -28,14 +33,16 @@
         class="inline px-6 lg:min-w-[200px] min-h-[40px] text-colorPrimary-light dark:text-colorPrimary-dark border-2 border-colorPrimary-light dark:border-colorPrimary-dark rounded-lg hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
         Sign message
       </button>
-      <!-- TODO advanced is hidden -->
       <span class="ml-2 cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4 hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
         @click="toggleShowAdvanced()">
         {{showAdvancedText}} advanced
       </span>
 
       <!-- Networks -->
-      <div v-if="connectedAddressNostr" class="my-1 mt-2">
+      <div
+        v-if="(connectedKeyType === 'nostr' && !isMultiSign) || (connectedAddressNostr && isMultiSign)"
+        class="my-1 mt-2"
+      >
         Submit to networks:
         <span class="ml-2">
           <!--
@@ -148,6 +155,7 @@
 
     </form>
     <DevOnly>
+      DevOnly
       <div>
         Signed with Ethereum:
         <br/>
@@ -171,11 +179,14 @@
 </template>
 
 <script setup lang="ts">
+import {SpasmEventIdV2} from '@/helpers/interfaces';
+
 const {
   submitSingleSignedEventV2,
   submitMultiSignedEventV2,
   connectedAddressEthereum,
   connectedAddressNostr,
+  connectedKeyType,
   showWeb3Modal,
   sliceAddress,
   removeAddressEthereum,
@@ -192,11 +203,18 @@ const {
   spasmEventSignedWithNostr,
   savedMergedMultiSignedSpasmEventV2
 } = useWeb3()
+const {isStringOrNumber} = useUtils()
 const env = useRuntimeConfig()?.public
 const postPlaceholder = env?.postPlaceholder
 
 const props = defineProps<{
-  target: string
+  targetIds?: SpasmEventIdV2[] | null
+  formAction?: "post" | "reply"
+}>()
+
+const emit = defineEmits<{(
+  e: 'reply-submitted',
+  targets?: (string | number)[] | null): void
 }>()
 
 const titlePlaceholder = ref<string>('title')
@@ -248,7 +266,7 @@ const toggleShowAdvanced = (): void => {
   }
 }
 
-const submitPost = async (e: any):Promise<void> => {
+const submitMessage = async (e: any):Promise<void> => {
   e.preventDefault()
   errorMessageMultiSign.value = ''
 
@@ -257,7 +275,6 @@ const submitPost = async (e: any):Promise<void> => {
   // Multi signed message
   if (isMultiSign.value && showAdvanced.value) {
     if (!spasmEventSignedWithEthereum.value) {
-    console.log("spasmEventSignedWithEthereum.value:", spasmEventSignedWithEthereum.value)
       errorMessageMultiSign.value =
         "Message is not signed with Ethereum yet"
     } else if (!spasmEventSignedWithNostr.value) {
@@ -272,7 +289,7 @@ const submitPost = async (e: any):Promise<void> => {
   // Single signed message
   } else {
     // highlight a title input field if a title is empty
-    if (!userInputTitle.value) {
+    if (!userInputTitle.value && props.formAction === 'post') {
       errorTitle.value = true
       titlePlaceholder.value = 'title is required'
       return
@@ -286,73 +303,85 @@ const submitPost = async (e: any):Promise<void> => {
     }
     
     // It's a comment if there is a target (action = 'reply'). 
-    if (props.target && typeof(props?.target) === 'string') {
+    if (
+      props?.formAction === 'reply' &&
+      props?.targetIds && Array.isArray(props?.targetIds)
+    ) {
+      const parentIds: (string | number)[] = []
+      props?.targetIds.forEach(id => {
+        if (
+          id && "value" in id && id.value &&
+          isStringOrNumber(id.value)
+        ) { parentIds.push(id.value) }
+      })
       response = await submitSingleSignedEventV2(
-        'reply', userInput.value, props?.target, ''
+        'reply', userInput.value, parentIds, ''
       )
 
     // It's a new post if there is no target (action = 'post').
-    } else {
+    } else if (props?.formAction === 'post') {
       response = await submitSingleSignedEventV2(
         'post', userInput.value, '', userInputTitle.value
       )
     }
   }
 
-  console.log("response:", response)
-
   if (
     response &&
     response.res &&
     typeof(response.res) === "string" &&
     response.res.startsWith("ERROR:")
+  ) { errorMessage.value = response.res }
+
+  if (
+    response && "res" in response && response.res &&
+    typeof(response.res) === "string" &&
+    response.res.toLowerCase().startsWith("success")
+    // e.g., 'Success. Action has been saved and incremented'
+    /* response && response.res === 'Success. The event was saved into database' */
   ) {
-    // console.log("response.res:", response.res)
-    errorMessage.value = response.res
-  }
+    if (props?.formAction === 'post') {
+      if (response.id && typeof(response.id) === "string") {
+        const router = useRouter()
+        router.push(`/news/${response.id}`)
 
-  if (response && response.res === 'Success. The event was saved into database') {
-
-    if (response.id && typeof(response.id) === "string") {
-      const router = useRouter()
-      router.push(`/news/${response.id}`)
-
-      setTimeout(() => {
-        userInput.value = ''
-        userInputTitle.value = ''
-        errorBody.value = false
-        errorTitle.value = false
-      }, 2000)
+        setTimeout(() => {
+          userInput.value = ''
+          userInputTitle.value = ''
+          errorBody.value = false
+          errorTitle.value = false
+        }, 2000)
+      }
+    } else if (props?.formAction === 'reply') {
+      userInput.value = ''
+      errorMessage.value = ''
+      const targets: (string | number)[] = []
+      if (props.targetIds && Array.isArray(props.targetIds)) {
+        props.targetIds.forEach(id => {
+          if ("value" in id && id.value) {targets.push(id.value)}
+        })
+      }
+      emit('reply-submitted', targets)
     }
   }
 
-  /* if (response && response.res === 'ERROR: this address is not whitelisted to submit new posts') { */
-  /*   errorMessage.value = 'ERROR: this address is not whitelisted to submit new posts'              */
-  /* }                                                                                                */
+  if (
+    response && response.res &&
+    response.res === 'Sorry, but you\'ve already submitted the same action'
+  ) {alert("You've already submitted this comment to this post")}
 
-  // This should be a valid response if
-  // a reply was submitted successfully.
-  /* if (response && response.res === 'Action has been saved, but count was not incremented') { */
-  /*   // Redirect a user to a newly created post,                                              */
-  /*   // signature is also an ID of a new post.                                                */
-  /*   const router = useRouter()                                                               */
-  /*   router.push(`/news/${response.signature}`)                                               */
-  /*                                                                                            */
-  /*   // setTimeout() is used to prevent blinking when input fields                            */
-  /*   // are emptied before a user is redirected to a new post.                                */
-  /*   setTimeout(() => {                                                                       */
-  /*     userInput.value = ''                                                                   */
-  /*     userInputTitle.value = ''                                                              */
-  /*     errorBody.value = false                                                                */
-  /*     errorTitle.value = false                                                               */
-  /*   }, 2000)                                                                                 */
-  /* }                                                                                          */
+  if (
+    response && response.res &&
+    response.res === 'ERROR: this address is not whitelisted to submit new posts'
+  ) {
+    errorMessage.value = 'ERROR: this address is not whitelisted to submit new posts'
+  }
 }
 
 const signWithEthereum = async ():Promise<void> => {
   errorMessageMultiSign.value = ''
   // highlight a title input field if a title is empty
-  if (!userInputTitle.value) {
+  if (!userInputTitle.value && props.formAction === 'post') {
     errorTitle.value = true
     titlePlaceholder.value = 'title is required'
     return
@@ -365,21 +394,35 @@ const signWithEthereum = async ():Promise<void> => {
     return
   }
 
-  const response = await signMessageWithEthereum(
-    'post', userInput.value, '', userInputTitle.value
-  )
-  // TODO
-  /* const response = await submitSingleSignedEventV2(   */
-  /*   'post', userInput.value, '', userInputTitle.value */
-  /* )                                                   */
+  let response = null
+  // It's a comment if there is a target (action = 'reply'). 
+  if (
+    props?.formAction === 'reply' &&
+    props?.targetIds && Array.isArray(props?.targetIds)
+  ) {
+    const parentIds: (string | number)[] = []
+    props?.targetIds.forEach(id => {
+      if (
+        id && "value" in id && id.value &&
+        isStringOrNumber(id.value)
+      ) { parentIds.push(id.value) }
+    })
+    response = await signMessageWithEthereum(
+      'reply', userInput.value, parentIds, ''
+    )
+
+  // It's a new post if there is no target (action = 'post').
+  } else if (props?.formAction === 'post') {
+    response = await signMessageWithEthereum(
+      'post', userInput.value, '', userInputTitle.value
+    )
+  }
 }
 
 const signWithNostr = async ():Promise<void> => {
   errorMessageMultiSign.value = ''
   await signSavedMessageWithNostr()
 }
-
-
 </script>
 
 <style scoped>

@@ -30,8 +30,8 @@
 
       <!-- White list is disabled, everybody can create posts -->
       <div v-if="!enableWhitelistForActionPost">
-        <InfoCreateNewPostForm
-          :target="''"
+        <InfoCreateNewMessageForm
+          :formAction="'post'"
         />
       </div>
 
@@ -57,8 +57,8 @@
           <div class="mb-4">
             Your address is whitelisted to create new posts.
           </div>
-          <InfoCreateNewPostForm
-            :target="''"
+          <InfoCreateNewMessageForm
+            :formAction="'post'"
           />
         </div>
 

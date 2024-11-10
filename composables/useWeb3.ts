@@ -285,7 +285,7 @@ export const useWeb3 = () => {
       })
     }
 
-    // TODO add parent authors to mentions
+    // TODO tbc add parent authors to mentions
     if (isArrayWithValues(finalParentIds)) {
       spasmEventBodyV2.parent = { ids: finalParentIds }
     }

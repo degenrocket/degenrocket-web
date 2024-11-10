@@ -158,9 +158,10 @@
         </div>
       </div>
 
-      <InfoEventCommentInputField
+      <InfoCreateNewMessageForm
         v-if="showReplyForm"
         :targetIds="comment.ids"
+        :formAction="'reply'"
         @reply-submitted="replySubmitted"
       />
     </div>
@@ -227,7 +228,6 @@ const emit = defineEmits<{
 }>()
 
 const replySubmitted = (targets?: (string | number)[] | null) => {
-  /* console.log('reply was submitted for target:', target) */
   showReplyForm.value = false
   showReplyFormText.value = 'reply'
   emit('reply-submitted', targets)

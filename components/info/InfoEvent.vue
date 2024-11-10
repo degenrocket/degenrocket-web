@@ -17,9 +17,10 @@
       />
 
       <div v-if="enableNewWeb3ActionsAll && enableNewWeb3ActionsReply">
-        <InfoEventCommentInputField
+        <InfoCreateNewMessageForm
           v-if="eventsStore.getPost.ids?.[0]?.value"
           :targetIds="eventsStore.getPost.ids"
+          :formAction="'reply'"
           @reply-submitted="replySubmitted"
         />
       </div>
@@ -153,7 +154,7 @@ let isErrorEventNotFound = ref<boolean>(false)
 let isNostrEvent = ref<boolean>(false)
 
 const replySubmitted = async (
-  targets?: string | number[] | null
+  targets?: (string | number)[] | null
 ): Promise<void> => {
   if (!targets || !isArrayWithValues(targets)) { return }
   const event = eventsStore.getPost
