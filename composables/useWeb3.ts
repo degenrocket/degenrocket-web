@@ -1091,10 +1091,18 @@ export const useWeb3 = () => {
       return toBeShortId(dmpId)
     }
 
+    const urlId = spasm.extractParentIdByFormat(event, {
+      name: "url"
+    })
+    if (urlId && typeof(urlId) === "string") { return urlId }
+
+    const guidId = spasm.extractParentIdByFormat(event, {
+      name: "guid"
+    })
+    if (guidId && typeof(guidId) === "string") { return guidId }
 
     return ""
   }
-    
 
   return {
     isWeb3ModalShown: readonly(isWeb3ModalShown),
