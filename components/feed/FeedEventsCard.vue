@@ -10,7 +10,10 @@
       <span v-if="post.source?.name" class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
         {{post.source?.name}}
       </span>
-      <span v-if="post.authors?.[0].addresses?.[0].value" class="">
+      <span
+        v-if="post.authors?.[0].addresses?.[0].value && post.authors?.[0].addresses?.[0].verified"
+        class=""
+      >
         <nuxt-link
           :to="`/authors/${post.authors?.[0].addresses?.[0].value}`"
           @click="hideFeed()"
