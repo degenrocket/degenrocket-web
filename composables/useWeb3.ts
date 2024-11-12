@@ -46,7 +46,7 @@ const isNetworkNostrSelected = ref(false)
 const qrCodeValue = ref<string | undefined>('')
 let provider: JsonRpcApiProvider | undefined
 let signer: JsonRpcSigner | undefined
-const connectedAddress = ref<string | undefined>('')
+const connectedAddress = ref<string | undefined | null>('')
 const connectedAddressNostr = ref<string | undefined>('')
 const connectedAddressEthereum = ref<string | undefined>('')
 const connectedKeyType =
@@ -218,11 +218,17 @@ export const useWeb3 = () => {
   const removeAddressEthereum = (): void => {
     connectedAddressEthereum.value = ""
     resetMultiSigning()
+    // if (connectedKeyType.value === "ethereum") {
+    //   connectedAddress.value = null
+    // }
   }
 
   const removeAddressNostr = (): void => {
     connectedAddressNostr.value = ""
     resetMultiSigning()
+    // if (connectedKeyType.value === "nostr") {
+    //   connectedAddress.value = null
+    // }
   }
 
   interface SubmitActionReturn {
@@ -297,7 +303,7 @@ export const useWeb3 = () => {
     }
 
     // Advanced multi-signing
-    if (isMultiSign) {
+    if (isMultiSign.value) {
       spasmEventBodyV2.authors ??= []
       spasmEventBodyV2.authors[0] ??= {}
       spasmEventBodyV2.authors[0].addresses ??= []
@@ -333,18 +339,20 @@ export const useWeb3 = () => {
       ) return null
       // const signerAddress = signer?.address?.toLowerCase()
       const signerAddress = connectedAddress.value
-      if (!signerAddress) return null
+      if (
+        !signerAddress || typeof(signerAddress) !== "string"
+      ) return null
       spasmEventBodyV2.authors ??= []
       if (spasmEventBodyV2.authors[0]) {
         spasmEventBodyV2.authors[0].addresses ??= []
         if (connectedKeyType.value === "ethereum") {
           spasmEventBodyV2.authors[0].addresses.push({ 
-            value: signerAddress,
+            value: signerAddress.toLowerCase(),
             format: { name: "ethereum-pubkey" }
           })
         } else if (connectedKeyType.value === "nostr") {
           spasmEventBodyV2.authors[0].addresses.push({ 
-            value: toBeHex(signerAddress),
+            value: toBeHex(signerAddress).toLowerCase(),
             format: { name: "nostr-hex" }
           })
         }
@@ -352,14 +360,14 @@ export const useWeb3 = () => {
         if (connectedKeyType.value === "ethereum") {
           spasmEventBodyV2.authors = [{
             addresses: [{
-              value: signerAddress,
+              value: signerAddress.toLowerCase(),
               format: { name: "ethereum-pubkey" }
             }]
           }]
         } else if (connectedKeyType.value === "nostr") {
           spasmEventBodyV2.authors = [{
             addresses: [{
-              value: toBeHex(signerAddress),
+              value: toBeHex(signerAddress).toLowerCase(),
               format: { name: "nostr-hex" }
             }]
           }]
