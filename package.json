@@ -24,11 +24,14 @@
     "@types/dompurify": "^3.0.5",
     "@vite-pwa/nuxt": "^0.0.7",
     "@vitest/coverage-c8": "^0.31.0",
-    "nuxt": "^3.4.2",
+    "nuxt": "^3.14.159",
     "vitest": "^0.31.0"
   },
   "overrides": {
-    "vue": "latest"
+    "vue": "latest",
+    "nuxt": {
+      "vue": "^3.5"
+    }
   },
   "dependencies": {
     "@pinia/nuxt": "^0.4.6",
