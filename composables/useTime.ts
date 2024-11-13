@@ -1,4 +1,4 @@
-import {Post, SpasmEventV2} from "@/helpers/interfaces"
+import {Post, SpasmEventV2} from "./../helpers/interfaces"
 import { useUtils } from './useUtils';
 const { toBeFullTimestamp } = useUtils()
 

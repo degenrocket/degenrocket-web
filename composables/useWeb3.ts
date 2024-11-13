@@ -13,8 +13,8 @@ import {
   // NostrEventSignedOpened,
   NostrSpasmEventSignedOpened,
   NostrSpasmEvent,
-  NostrEventSignedOpened
-} from "@/helpers/interfaces";
+  // NostrEventSignedOpened
+} from "./../helpers/interfaces";
 import { bech32 } from 'bech32'
 import { validateEvent, verifySignature, getSignature, getEventHash } from 'nostr-tools'
 // import detectEthereumProvider from '@metamask/detect-provider'

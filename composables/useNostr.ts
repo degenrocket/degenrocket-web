@@ -6,9 +6,9 @@ import {
   ProfileSpasm,
   // NostrEvent,
   NostrSpasmEventSignedOpened,
-  SpasmEventBodySignedClosedV2,
+  // SpasmEventBodySignedClosedV2,
   SpasmEventV2
-} from "@/helpers/interfaces";
+} from "./../helpers/interfaces";
 import {bech32} from "bech32"
 import {
   // validateEvent,

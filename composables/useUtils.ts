@@ -1,4 +1,4 @@
-import {Post, SpasmEventV2} from "@/helpers/interfaces"
+import {Post, SpasmEventV2} from "./../helpers/interfaces"
 import DOMPurify from 'dompurify';
 
 export const useUtils = () => {

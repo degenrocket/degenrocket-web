@@ -1,6 +1,6 @@
 import {describe, it, test, expect} from 'vitest'
 import { useTime } from "./useTime";
-import { Post } from "@/helpers/interfaces";
+import { Post } from "./../helpers/interfaces";
 
 describe("useTime", () => {
   const { timeAgo } = useTime();

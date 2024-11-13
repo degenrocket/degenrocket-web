@@ -1,7 +1,11 @@
 import {readonly} from 'vue'
 import {reactive} from "vue";
-import {FeedFilters, FiltersActivity, FiltersCategory} from "@/helpers/interfaces"
-import {FeedFiltersStep} from '@/helpers/interfaces';
+import {
+  FeedFilters,
+  FiltersActivity,
+  FiltersCategory,
+  FeedFiltersStep
+} from "./../helpers/interfaces"
 
 // Feed filters are declared before the export function because
 // that allows to manage global state similar to stores like Pinia.

@@ -23,6 +23,7 @@
     "@nuxtjs/tailwindcss": "^6.2.0",
     "@types/dompurify": "^3.0.5",
     "@vite-pwa/nuxt": "^0.0.7",
+    "@vitejs/plugin-vue": "^5.1.5",
     "@vitest/coverage-c8": "^0.31.0",
     "nuxt": "^3.14.159",
     "vitest": "^0.31.0"

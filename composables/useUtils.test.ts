@@ -1,4 +1,4 @@
-import {Post, SpasmEventV2} from '@/helpers/interfaces';
+import {Post, SpasmEventV2} from './../helpers/interfaces';
 import {describe, it, test, expect, assert} from 'vitest';
 import { useUtils } from './useUtils';
 
