@@ -173,7 +173,8 @@ const replySubmitted = async (
 }
 
 const updateEventWithComments = async (
-  id: string | number
+  id: string | number,
+  ifSetCurrentPostId: boolean = true
 ): Promise<void> => {
   if (!id) { return }
   // 1. Make sure that the post is in the store,
@@ -190,7 +191,7 @@ const updateEventWithComments = async (
     isErrorEventNotFound.value = true
   }
 
-  eventsStore.setCurrentPostId(id)
+  if (ifSetCurrentPostId) { eventsStore.setCurrentPostId(id) }
 }
 
 const searchNostrNetwork = async (
@@ -328,7 +329,7 @@ watch(() => useRoute().query.p, async (newQueryP) => {
     console.log("eventId:", eventId)
     /* await updateEvent(id) */
     eventsStore.setCurrentPostId(newId)
-    await updateEventWithComments(newId)
+    await updateEventWithComments(newId, false)
     /* await eventsStore.updateEventComments(id) */
   }
 })
