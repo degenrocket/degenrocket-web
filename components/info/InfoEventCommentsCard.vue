@@ -160,8 +160,8 @@
 
       <InfoCreateNewMessageForm
         v-if="showReplyForm"
-        :targetIds="comment.ids"
         :formAction="'reply'"
+        :parentEvent="comment"
         @reply-submitted="replySubmitted"
       />
     </div>

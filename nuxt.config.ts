@@ -166,7 +166,16 @@ export default defineNuxtConfig({
 
       ifShowDevelopersInfo: process.env.IF_SHOW_DEVELOPERS_INFO,
 
+      // Categories
       ifShowCategoriesFilter: process.env.IF_SHOW_CATEGORIES_FILTER,
+      envCategories:
+        (
+          process.env.CATEGORIES &&
+          typeof(process.env.CATEGORIES) === "string"
+        )
+        ? process.env.CATEGORIES.toLowerCase().split(',').map(v => v.trim())
+        : ['defi','nft','privacy','politics','tech'],
+
       ifAllowGuestLogin: process.env.IF_ALLOW_GUEST_LOGIN,
 
       // Authors:

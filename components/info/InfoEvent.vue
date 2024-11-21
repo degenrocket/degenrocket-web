@@ -19,8 +19,8 @@
       <div v-if="enableNewWeb3ActionsAll && enableNewWeb3ActionsReply">
         <InfoCreateNewMessageForm
           v-if="eventsStore.getPost.ids?.[0]?.value"
-          :targetIds="eventsStore.getPost.ids"
           :formAction="'reply'"
+          :parentEvent="eventsStore.getPost"
           @reply-submitted="replySubmitted"
         />
       </div>

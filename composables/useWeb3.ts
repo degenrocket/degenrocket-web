@@ -13,17 +13,23 @@ import {
   // NostrEventSignedOpened,
   NostrSpasmEventSignedOpened,
   NostrSpasmEvent,
+SpasmEventCategoryV2,
   // NostrEventSignedOpened
 } from "./../helpers/interfaces";
 import { bech32 } from 'bech32'
-import { validateEvent, verifySignature, getSignature, getEventHash } from 'nostr-tools'
+import {
+  // validateEvent,
+  verifySignature,
+  // getSignature,
+  getEventHash
+} from 'nostr-tools'
 // import detectEthereumProvider from '@metamask/detect-provider'
 import DOMPurify from 'dompurify';
 import { spasm } from 'spasm.js'
 import { useUtils } from './useUtils';
 import { useNostr } from './useNostr';
 const {
-  hasValue,
+  // hasValue,
   // isValidSpasmEventV2,
   // areValidSpasmEventsV2,
   isArrayWithValues,
@@ -246,7 +252,8 @@ export const useWeb3 = () => {
     dirtyAction: Web3MessageAction,
     dirtyContent?: string,
     dirtyParentIds?: (string | number) | (string | number)[],
-    dirtyTitle?: string
+    dirtyTitle?: string,
+    dirtyCategories?: SpasmEventCategoryV2[]
   ): SpasmEventBodyV2 | null => {
     savedSpasmEventBodyV2.value = null
     if (!toBeString(dirtyAction)) return null
@@ -254,17 +261,25 @@ export const useWeb3 = () => {
     if (!action) return null
     let content = DOMPurify.sanitize(toBeString(dirtyContent))
     const title = DOMPurify.sanitize(toBeString(dirtyTitle))
-    if (action === "react") {
-      content = content.toLowerCase()
-    }
+    if (action === "react") { content = content.toLowerCase() }
 
     // Concat converts string or number into array
     let parentIds: (string | number)[] = []
-    if (dirtyParentIds) {
+    if (dirtyParentIds && (
+      isStringOrNumber(dirtyParentIds) ||
+      isArrayWithValues(dirtyParentIds)
+    )) {
       parentIds = parentIds.concat(dirtyParentIds)
+      // spasm.sanitizeEvent() can also sanitize an array
+      spasm.sanitizeEvent(parentIds)
     }
-    // spasm.sanitizeEvent() can also sanitize an array
-    spasm.sanitizeEvent(parentIds)
+
+    let categories: SpasmEventCategoryV2[] | null = null
+    if (dirtyCategories && isArrayWithValues(dirtyCategories)) {
+      categories = dirtyCategories
+      // spasm.sanitizeEvent() can also sanitize an array
+      spasm.sanitizeEvent(categories)
+    }
 
     const spasmEventBodyV2: SpasmEventBodyV2 = {
       type: "SpasmEventBodyV2"
@@ -294,6 +309,10 @@ export const useWeb3 = () => {
     // TODO tbc add parent authors to mentions
     if (isArrayWithValues(finalParentIds)) {
       spasmEventBodyV2.parent = { ids: finalParentIds }
+    }
+
+    if (categories && isArrayWithValues(categories)) {
+      spasmEventBodyV2.categories = categories
     }
 
     spasmEventBodyV2.timestamp = Date.now()
@@ -590,7 +609,8 @@ export const useWeb3 = () => {
     dirtyAction: Web3MessageAction,
     dirtyContent?: string,
     dirtyParentIds?: (string | number) | (string | number)[],
-    dirtyTitle?: string
+    dirtyTitle?: string,
+    dirtyCategories?: SpasmEventCategoryV2[] | null
   ): Promise<SubmitEventV2Return | null> => {
     // Only try to connect an Ethereum extension.
     // If web3 (Ethereum) is not detected, then the web3
@@ -603,7 +623,8 @@ export const useWeb3 = () => {
     // assemble event
     const spasmEventBodyV2: SpasmEventBodyV2 | null =
       assembleSpasmEventBodyV2(
-        dirtyAction, dirtyContent, dirtyParentIds, dirtyTitle
+        dirtyAction, dirtyContent, dirtyParentIds,
+        dirtyTitle, dirtyCategories
     )
     if (!spasmEventBodyV2) return null
 
@@ -639,7 +660,8 @@ export const useWeb3 = () => {
     dirtyAction: Web3MessageAction,
     dirtyContent?: string,
     dirtyParentIds?: (string | number) | (string | number)[],
-    dirtyTitle?: string
+    dirtyTitle?: string,
+    dirtyCategories?: SpasmEventCategoryV2[]
   ): Promise<void | null> => {
     // Only try to connect an Ethereum extension.
     // If web3 (Ethereum) is not detected, then the web3
@@ -652,7 +674,8 @@ export const useWeb3 = () => {
     // assemble Spasm Body V2
     const spasmEventBodyV2: SpasmEventBodyV2 | null =
       assembleSpasmEventBodyV2(
-        dirtyAction, dirtyContent, dirtyParentIds, dirtyTitle
+        dirtyAction, dirtyContent, dirtyParentIds, dirtyTitle,
+        dirtyCategories
     )
 
     if (!spasmEventBodyV2) return null

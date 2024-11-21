@@ -75,6 +75,7 @@
 import {FiltersActivity, FiltersCategory} from '@/helpers/interfaces';
 const { feedFilters, changeFeedFiltersActivity, changeFeedFiltersCategory } = useFeedEventsFilters()
 const ifShowCategoriesFilter = useRuntimeConfig()?.public?.ifShowCategoriesFilter === 'true' ? true : false
+const envCategories = useRuntimeConfig()?.public?.envCategories
 
 // state
 const categoriesDropDownShown = ref(false)
@@ -86,11 +87,7 @@ const activities: FiltersActivity[] = [
 ]
 
 const categories: FiltersCategory[] = [
-  'defi',
-  'nft',
-  'privacy',
-  'politics',
-  'tech',
+  ...envCategories,
   'any',
 ]
 

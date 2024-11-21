@@ -1,13 +1,68 @@
 <template>
-  <div>
+  <div class="mb-16">
     <div
       v-if="errorMessage"
       class="text-colorRed-light dark:text-colorRed-dark"
     >
       {{ errorMessage }}
     </div>
-    <div v-if="formAction === 'post'">Create a new post</div>
+    <div
+      class="mb-4"
+      v-if="formAction === 'post'"
+    >Create a new post</div>
     <form class="mb-4" @submit="submitMessage">
+      <!-- Category -->
+      <div v-if="formAction === 'post'">
+        <div v-if="ifShowCategoriesFilter">
+          <!-- Dropdown toggle button -->
+          <div
+            @click="toggleCategoriesDropDown()"
+            class="text-colorNotImportant-light dark:text-colorNotImportant-dark cursor-pointer"
+          >
+            <span>
+              <span class="mt-2">Category:</span>
+              <span class="ml-2 uppercase text-colorPrimary-light dark:text-colorPrimary-dark">
+                {{ userInputCategoryMain }}
+              </span>
+            </span>
+            <svg
+              class="inline w-5 h-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
+
+          <!-- Dropdown menu -->
+          <div
+            v-show="categoriesDropDownShown"
+            class="pl-20 bg-bgSecondary-light dark:bg-bgSecondary-dark rounded-md shadow-md"
+          >
+          <span v-if="categories">
+            <span v-if="categories[0]" class="">
+              <div
+                v-for="category in categories"
+                class="uppercase hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark cursor-pointer"
+                @click="selectCategoryMain(category)"
+              >
+                {{category}}
+              </div>
+            </span>
+          </span>
+
+
+          </div>
+
+
+        </div>
+      </div>
+
+      <!-- Title -->
       <div v-if="formAction === 'post'">
         <div class="mt-2 text-colorNotImportant-light dark:text-colorNotImportant-dark">Title:</div>
         <input
@@ -17,6 +72,8 @@
           :class="errorTitle ? 'border-red-400 dark:border-red-400 placeholder:text-red-400' : ''"
         >
       </div>
+
+      <!-- Content -->
       <div
         v-if="formAction === 'post'"
         class="mt-2 text-colorNotImportant-light dark:text-colorNotImportant-dark">Body:</div>
@@ -178,7 +235,9 @@
 </template>
 
 <script setup lang="ts">
-import {SpasmEventIdV2} from '@/helpers/interfaces';
+import {FiltersCategory, SpasmEventCategoryV2, SpasmEventIdV2, SpasmEventV2} from '@/helpers/interfaces';
+const ifShowCategoriesFilter = useRuntimeConfig()?.public?.ifShowCategoriesFilter === 'true' ? true : false
+const envCategories = useRuntimeConfig()?.public?.envCategories
 
 const {
   submitSingleSignedEventV2,
@@ -207,8 +266,8 @@ const env = useRuntimeConfig()?.public
 const postPlaceholder = env?.postPlaceholder
 
 const props = defineProps<{
-  targetIds?: SpasmEventIdV2[] | null
   formAction?: "post" | "reply"
+  parentEvent?: SpasmEventV2 | null
 }>()
 
 const emit = defineEmits<{(
@@ -221,6 +280,8 @@ const bodyPlaceholder = ref<string>(postPlaceholder)
 
 const userInputTitle = ref<string>('')
 const userInput = ref<string>('')
+const userInputCategoryMain = ref<string>('')
+const userInputCategorySub = ref<string>('')
 
 const errorTitle = ref<boolean>(false)
 const errorBody = ref<boolean>(false)
@@ -228,8 +289,14 @@ const errorBody = ref<boolean>(false)
 const errorMessage = ref<string>('')
 const errorMessageMultiSign = ref<string>('')
 
+const categoriesDropDownShown = ref(false)
 const showAdvanced = ref(false)
 const showAdvancedText = ref('show')
+
+const categories: FiltersCategory[] = [
+  ...envCategories,
+  'none',
+]
 
 watch(
   userInputTitle, async (newTitle: string) => {
@@ -253,6 +320,10 @@ watch(
   }
 )
 
+const toggleCategoriesDropDown = () => {
+  categoriesDropDownShown.value = !categoriesDropDownShown.value
+}
+
 const toggleShowAdvanced = (): void => {
   showAdvanced.value = !showAdvanced.value
   showAdvancedText.value = showAdvancedText.value === 'show'
@@ -263,6 +334,12 @@ const toggleShowAdvanced = (): void => {
   } else {
     turnOffMultiSign()
   }
+}
+
+const hideShowAdvanced = (): void => {
+  showAdvanced.value = false
+  showAdvancedText.value = 'show'
+  turnOffMultiSign()
 }
 
 const submitMessage = async (e: any):Promise<void> => {
@@ -300,27 +377,64 @@ const submitMessage = async (e: any):Promise<void> => {
       bodyPlaceholder.value = 'this field is required'
       return
     }
+
+    const parentEvent = props?.parentEvent
+    let categories: SpasmEventCategoryV2[] | null = null
+    if (
+      parentEvent && "categories" in parentEvent &&
+      parentEvent.categories &&
+      Array.isArray(parentEvent.categories) &&
+      parentEvent.categories[0] &&
+      "name" in parentEvent.categories[0] &&
+      typeof(parentEvent.categories[0].name) === "string"
+    ) {
+      categories = parentEvent.categories
+    } else if (
+      userInputCategoryMain.value &&
+      typeof(userInputCategoryMain.value) === "string" &&
+      userInputCategoryMain.value.toLowerCase() !== "any" &&
+      userInputCategoryMain.value.toLowerCase() !== "none"
+    ) {
+      if (
+        userInputCategorySub.value &&
+        typeof(userInputCategorySub.value) === "string" &&
+        userInputCategorySub.value.toLowerCase() !== "any" &&
+        userInputCategorySub.value.toLowerCase() !== "none"
+      ) {
+        categories = [{
+          name: userInputCategoryMain.value.toLowerCase(),
+          sub: { name: userInputCategorySub.value.toLowerCase() }
+        }]
+      } else {
+        categories = [{
+          name: userInputCategoryMain.value.toLowerCase()
+        }]
+      }
+    }
     
     // It's a comment if there is a target (action = 'reply'). 
     if (
       props?.formAction === 'reply' &&
-      props?.targetIds && Array.isArray(props?.targetIds)
+      props?.parentEvent?.ids &&
+      Array.isArray(props?.parentEvent?.ids)
     ) {
       const parentIds: (string | number)[] = []
-      props?.targetIds.forEach(id => {
+      props?.parentEvent?.ids?.forEach(id => {
         if (
           id && "value" in id && id.value &&
           isStringOrNumber(id.value)
         ) { parentIds.push(id.value) }
       })
       response = await submitSingleSignedEventV2(
-        'reply', userInput.value, parentIds, ''
+        'reply', userInput.value, parentIds, '',
+        categories
       )
 
     // It's a new post if there is no target (action = 'post').
     } else if (props?.formAction === 'post') {
       response = await submitSingleSignedEventV2(
-        'post', userInput.value, '', userInputTitle.value
+        'post', userInput.value, '', userInputTitle.value,
+        categories
       )
     }
   }
@@ -349,17 +463,22 @@ const submitMessage = async (e: any):Promise<void> => {
           userInputTitle.value = ''
           errorBody.value = false
           errorTitle.value = false
+          hideShowAdvanced()
         }, 2000)
       }
     } else if (props?.formAction === 'reply') {
       userInput.value = ''
       errorMessage.value = ''
       const targets: (string | number)[] = []
-      if (props.targetIds && Array.isArray(props.targetIds)) {
-        props.targetIds.forEach(id => {
+      if (
+        props?.parentEvent?.ids &&
+        Array.isArray(props?.parentEvent?.ids)
+      ) {
+        props?.parentEvent?.ids?.forEach(id => {
           if ("value" in id && id.value) {targets.push(id.value)}
         })
       }
+      hideShowAdvanced()
       emit('reply-submitted', targets)
     }
   }
@@ -393,27 +512,65 @@ const signWithEthereum = async ():Promise<void> => {
     return
   }
 
+  const parentEvent = props?.parentEvent
+  let categories: SpasmEventCategoryV2[] | null = null
+  if (
+    parentEvent && "categories" in parentEvent &&
+    parentEvent.categories &&
+    Array.isArray(parentEvent.categories) &&
+    parentEvent.categories[0] &&
+    "name" in parentEvent.categories[0] &&
+    typeof(parentEvent.categories[0].name) === "string"
+  ) {
+    categories = parentEvent.categories
+  } else if (
+    userInputCategoryMain.value &&
+    typeof(userInputCategoryMain.value) === "string" &&
+    userInputCategoryMain.value.toLowerCase() !== "any" &&
+    userInputCategoryMain.value.toLowerCase() !== "none"
+  ) {
+    if (
+      userInputCategorySub.value &&
+      typeof(userInputCategorySub.value) === "string" &&
+      userInputCategorySub.value.toLowerCase() !== "any" &&
+      userInputCategorySub.value.toLowerCase() !== "none"
+    ) {
+      categories = [{
+        name: userInputCategoryMain.value.toLowerCase(),
+        sub: { name: userInputCategorySub.value.toLowerCase() }
+      }]
+    } else {
+      categories = [{
+        name: userInputCategoryMain.value.toLowerCase()
+      }]
+    }
+  }
+
   let response = null
   // It's a comment if there is a target (action = 'reply'). 
   if (
     props?.formAction === 'reply' &&
-    props?.targetIds && Array.isArray(props?.targetIds)
+    props?.parentEvent?.ids &&
+    Array.isArray(props?.parentEvent?.ids)
   ) {
     const parentIds: (string | number)[] = []
-    props?.targetIds.forEach(id => {
+    props?.parentEvent?.ids?.forEach(id => {
       if (
         id && "value" in id && id.value &&
         isStringOrNumber(id.value)
       ) { parentIds.push(id.value) }
     })
+
     response = await signMessageWithEthereum(
-      'reply', userInput.value, parentIds, ''
+      'reply', userInput.value, parentIds, '',
+      categories
     )
 
   // It's a new post if there is no target (action = 'post').
   } else if (props?.formAction === 'post') {
     response = await signMessageWithEthereum(
-      'post', userInput.value, '', userInputTitle.value
+      'post', userInput.value, '', userInputTitle.value,
+      categories
     )
   }
 }
@@ -422,6 +579,13 @@ const signWithNostr = async ():Promise<void> => {
   errorMessageMultiSign.value = ''
   await signSavedMessageWithNostr()
 }
+
+const selectCategoryMain = (category: string): void => {
+  userInputCategoryMain.value = category
+  toggleCategoriesDropDown()
+  resetMultiSigning()
+}
+
 </script>
 
 <style scoped>

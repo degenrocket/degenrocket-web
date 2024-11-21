@@ -4,6 +4,16 @@
       {{event.title}}
     </div>
 
+    <!-- category -->
+    <div class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">
+      <span v-if="event.categories?.[0]?.name" class="mr-1">
+        Category: 
+        <span v-for="category in event.categories">
+          <span v-if="category.name">{{ category.name }}</span>
+        </span>
+      </span>
+    </div>
+
     <!-- database timestamp -->
     <div class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">
       <span v-if="event.db?.addedTimestamp" class="mr-1">

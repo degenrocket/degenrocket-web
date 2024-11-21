@@ -5,23 +5,23 @@
       especially with PWA module vite-pwa/nuxt.
     -->
     <client-only>
-    <ExtraSpinner v-show="showSpinner" />
-    <div v-show="eventsStore.getPosts && eventsStore.getPosts[0]">
-      <div v-show="areValidSpasmEventsV2(eventsStore.getPosts)">
-        <FeedEventsCard
-          v-for="post in eventsStore.getPosts"
-          :key="post?.ids?.[0]?.value || randomNumber()"
-          :post="post"
-        />
+      <ExtraSpinner v-show="showSpinner" />
+      <div v-show="eventsStore.getPosts && eventsStore.getPosts[0]">
+        <div v-show="areValidSpasmEventsV2(eventsStore.getPosts)">
+          <FeedEventsCard
+            v-for="post in eventsStore.getPosts"
+            :key="post?.ids?.[0]?.value || randomNumber()"
+            :post="post"
+          />
+        </div>
       </div>
-    </div>
-    <div v-show="!eventsStore.getPosts || !eventsStore.getPosts[0]">
-        <p class="animate-pulse text-colorNotImportant dark:text-colorNotImportant-dark">
-          Loading...
-        </p>
-      <ExtraSpinner />
-    </div>
-    <ExtraLoadMoreButton :what-to-load="'feed-posts'" class="mb-8"/>
+      <div v-show="!eventsStore.getPosts || !eventsStore.getPosts[0]">
+          <p class="animate-pulse text-colorNotImportant dark:text-colorNotImportant-dark">
+            Loading...
+          </p>
+        <ExtraSpinner />
+      </div>
+      <ExtraLoadMoreButton :what-to-load="'feed-posts'" class="mb-16"/>
     </client-only>
   </div>
 </template>
