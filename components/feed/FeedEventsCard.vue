@@ -19,24 +19,24 @@
           @click="hideFeed()"
           class="nuxt-link text-colorNotImportant-light dark:text-colorNotImportant-dark"
         >
-          <ExtraBlockies :seed="extractOneAuthorAddressForDisplay(post, true)" :scale="2" class="inline-block" />
+          <ExtraBlockies :seed="addressValue" :scale="2" class="inline-block" />
           <!-- client-only tags solve hydration mismatch warning -->
           <client-only>
             <span
-              v-if="getMetadataByAddressNostr(extractOneAuthorAddressForDisplay(post, true), 'username') && getMetadataByAddressNostr(extractOneAuthorAddressForDisplay(post, true), 'username') !== 'none'"
+              v-if="getMetadataByAddressNostr(addressValue, 'username') && getMetadataByAddressNostr(addressValue, 'username') !== 'none'"
               class="ml-1"
             >
               <span class="">
-                {{ getMetadataByAddressNostr(extractOneAuthorAddressForDisplay(post, true), 'username').slice(0,40) }}
+                {{ getMetadataByAddressNostr(addressValue, 'username').slice(0,40) }}
               </span>
               <span class="text-sm">
                 (Nostr)
               </span>
             </span>
 
-          <span v-else class="ml-0" >
+          <span v-else class="ml-1" >
             <span>
-              {{ extractOneAuthorAddressForDisplay(post)}}
+              {{ addressForDisplay }}
             </span>
           </span>
           </client-only>
@@ -120,6 +120,9 @@ const props = defineProps<{
   post: SpasmEventV2
   key?: (string | number)
 }>()
+
+const addressForDisplay = extractOneAuthorAddressForDisplay(props?.post)
+const addressValue = extractOneAuthorAddressForDisplay(props?.post, true)
 
 /* console.log(`FeedPostsCard called */
 /* props.key: ${props.key}           */
