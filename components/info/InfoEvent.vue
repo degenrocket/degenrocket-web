@@ -1,5 +1,8 @@
 <template>
   <div>
+    <client-only>
+      <span id="top-anchor"></span>
+    </client-only>
     <div v-if="eventsStore.getPost && isValidSpasmEventV2(eventsStore?.getPost)" class="mb-36">
       <!-- TODO hydration node mismatch -->
       <InfoEventPreview
@@ -152,6 +155,20 @@ const {
 } = useNostr()
 let isErrorEventNotFound = ref<boolean>(false)
 let isNostrEvent = ref<boolean>(false)
+
+const scrollToTop = () => {
+  const element = document.querySelector('#top-anchor');
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    /* element.scrollIntoView({ block: 'start' }); */
+  }
+}
+
+if (process.client) {
+  // Scroll to the top when author changes
+  // Small delay to allow DOM to update
+  setTimeout(scrollToTop, 200)
+}
 
 const replySubmitted = async (
   targets?: (string | number)[] | null

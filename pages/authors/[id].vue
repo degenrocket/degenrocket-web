@@ -1,6 +1,7 @@
 <template>
   <div class="p-2">
     <client-only>
+      <span id="top-anchor"></span>
       <div
         v-if="getMetadataByAddressNostr(author, 'picture') && getMetadataByAddressNostr(author, 'picture') !== 'none'"
         class="h-20 overflow-hidden"
@@ -165,6 +166,9 @@
         </div>
 
       </div>
+      <div class="w-32 mt-1 mb-16 cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark" @click="scrollToTop()">
+        Scroll to top
+      </div>
     </client-only>
 
   </div>
@@ -206,6 +210,20 @@ const {
 } = storeToRefs(profilesStore)
 
 const { id } = useRoute().params
+
+const scrollToTop = () => {
+  const element = document.querySelector('#top-anchor');
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    /* element.scrollIntoView({ block: 'start' }); */
+  }
+}
+
+if (process.client) {
+  // Scroll to the top when author changes
+  // Small delay to allow DOM to update
+  setTimeout(scrollToTop, 200)
+}
 
 let author = ""
 let npub: string | null = null
