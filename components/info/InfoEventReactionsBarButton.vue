@@ -1,7 +1,7 @@
 <template>
   <span>
     <button @click="buttonClicked()"
-      class="px-3 py-1 min-w-[58px] mr-1 bg-bgSecondary-light dark:bg-bgSecondary-dark hover:text-colorPrimary-light hover:dark:text-colorPrimary-dark hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
+      class="px-2 lg:px-3 py-1 min-w-[52px] lg:min-w-[58px] mr-1 bg-bgSecondary-light dark:bg-bgSecondary-dark hover:text-colorPrimary-light hover:dark:text-colorPrimary-dark hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
       <span>
         <IconsUpvote v-if="iconUpvote" class="custom-icons"
           :class="alreadySubmitted ? 'text-colorNotImportant-light dark:text-colorNotImportant-dark' : ''" />
