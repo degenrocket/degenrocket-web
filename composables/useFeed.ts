@@ -12,7 +12,7 @@ export const useFeed = () => {
   const hideFeed = () => {
     setTimeout(() => {
       isFeedShown.value = false
-    }, 500)
+    }, 250)
   }
 
   return {

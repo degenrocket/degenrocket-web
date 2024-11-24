@@ -222,7 +222,7 @@ const scrollToTop = () => {
 if (process.client) {
   // Scroll to the top when author changes
   // Small delay to allow DOM to update
-  setTimeout(scrollToTop, 200)
+  setTimeout(scrollToTop, 300)
 }
 
 let author = ""
