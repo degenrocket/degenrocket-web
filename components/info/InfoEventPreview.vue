@@ -26,8 +26,8 @@
       <span v-if="event.timestamp" class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">
         Signed time: {{toBeDate(event.timestamp)}}
       </span>
-      <span v-if="enableShortUrlsForWeb3Actions && event.ids?.[0].value" class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">
-        -
+      <div v-if="enableShortUrlsForWeb3Actions && event.ids?.[0].value" class="text-base text-colorNotImportant-light dark:text-colorNotImportant-dark">
+        Link:
         <span>
           <nuxt-link
             class="cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
@@ -45,8 +45,7 @@
             short
           </nuxt-link>
         </span>
-        link
-      </span>
+      </div>
     </div>
 
     <!-- source -->
