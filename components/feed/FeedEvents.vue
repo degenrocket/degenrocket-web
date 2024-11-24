@@ -6,6 +6,7 @@
     -->
     <client-only>
       <ExtraSpinner v-show="showSpinner" />
+      <span id="feed-top-anchor"></span>
       <div v-show="eventsStore.getPosts && eventsStore.getPosts[0]">
         <div v-show="areValidSpasmEventsV2(eventsStore.getPosts)">
           <FeedEventsCard
@@ -36,6 +37,14 @@ const {feedFilters} = useFeedEventsFilters()
 
 const showSpinner = ref(false)
 
+const scrollToTop = () => {
+  const element = document.querySelector('#feed-top-anchor');
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    /* element.scrollIntoView({ block: 'start' }); */
+  }
+}
+
 // Moved fetchPostsByFilters() from onMounted() otherwise
 // there is a 'Hydration node mismatch' warning.
 // Update: moved back to onMounted, and use <client-only>
@@ -63,10 +72,29 @@ onMounted(async () => {
 watch(
   /* () => [feedFilters.category, feedFilters.activity], async (newValue, oldValue) => { */
   /* feedFilters, async (newFilters, oldFilters) => { */
-  feedFilters, async () => {
+  /* feedFilters, async () => { */
+  /* feedFilters, async () => {                */
+  /*   showSpinner.value = true                */
+  /*   await eventsStore.fetchPostsByFilters() */
+  /*   showSpinner.value = false               */
+  /* },                                        */
+  () => [
+    feedFilters.limit, feedFilters.category, feedFilters.activity
+  ], async (
+    newFilters: (string | number)[],
+    oldFilters: (string | number)[]
+  ) => {
     showSpinner.value = true
     await eventsStore.fetchPostsByFilters()
     showSpinner.value = false
+
+    // Scroll feed to the top only if category or activity
+    // filters have changed, i.e., don't scroll if limit has
+    // changed, e.g., after pressing the 'load more' button.
+    if (
+      newFilters[1] !== oldFilters[1] ||
+      newFilters[2] !== oldFilters[2]
+    ) { scrollToTop() }
   }
 )
 </script>
