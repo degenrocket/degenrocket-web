@@ -152,6 +152,7 @@ const {
 const {
   toBeHex,
   getNostrRelays,
+  isHex
 } = useNostr()
 let isErrorEventNotFound = ref<boolean>(false)
 let isNostrEvent = ref<boolean>(false)
@@ -258,7 +259,14 @@ const setSearchBy = (
       // Invalid Nostr's note ID
       searchBy = newIdString
     }
-    // Not Nostr's note ID
+  // May be Nostr's hex ID
+  } else if (
+    newIdString.length === 64 &&
+    isHex(newIdString)
+  ) {
+    searchBy = newIdString
+    isNostrEvent.value = true
+    // Not Nostr ID
   } else { searchBy = newIdString }
 }
 

@@ -150,6 +150,7 @@ import {
 import {RelayPool} from 'nostr-relaypool';
 const {
   getNostrRelays,
+  toBeHex
 } = useNostr()
 const {
   isArrayWithValues,
@@ -184,7 +185,7 @@ const searchNostrNetwork = async (
       filterIds.value.toLowerCase().split(',')
     if (rawIds && isArrayWithValues(rawIds)) {
       rawIds.forEach(rawId => {
-        const str = String(rawId)
+        const str = toBeHex(String(rawId))
         if (str && typeof(str) === "string") {
           // TODO standardize id
           ids.push(str.trim())
@@ -203,7 +204,7 @@ const searchNostrNetwork = async (
       filterAuthors.value.toLowerCase().split(',')
     if (rawAuthors && isArrayWithValues(rawAuthors)) {
       rawAuthors.forEach(rawAuthor => {
-        const str = String(rawAuthor)
+        const str = toBeHex(String(rawAuthor))
         if (str && typeof(str) === "string") {
           // TODO standardize authors
           authors.push(str.trim())
@@ -228,7 +229,10 @@ const searchNostrNetwork = async (
       })
     }
   }
-  if (isArrayWithValues(kinds)) { filters.kinds = kinds }
+  /* if (isArrayWithValues(kinds)) { filters.kinds = kinds } */
+  if (
+    Array.isArray(kinds) && typeof(kinds[0]) === "number"
+  ) { filters.kinds = kinds }
 
   const tagsE: string[] = []
   if (

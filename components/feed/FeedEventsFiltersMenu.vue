@@ -28,9 +28,8 @@
           </span>
         </span>
         <svg
-          class="w-5 h-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
+          :class="{ 'rotate-180': categoriesDropDownShown }"
+          class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"
         >
           <path
             fill-rule="evenodd"

@@ -461,7 +461,8 @@ getters: {
       const addressNpub = convertHexOrNpubAddressToNpub(address)
 
       // Find existing profile with the same id
-      const profile: ProfileSpasm | undefined = state.profiles.find(
+      const profile: ProfileSpasm | undefined
+        = state.profiles.find(
         profile => profile.id === addressNpub
       )
 

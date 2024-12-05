@@ -26,6 +26,7 @@
               </span>
             </span>
             <svg
+              :class="{ 'rotate-180': categoriesDropDownShown }"
               class="inline w-5 h-5"
               viewBox="0 0 20 20"
               fill="currentColor"
@@ -209,6 +210,21 @@
         </button>
       </div>
 
+      <!-- relays -->
+      <div v-if="isNetworkNostrSelected">
+        <div
+          v-if="getNostrRelays() && isArrayWithValues(getNostrRelays())"
+          class="text-colorNotImportant-light dark:text-colorNotImportant-dark"
+        >
+          Submitting to these Nostr relays:
+          <div v-for="relay in getNostrRelays()">
+            <div v-if="relay && typeof(relay) === 'string'">
+              {{ relay.slice(6) }}
+            </div>
+          </div>
+        </div>
+      </div>
+
     </form>
     <DevOnly>
       DevOnly
@@ -261,7 +277,13 @@ const {
   spasmEventSignedWithNostr,
   savedMergedMultiSignedSpasmEventV2
 } = useWeb3()
-const {isStringOrNumber} = useUtils()
+const {
+  getNostrRelays
+} = useNostr()
+const {
+  isStringOrNumber,
+  isArrayWithValues
+} = useUtils()
 const env = useRuntimeConfig()?.public
 const postPlaceholder = env?.postPlaceholder
 

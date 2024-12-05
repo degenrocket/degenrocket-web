@@ -369,6 +369,19 @@ export const useNostr = () => {
   const toBeNote = convertHexNoteNeventIdToNote
   const toBeNotes = convertHexNoteNeventIdsToNote
 
+  const isHex = (
+    value: string
+  ): boolean => {
+    if (!value) return false
+    if (typeof(value) !== "string") return false
+    const hexChars = [
+      "0","1","2","3","4","5","6","7","8","9",
+      "a","b","c","d","e","f"
+    ]
+    const valueArray = value.toLowerCase().split("")
+    return valueArray.every(char => hexChars.includes(char))
+  }
+
   const extractDataFromNostrEvent = (
     event: NostrEventSignedOpened,
     dataToExtract: DataToExtractFromNostrEvent
@@ -675,6 +688,8 @@ export const useNostr = () => {
       // "wss://purplepag.es",
     // ]
     if (!relays) return false
+    console.log("Submitting event to nostr relays:", relays)
+
     let relayPool = new RelayPool(relays);
     // let relayPool = new RelayPool();
     relayPool.publish(nostrEventSigned, relays)
@@ -770,6 +785,7 @@ export const useNostr = () => {
     toBeNpubs,
     toBeNote,
     toBeNotes,
+    isHex,
     extractDataFromNostrEvent,
     getPreferredRelaysFromProfile,
     getHardcodedNostrRelays,
