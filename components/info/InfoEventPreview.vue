@@ -130,6 +130,54 @@
         </span>
       </nuxt-link>
     </div>
+
+    <div
+      v-if="spasm.extractSignedNostrEvent(event)"
+    >
+      <div
+        class="cursor-pointer text-base text-colorNotImportant-light dark:text-colorNotImportant-dark"
+        @click="toggleBroadcastToOtherNetworks()"
+      >
+        <span>
+          Broadcast to other networks (Nostr)
+        </span>
+        <svg
+          :class="{ 'rotate-180': broadcastToOtherNetworksDropDownShown }"
+          class="inline w-5 h-5" viewBox="0 0 20 20" fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </div>
+    <div
+      class="mb-8"
+      v-if="broadcastToOtherNetworksDropDownShown"
+    >
+      <div
+        v-if="getNostrRelays() && isArrayWithValues(getNostrRelays())"
+        class="text-colorNotImportant-light dark:text-colorNotImportant-dark"
+      >
+        <button
+          class="inline my-4 px-6 lg:min-w-[200px] min-h-[40px] text-colorPrimary-light dark:text-colorPrimary-dark border-2 border-colorPrimary-light dark:border-colorPrimary-dark rounded-lg hover:bg-bgHover-light dark:hover:bg-bgHover-dark"
+          @click="sendEventToNostrNetwork(event) && hideBroadcastToOtherNetworks()"
+        >
+          Broadcast this event to Nostr
+        </button>
+        <div>
+          Submitting to these Nostr relays:
+          <div v-for="relay in getNostrRelays()">
+            <div v-if="relay && typeof(relay) === 'string'">
+              {{ relay.slice(6) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
     <!--
     <div v-if="event.content" class="whitespace-pre-line my-1">
       {{event.content}}
@@ -196,6 +244,7 @@
 <script setup lang="ts">
 import {marked} from 'marked'
 import {SpasmEventV2} from '@/helpers/interfaces'
+import { spasm } from 'spasm.js'
 import {useProfilesStore} from '@/stores/useProfilesStore'
 const profilesStore = useProfilesStore()
 const {
@@ -203,6 +252,10 @@ const {
   randomNumber,
   extractParentIdForDisplay
 } = useWeb3()
+const {
+  getNostrRelays,
+  sendEventToNostrNetwork
+} = useNostr()
 const env = useRuntimeConfig()?.public
 const enableMarkdownInPosts: boolean = env?.enableMarkdownInPosts === 'true'? true : false
 const enableEmbedIframeTagsInPosts: boolean = env?.enableEmbedIframeTagsInPosts === 'true'? true : false
@@ -259,6 +312,15 @@ if (process.client) {
   // Another approach is to use setInterval to check if
   // comments have been downloaded every 1 sec for 10 secs,
   // add execute the updateAllProfiles() after that.
+}
+
+const broadcastToOtherNetworksDropDownShown = ref(false)
+const toggleBroadcastToOtherNetworks = () => {
+  broadcastToOtherNetworksDropDownShown.value =
+    !broadcastToOtherNetworksDropDownShown.value
+}
+const hideBroadcastToOtherNetworks = () => {
+  broadcastToOtherNetworksDropDownShown.value = false
 }
 </script>
 
