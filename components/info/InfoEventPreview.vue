@@ -132,7 +132,7 @@
     </div>
 
     <div
-      v-if="spasm.extractSignedNostrEvent(event)"
+      v-if="spasm.extractSignedNostrEvent(event) && spasm.getVerifiedNostrSigners(event).includes(toBeHex(connectedAddressNostr))"
     >
       <div
         class="cursor-pointer text-base text-colorNotImportant-light dark:text-colorNotImportant-dark"
@@ -250,8 +250,12 @@ const profilesStore = useProfilesStore()
 const {
   sliceAddress,
   randomNumber,
+  connectedAddressNostr,
   extractParentIdForDisplay
 } = useWeb3()
+const {
+  toBeHex,
+} = useNostr()
 const {
   getNostrRelays,
   sendEventToNostrNetwork
