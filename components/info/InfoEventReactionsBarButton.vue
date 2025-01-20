@@ -66,6 +66,12 @@ const buttonClicked = async () => {
     ) {
       alreadySubmitted.value = true
       alert("You've already submitted this reaction to this post")
+    } else if (
+      res && typeof(res) === "string" &&
+      res.toLowerCase().startsWith("error")
+    ) {
+      console.log("res:", res)
+      alert(res)
     }
   }
 }

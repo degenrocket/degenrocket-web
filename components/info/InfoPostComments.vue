@@ -28,8 +28,7 @@
 import {Post} from '@/helpers/interfaces';
 import {usePostsStore} from '@/stores/usePostsStore'
 const postsStore = usePostsStore()
-const {isValidPost, areValidPosts} = useUtils()
-const {randomNumber} = useWeb3()
+const {isValidPost, areValidPosts, randomNumber} = useUtils()
 
 const props = defineProps<{
   post?: Post;

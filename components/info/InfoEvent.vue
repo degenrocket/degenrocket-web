@@ -143,11 +143,11 @@ const enableNewWeb3ActionsReply: boolean = env?.enableNewWeb3ActionsReply === 'f
 const eventsStore = useEventsStore()
 const params = useRoute().params
 const query = useRoute().query
-const {randomNumber} = useWeb3()
 const {
   isValidSpasmEventV2,
   isArrayWithValues,
-  isStringOrNumber
+  isStringOrNumber,
+  randomNumber
 } = useUtils()
 const {
   toBeHex,

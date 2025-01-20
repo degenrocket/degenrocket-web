@@ -85,7 +85,7 @@ export interface Post {
   children?: Post[]
 }
 
-export type Web3MessageAction = "post" | "react" | "reply" | "moderate"
+export type Web3MessageAction = "post" | "react" | "reply" | "share" | "shared" | "moderate" | "admin" | "app-config-dr"
 
 export type Web3MessageLicense = "MIT" | "CC0" | "CC0-1.0" | "SPDX-License-Identifier: CC0-1.0" | "SPDX-License-Identifier: MIT"
 
@@ -1259,7 +1259,7 @@ export interface SpasmEventProofV2 {
 
 export type EventSignatureProtocol = "ethereum" | "nostr"
 
-export type SpasmEventActionV2 = "post" | "react" | "reply" | "share" | "shared" | "moderate" | "admin" | "edit" | "delete" | "vote" | "media" | "metadata" | "follow_list" | "direct_message"
+export type SpasmEventActionV2 = "post" | "react" | "reply" | "share" | "shared" | "moderate" | "admin" | "edit" | "delete" | "vote" | "media" | "metadata" | "follow_list" | "direct_message" | "app-config-dr"
 
 export type SpasmEventLicense = "MIT" | "CC0" | "CC0-1.0" | "SPDX-License-Identifier: CC0-1.0" | "SPDX-License-Identifier: MIT"
 
@@ -1398,6 +1398,192 @@ export interface SiblingNostrSpasmSignedV2 {
 }
 
 export type CustomFunctionType = (...args: any[]) => any;
+
+export interface AppConfig {
+  // Cannot be changed via admin web page:
+  apiUrl?: string
+  enableAppConfigChanges?: boolean
+  enableAppConfigChangesByAdmin?: boolean
+  enableAdmin?: boolean
+  admins?: string[]
+  // Can be changed via admin web page:
+  // Booleans
+  allowNewEventsWithoutSignature?: boolean
+  enableNewWeb3ActionsAll?: boolean
+  enableNewWeb3ActionsPost?: boolean
+  enableNewWeb3ActionsReply?: boolean
+  enableNewWeb3ActionsReact?: boolean
+  enableNewWeb3ActionsModerate?: boolean
+  enableNewNostrActionsAll?: boolean
+  enableNewEthereumActionsAll?: boolean
+  enableModeration?: boolean
+  enableShortUrlsForWeb3Actions?: boolean
+  enableWhitelistForActionPost?: boolean
+  enableWhitelistForActionReply?: boolean
+  enableWhitelistForActionReact?: boolean
+  enableSpasmModule?: boolean
+  enableSpasmSourcesUpdates?: boolean
+  enableRssModule?: boolean
+  enableRssSourcesUpdates?: boolean
+  ignoreWhitelistForActionPostInSpasmModule?: boolean
+  ignoreWhitelistForActionReactInSpasmModule?: boolean
+  ignoreWhitelistForActionReplyInSpasmModule?: boolean
+  // Arrays
+  moderators?: string[]
+  whitelistedForActionPost?: string[]
+  whitelistedForActionReply?: string[]
+  whitelistedForActionReact?: string[]
+  // Numbers
+  feedFiltersActivityHot?: number
+  feedFiltersActivityRising?: number
+  shortUrlsLengthOfWeb3Ids?: number
+  // Strings
+  // Strings-socials
+  anotherWebsiteLink?: string
+  ipfsLink?: string
+  torLink?: string
+  ipfsHttpGatewayLink?: string
+  nostrLink?: string
+  sessionLink?: string
+  simplexLink?: string
+  statusLink?: string
+  lensLink?: string
+  hiveLink?: string
+  pushLink?: string
+  mirrorLink?: string
+  mastodonLink?: string
+  matrixLink?: string
+  discordLink?: string
+  telegramLink?: string
+  twitterLink?: string
+  redditLink?: string
+  youtubeLink?: string
+  instagramLink?: string
+  facebookLink?: string
+  linkedinLink?: string
+  wikipediaLink?: string
+  githubLink?: string
+  nostrNpub?: string
+  sessionName?: string
+  matrixName?: string
+  lensName?: string
+  hiveName?: string
+  pushName?: string
+  mirrorName?: string
+  telegramName?: string
+  twitterName?: string
+  redditName?: string
+  signalNumber?: string
+  whatsappNumber?: string
+  xmppName?: string
+  uniswapLink?: string
+  sushiswapLink?: string
+  etherscanLink?: string
+  ethvmLink?: string
+  coingeckoLink?: string
+  coinmarketcapLink?: string
+  dextoolsLink?: string
+  dexscreenerLink?: string
+  birdeyeLink?: string
+  geckoterminalLink?: string
+  extraContactInfo?: string
+}
+
+export type AppConfigKeyString =
+  | "apiUrl"
+  | "anotherWebsiteLink"
+  | "ipfsLink"
+  | "torLink"
+  | "ipfsHttpGatewayLink"
+  | "nostrLink"
+  | "sessionLink"
+  | "simplexLink"
+  | "statusLink"
+  | "lensLink"
+  | "hiveLink"
+  | "pushLink"
+  | "mirrorLink"
+  | "mastodonLink"
+  | "matrixLink"
+  | "discordLink"
+  | "telegramLink"
+  | "twitterLink"
+  | "redditLink"
+  | "youtubeLink"
+  | "instagramLink"
+  | "facebookLink"
+  | "linkedinLink"
+  | "wikipediaLink"
+  | "githubLink"
+  | "nostrNpub"
+  | "sessionName"
+  | "matrixName"
+  | "lensName"
+  | "hiveName"
+  | "pushName"
+  | "mirrorName"
+  | "telegramName"
+  | "twitterName"
+  | "redditName"
+  | "signalNumber"
+  | "whatsappNumber"
+  | "xmppName"
+  | "uniswapLink"
+  | "sushiswapLink"
+  | "etherscanLink"
+  | "ethvmLink"
+  | "coingeckoLink"
+  | "coinmarketcapLink"
+  | "dextoolsLink"
+  | "dexscreenerLink"
+  | "birdeyeLink"
+  | "geckoterminalLink"
+  | "extraContactInfo"
+
+export type AppConfigKeyBoolean =
+  | "enableAppConfigChanges"
+  | "enableAppConfigChangesByAdmin"
+  | "enableAdmin"
+  | "admins"
+  | "allowNewEventsWithoutSignature"
+  | "enableNewWeb3ActionsAll"
+  | "enableNewWeb3ActionsPost"
+  | "enableNewWeb3ActionsReply"
+  | "enableNewWeb3ActionsReact"
+  | "enableNewWeb3ActionsModerate"
+  | "enableNewWeb3ActionsAll"
+  | "enableNewWeb3ActionsPost"
+  | "enableNewWeb3ActionsReact"
+  | "enableNewWeb3ActionsReply"
+  | "enableNewWeb3ActionsModerate"
+  | "enableNewNostrActionsAll"
+  | "enableNewEthereumActionsAll"
+  | "enableModeration"
+  | "enableShortUrlsForWeb3Actions"
+  | "shortUrlsLengthOfWeb3Ids"
+  | "enableWhitelistForActionPost"
+  | "enableWhitelistForActionReply"
+  | "enableWhitelistForActionReact"
+  | "feedFiltersActivityHot"
+  | "feedFiltersActivityRising"
+  | "enableSpasmModule"
+  | "enableSpasmSourcesUpdates"
+  | "enableRssModule"
+  | "enableRssSourcesUpdates"
+  | "ignoreWhitelistForActionPostInSpasmModule"
+  | "ignoreWhitelistForActionReactInSpasmModule"
+  | "ignoreWhitelistForActionReplyInSpasmModul"
+
+export type AppConfigKeyArray =
+  | "moderators"
+  | "whitelistedForActionPost"
+  | "whitelistedForActionReply"
+  | "whitelistedForActionReact"
+
+export type AppConfigKeyNumber =
+  | "shortUrlsLengthOfWeb3Ids"
+  | "feedFiltersActivityHot"
+  | "feedFiltersActivityRising"
 
 // export class ConvertToSpasmConfig {
 //   to: {

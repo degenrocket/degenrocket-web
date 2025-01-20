@@ -193,12 +193,12 @@ const profilesStore = useProfilesStore()
 const { getMetadataByAddressNostr } = storeToRefs(profilesStore)
 
 const {
-  sliceAddress,
-  randomNumber,
   extractIdForDisplay,
   extractOneAuthorAddressForDisplay
 } = useWeb3()
 const {
+  sliceAddress,
+  randomNumber,
   toBeDate
 } = useUtils()
 const env = useRuntimeConfig()?.public

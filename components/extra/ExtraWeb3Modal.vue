@@ -116,8 +116,13 @@
 </template>
 
 <script setup lang="ts">
-const {hideWeb3Modal} = useWeb3()
-const {connectWeb3Authenticator, connectNostrExtension, setRandomSigner, disconnectAccount} = useWeb3()
+const {
+  connectWeb3Authenticator,
+  connectNostrExtension,
+  setRandomSigner,
+  disconnectAccount,
+  hideWeb3Modal
+} = useWeb3()
 const ifAllowGuestLogin = useRuntimeConfig()?.public?.ifAllowGuestLogin === 'true' ? true : false
 const enableNewNostrActionsAll = useRuntimeConfig()?.public?.enableNewNostrActionsAll === 'true' ? true : false
 const enableNewEthereumActionsAll = useRuntimeConfig()?.public?.enableNewEthereumActionsAll === 'true' ? true : false

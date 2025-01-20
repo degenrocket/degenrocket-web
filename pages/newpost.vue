@@ -52,7 +52,7 @@
         <!-- Connected address is whitelisted -->
         <div v-if="connectedAddress &&
           typeof(connectedAddress) === 'string' &&
-          whitelistedForActionPost.includes(connectedAddress.toLowerCase())"
+          whitelistedForActionPost?.includes(connectedAddress.toLowerCase())"
         >
           <div class="mb-4">
             Your address is whitelisted to create new posts.
@@ -65,7 +65,7 @@
         <!-- Connected address is not whitelisted -->
         <div v-if="connectedAddress &&
           typeof(connectedAddress) === 'string' &&
-          !whitelistedForActionPost.includes(connectedAddress.toLowerCase())"
+          !whitelistedForActionPost?.includes(connectedAddress.toLowerCase())"
         >
           <div>
             Your address is not whitelisted to create new posts
@@ -83,25 +83,27 @@
 </template>
 
 <script setup lang="ts">
+import {useAppConfigStore} from '@/stores/useAppConfigStore'
+const appConfigStore = useAppConfigStore()
+// Updating app config so users can create new posts after
+// being whitelisted without refreshing the web page.
+await appConfigStore.fetchAndUpdateAppConfig()
 // New web3 actions are enabled by default if not disabled in .env
-const env = useRuntimeConfig()?.public
 const enableNewWeb3ActionsAll: boolean =
-  env?.enableNewWeb3ActionsAll === 'false'? false : true
+  appConfigStore.getAppConfig.enableNewWeb3ActionsAll
 const enableNewWeb3ActionsPost: boolean =
-  env?.enableNewWeb3ActionsPost === 'false'? false : true
+  appConfigStore.getAppConfig.enableNewWeb3ActionsPost
 const enableWhitelistForActionPost: boolean =
-  env?.enableWhitelistForActionPost === 'true'? true : false
+  appConfigStore.getAppConfig.enableWhitelistForActionPost
 const whitelistedForActionPost: string[] =
-  typeof(env?.whitelistedForActionPost) === "string"
-  ? env?.whitelistedForActionPost.toLowerCase().split(',')
-  : []
+  appConfigStore.getAppConfig.whitelistedForActionPost
 const {
   connectedAddress,
   /* assembledMessage, */
   /* connectedAddressEthereum, */
   /* connectedAddressNostr,    */
-  sliceAddress
 } = useWeb3()
+const { sliceAddress } = useUtils()
 </script>
 
 <style scoped></style>

@@ -563,6 +563,41 @@ describe('deleteMatchingValuesFromObject', () => {
   })
 })
 
+// sliceAddress
+describe('sliceAddress-each', () => {
+  const { sliceAddress } = useUtils();
+
+  test.each([
+    ['1234567', 2, 4, '12...4567'],
+    ['12345678', 3, 2, '123...78'],
+    ['123456789', 4, undefined, '1234...6789'],
+    [null, 5, 4, ''],
+    [undefined, undefined, undefined, ''],
+    ['1234', 0, 4, '...1234'],
+  ])('given %s and %d as arguments, returns %s', (input, start, end, expected) => {
+    const result = sliceAddress(input, start, end);
+    expect(result).toEqual(expected);
+    expect(result).to.be.a('string');
+  });
+});
+
+// randomNumber
+describe('randomNumber-each', () => {
+  const { randomNumber } = useUtils();
+
+  test.each([
+    [1, 10], // min, max
+    [100, 200],
+    [Number.MIN_VALUE, Number.MAX_VALUE],
+    [-10, 10],
+  ])('returns a random number between %d and %d', (min, max) => {
+    const result = randomNumber(min, max);
+    expect(result).toBeGreaterThanOrEqual(min);
+    expect(result).toBeLessThanOrEqual(max);
+  });
+});
+
+
 const { sanitizeObjectValuesWithDompurify } = useUtils()
 
 describe('sanitizeObjectValuesWithDompurify', () => {

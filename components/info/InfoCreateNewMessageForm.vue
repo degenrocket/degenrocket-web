@@ -251,7 +251,11 @@
 </template>
 
 <script setup lang="ts">
-import {FiltersCategory, SpasmEventCategoryV2, SpasmEventIdV2, SpasmEventV2} from '@/helpers/interfaces';
+import {
+  FiltersCategory,
+  SpasmEventCategoryV2,
+  SpasmEventV2
+} from '@/helpers/interfaces';
 const ifShowCategoriesFilter = useRuntimeConfig()?.public?.ifShowCategoriesFilter === 'true' ? true : false
 const envCategories = useRuntimeConfig()?.public?.envCategories
 
@@ -262,7 +266,6 @@ const {
   connectedAddressNostr,
   connectedKeyType,
   showWeb3Modal,
-  sliceAddress,
   removeAddressEthereum,
   removeAddressNostr,
   resetMultiSigning,
@@ -281,6 +284,7 @@ const {
   getNostrRelays
 } = useNostr()
 const {
+  sliceAddress,
   isStringOrNumber,
   isArrayWithValues
 } = useUtils()

@@ -35,6 +35,14 @@ export default defineNuxtConfig({
       defaultMetaTitle: process.env.META_TITLE,
       defaultMetaDescription: process.env.META_DESCRIPTION,
 
+      // App config
+      enableAppConfigChanges: process.env.ENABLE_APP_CONFIG_CHANGES,
+      enableAppConfigChangesByAdmin: process.env.ENABLE_APP_CONFIG_CHANGES_BY_ADMIN,
+
+      // Admin
+      enableAdmin: process.env.ENABLE_ADMIN,
+      admins: process.env.ADMINS,
+
       // Moderation
       enableModeration: process.env.ENABLE_MODERATION,
       moderators: process.env.MODERATORS,
@@ -76,6 +84,10 @@ export default defineNuxtConfig({
       // White list
       enableWhitelistForActionPost: process.env.ENABLE_WHITELIST_FOR_ACTION_POST,
       whitelistedForActionPost: process.env.WHITELISTED_FOR_ACTION_POST,
+      enableWhitelistForActionReply: process.env.ENABLE_WHITELIST_FOR_ACTION_REPLY,
+      whitelistedForActionReply: process.env.WHITELISTED_FOR_ACTION_REPLY,
+      enableWhitelistForActionReact: process.env.ENABLE_WHITELIST_FOR_ACTION_REACT,
+      whitelistedForActionReact: process.env.WHITELISTED_FOR_ACTION_REACT,
 
       // Nostr network
       enableNostrNetwork: process.env.ENABLE_NOSTR_NETWORK,
@@ -160,6 +172,9 @@ export default defineNuxtConfig({
       coingeckoLink: process.env.COINGECKO_LINK,
       coinmarketcapLink: process.env.COINMARKETCAP_LINK,
       dextoolsLink: process.env.DEXTOOLS_LINK,
+      dexscreenerLink: process.env.DEXSCREENER_LINK,
+      birdeyeLink: process.env.BIRDEYE_LINK,
+      geckoterminalLink: process.env.GECKOTERMINAL_LINK,
 
       // Extra contact links
       extraContactInfo: process.env.EXTRA_CONTACT_INFO,

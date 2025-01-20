@@ -70,6 +70,21 @@
           Dextools
         </a>
       </span>
+      <span v-if="dexscreenerLink">
+        <a :href="dexscreenerLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+          Dexscreener
+        </a>
+      </span>
+      <span v-if="birdeyeLink">
+        <a :href="birdeyeLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+          Birdeye
+        </a>
+      </span>
+      <span v-if="geckoterminalLink">
+        <a :href="geckoterminalLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+          GeckoTerminal
+        </a>
+      </span>
     </div>
 
     <div v-if="nostrNpub">
@@ -170,7 +185,7 @@
       </span>
     </div>
 
-    <div>
+    <div v-if="nostrLink || sessionLink || simplexLink || statusLink || lensLink || hiveLink || pushLink || mirrorLink || mastodonLink || matrixLink || discordLink || telegramLink || twitterLink || redditLink || youtubeLink || instagramLink || facebookLink || linkedinLink || wikipediaLink || githubLink">
       Follow:
       <span v-if="nostrLink">
         <a :href="nostrLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
@@ -282,57 +297,61 @@
 <script setup lang="ts">
 // Marked converts markdown to HTML
 import {marked} from 'marked'
+import {useAppConfigStore} from '@/stores/useAppConfigStore'
+const appConfig = useAppConfigStore()?.getAppConfig
 
-const env = useRuntimeConfig()?.public
-const anotherWebsiteLink = env?.anotherWebsiteLink
-const ipfsLink = env?.ipfsLink
-const torLink = env?.torLink
-const ipfsHttpGatewayLink = env?.ipfsHttpGatewayLink
+const anotherWebsiteLink = appConfig?.anotherWebsiteLink
+const ipfsLink = appConfig?.ipfsLink
+const torLink = appConfig?.torLink
+const ipfsHttpGatewayLink = appConfig?.ipfsHttpGatewayLink
 
-const nostrLink = env?.nostrLink
-const sessionLink = env?.sessionLink
-const simplexLink = env?.simplexLink
-const statusLink = env?.statusLink
-const lensLink = env?.lensLink
-const hiveLink = env?.hiveLink
-const pushLink = env?.pushLink
-const mirrorLink = env?.mirrorLink
-const mastodonLink = env?.mastodonLink
-const matrixLink = env?.matrixLink
-const discordLink = env?.discordLink
-const telegramLink = env?.telegramLink
-const twitterLink = env?.twitterLink
-const redditLink = env?.redditLink
-const youtubeLink = env?.youtubeLink
-const instagramLink = env?.instagramLink
-const facebookLink = env?.facebookLink
-const linkedinLink = env?.linkedinLink
-const wikipediaLink = env?.wikipediaLink
-const githubLink = env?.githubLink
+const nostrLink = appConfig?.nostrLink
+const sessionLink = appConfig?.sessionLink
+const simplexLink = appConfig?.simplexLink
+const statusLink = appConfig?.statusLink
+const lensLink = appConfig?.lensLink
+const hiveLink = appConfig?.hiveLink
+const pushLink = appConfig?.pushLink
+const mirrorLink = appConfig?.mirrorLink
+const mastodonLink = appConfig?.mastodonLink
+const matrixLink = appConfig?.matrixLink
+const discordLink = appConfig?.discordLink
+const telegramLink = appConfig?.telegramLink
+const twitterLink = appConfig?.twitterLink
+const redditLink = appConfig?.redditLink
+const youtubeLink = appConfig?.youtubeLink
+const instagramLink = appConfig?.instagramLink
+const facebookLink = appConfig?.facebookLink
+const linkedinLink = appConfig?.linkedinLink
+const wikipediaLink = appConfig?.wikipediaLink
+const githubLink = appConfig?.githubLink
 
-const nostrNpub = env?.nostrNpub
-const sessionName = env?.sessionName
-const matrixName = env?.matrixName
-const lensName = env?.lensName
-const hiveName = env?.hiveName
-const pushName = env?.pushName
-const mirrorName = env?.mirrorName
-const telegramName = env?.telegramName
-const twitterName = env?.twitterName
-const redditName = env?.redditName
-const signalNumber = env?.signalNumber
-const whatsappNumber = env?.whatsappNumber
-const xmppName = env?.xmppName
+const nostrNpub = appConfig?.nostrNpub
+const sessionName = appConfig?.sessionName
+const matrixName = appConfig?.matrixName
+const lensName = appConfig?.lensName
+const hiveName = appConfig?.hiveName
+const pushName = appConfig?.pushName
+const mirrorName = appConfig?.mirrorName
+const telegramName = appConfig?.telegramName
+const twitterName = appConfig?.twitterName
+const redditName = appConfig?.redditName
+const signalNumber = appConfig?.signalNumber
+const whatsappNumber = appConfig?.whatsappNumber
+const xmppName = appConfig?.xmppName
 
-const uniswapLink = env?.uniswapLink
-const sushiswapLink = env?.sushiswapLink
-const etherscanLink = env?.etherscanLink
-const ethvmLink = env?.ethvmLink
-const coingeckoLink = env?.coingeckoLink
-const coinmarketcapLink = env?.coinmarketcapLink
-const dextoolsLink = env?.dextoolsLink
+const uniswapLink = appConfig?.uniswapLink
+const sushiswapLink = appConfig?.sushiswapLink
+const etherscanLink = appConfig?.etherscanLink
+const ethvmLink = appConfig?.ethvmLink
+const coingeckoLink = appConfig?.coingeckoLink
+const coinmarketcapLink = appConfig?.coinmarketcapLink
+const dextoolsLink = appConfig?.dextoolsLink
+const dexscreenerLink = appConfig?.dexscreenerLink
+const birdeyeLink = appConfig?.birdeyeLink
+const geckoterminalLink = appConfig?.geckoterminalLink
 
-const extraContactInfo = env?.extraContactInfo
+const extraContactInfo = appConfig?.extraContactInfo
 
 </script>
 

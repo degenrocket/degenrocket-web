@@ -24,17 +24,13 @@
 <script setup lang="ts">
 import {SpasmEventV2} from '@/helpers/interfaces'
 import { spasm } from 'spasm.js'
+import {useAppConfigStore} from '@/stores/useAppConfigStore'
+const appConfig = useAppConfigStore()?.getAppConfig
+const enableModeration: boolean = appConfig?.enableModeration
+const moderators: string[] = appConfig?.moderators
 const {connectedAddress} = useWeb3()
 const {submitSingleSignedEventV2} = useWeb3()
 const moderationResponse = ref<string>("")
-
-// Environment variables
-const env = useRuntimeConfig()?.public
-const enableModeration: boolean = env?.enableModeration === 'false'? false : true
-const moderators: string[] =
-  typeof(env?.moderators) === "string"
-  ? env?.moderators.toLowerCase().split(',')
-  : []
 
 const props = defineProps<{
   event?: SpasmEventV2

@@ -30,9 +30,9 @@ import {SpasmEventV2} from '@/helpers/interfaces';
 /* import {usePostsStore} from '@/stores/usePostsStore' */
 /* const postsStore = usePostsStore() */
 const {
-  isValidSpasmEventV2
+  isValidSpasmEventV2,
+  randomNumber
 } = useUtils()
-const {randomNumber} = useWeb3()
 
 /* const props = defineProps<{ */
 defineProps<{

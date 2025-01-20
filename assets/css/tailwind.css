@@ -110,6 +110,10 @@
   .custom-icons-large {
     @apply w-6 inline-block;
   }
+
+  .custom-admin-input-socials {
+    @apply my-1 p-1 bg-bgBase-light dark:bg-bgBase-dark border-bgSecondary-light dark:border-bgSecondary-dark w-[50%] max-w-[700px] focus:outline-none border-2
+  }
 }
 
 @layer utilities {

@@ -11,6 +11,8 @@ import {
 import {useProfilesStore} from '@/stores/useProfilesStore'
 import { spasm } from 'spasm.js'
 import {RelayPool} from "nostr-relaypool";
+import {useAppConfigStore} from '@/stores/useAppConfigStore'
+// const appConfig = useAppConfigStore()?.getAppConfig
 // const profilesStore = useProfilesStore()
 
 const {feedFilters} = useFeedEventsFilters()
@@ -64,7 +66,7 @@ export const useEventsStore = defineStore('postsStore', {
 
     // Short IDs
     enableShortUrlsForWeb3Actions: useRuntimeConfig()?.public?.enableShortUrlsForWeb3Actions === "true" ? true : false,
-    shortUrlsLengthOfWeb3Ids: Number(useRuntimeConfig()?.public?.shortUrlsLengthOfWeb3Ids) || 20,
+    shortUrlsLengthOfWeb3Ids: Number(useRuntimeConfig()?.public?.shortUrlsLengthOfWeb3Ids) || 30,
 
     // appPosts contains all posts fetched from the server,
     // sorted by date and cleaned from duplicates.
@@ -131,6 +133,23 @@ export const useEventsStore = defineStore('postsStore', {
   },
 
   actions: {
+    updateStateAppConfig(): string {
+      try {
+        const appConfig = useAppConfigStore()?.getAppConfig
+        this.enableShortUrlsForWeb3Actions =
+          appConfig?.enableShortUrlsForWeb3Actions
+        this.shortUrlsLengthOfWeb3Ids =
+          Number(appConfig?.shortUrlsLengthOfWeb3Ids) || 30
+        this.feedFiltersActivityHot =
+          Number(appConfig?.feedFiltersActivityHot) || 5
+        this.feedFiltersActivityRising =
+          Number(appConfig?.feedFiltersActivityRising) || 3
+        return "SUCCESS: appConfig state in eventsStore updated"
+      } catch (err) {
+        console.error(err);
+        return "ERROR: appConfig state in eventsStore not update"
+      }
+    },
     async fetchPostsByFilters(
       customFilters?: FeedFilters
     ): Promise<void> {

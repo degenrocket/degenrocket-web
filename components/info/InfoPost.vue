@@ -95,8 +95,7 @@ const shortUrlsLengthOfWeb3Ids: number = env?.shortUrlsLengthOfWeb3Ids ? Number(
 const postsStore = usePostsStore()
 const params = useRoute().params
 const query = useRoute().query
-const {randomNumber} = useWeb3()
-const {isValidPost, isValidUrl} = useUtils()
+const {isValidPost, isValidUrl, randomNumber} = useUtils()
 let isErrorPostNotFound = ref<boolean>(false)
 
 /* console.log("InfoPost is created") */

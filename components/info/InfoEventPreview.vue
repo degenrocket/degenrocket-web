@@ -246,10 +246,10 @@ import {marked} from 'marked'
 import {SpasmEventV2} from '@/helpers/interfaces'
 import { spasm } from 'spasm.js'
 import {useProfilesStore} from '@/stores/useProfilesStore'
+import {useAppConfigStore} from '@/stores/useAppConfigStore'
+const appConfig = useAppConfigStore()?.getAppConfig
 const profilesStore = useProfilesStore()
 const {
-  sliceAddress,
-  randomNumber,
   connectedAddressNostr,
   extractParentIdForDisplay
 } = useWeb3()
@@ -264,10 +264,12 @@ const env = useRuntimeConfig()?.public
 const enableMarkdownInPosts: boolean = env?.enableMarkdownInPosts === 'true'? true : false
 const enableEmbedIframeTagsInPosts: boolean = env?.enableEmbedIframeTagsInPosts === 'true'? true : false
 // Short URLs for web3 actions are enabled by default if not disabled in .env
-const enableShortUrlsForWeb3Actions: boolean = env?.enableShortUrlsForWeb3Actions === 'false'? false : true
-const shortUrlsLengthOfWeb3Ids: number = env?.shortUrlsLengthOfWeb3Ids ? Number(env?.shortUrlsLengthOfWeb3Ids) : 20
+const enableShortUrlsForWeb3Actions: boolean = appConfig?.enableShortUrlsForWeb3Actions
+const shortUrlsLengthOfWeb3Ids: number = appConfig?.shortUrlsLengthOfWeb3Ids
 const {checkIfSignerAllowedIframe, getArrayOfArraysOfTextAndTagsV2} = useHtmlTags()
 const {
+  sliceAddress,
+  randomNumber,
   toBeDate,
   isArrayWithValues
 } = useUtils()

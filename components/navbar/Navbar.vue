@@ -19,6 +19,18 @@
       <nuxt-link :to="`/contacts`" class="nuxt-link">Contacts</nuxt-link>
     </div>
     <div
+      class="inline-block pl-1 lg:pl-2"
+      @click="hideFeed()"
+      v-if="connectedAddress &&
+        typeof(connectedAddress) === 'string' &&
+        enableAppConfigChanges &&
+        enableAppConfigChangesByAdmin &&
+        enableAdmin &&
+        admins?.includes(connectedAddress.toLowerCase())"
+    >
+      <nuxt-link :to="`/admin`" class="nuxt-link">Admin</nuxt-link>
+    </div>
+    <div
       class="ml-2 mr-1 inline-block text-center float-right"
       @click="showWeb3Modal()">
       <span v-if="connectedAddress" class="text-sm lg:text-lg inline-block min-w-[100px] lg:min-w-[120px] border-2 rounded-lg border-bgSecondary-light dark:border-bgSecondary-dark cursor-pointer text-colorGreen-light dark:text-colorGreen-dark hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
@@ -35,8 +47,17 @@
 </template>
 
 <script setup lang="ts">
+import {useAppConfigStore} from '@/stores/useAppConfigStore'
+const appConfigStore = useAppConfigStore()
+const admins = appConfigStore.getAppConfig.admins
+const enableAdmin = appConfigStore.getAppConfig.enableAdmin
+const enableAppConfigChanges =
+  appConfigStore.getAppConfig.enableAppConfigChanges
+const enableAppConfigChangesByAdmin =
+  appConfigStore.getAppConfig.enableAppConfigChangesByAdmin
 const {showFeed, hideFeed, isFeedShown} = useFeed()
-const {showWeb3Modal, pendingAuthentication, connectedAddress, sliceAddress} = useWeb3()
+const {showWeb3Modal, pendingAuthentication, connectedAddress } = useWeb3()
+const { sliceAddress} = useUtils()
 // New web3 actions are enabled by default if not disabled in .env
 const env = useRuntimeConfig()?.public
 const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true

@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-const {randomNumber} = useWeb3()
+const {randomNumber} = useUtils()
 
 defineProps(['error'])
 

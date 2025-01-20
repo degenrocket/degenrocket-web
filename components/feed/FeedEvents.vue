@@ -30,8 +30,7 @@
 <script setup lang="ts">
 
 import {useEventsStore} from '@/stores/useEventsStore'
-const {randomNumber} = useWeb3()
-const {areValidSpasmEventsV2} = useUtils()
+const {areValidSpasmEventsV2, randomNumber} = useUtils()
 const eventsStore = useEventsStore()
 const {feedFilters} = useFeedEventsFilters()
 

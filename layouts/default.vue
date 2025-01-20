@@ -30,8 +30,12 @@
 </template>
 
 <script setup lang="ts">
+import {useAppConfigStore} from '@/stores/useAppConfigStore'
 const {isFeedShown} = useFeed()
 const {isWeb3ModalShown, isQrCodeModalShown, setConnectedAddress} = useWeb3()
+
+// Always use the latest app config from database
+await useAppConfigStore()?.fetchAndUpdateAppConfig()
 
 // componentKey is added as an extra safeguard against
 // hydration mismatches. The idea is that an element

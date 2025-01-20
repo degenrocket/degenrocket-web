@@ -29,8 +29,7 @@
 <script setup lang="ts">
 
 import {usePostsStore} from '@/stores/usePostsStore'
-const {randomNumber} = useWeb3()
-const {areValidPosts} = useUtils()
+const {areValidPosts, randomNumber} = useUtils()
 const postsStore = usePostsStore()
 const {feedFilters} = useFeedFilters()
 
