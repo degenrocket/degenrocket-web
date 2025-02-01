@@ -296,32 +296,39 @@ const apiURL = useRuntimeConfig()?.public?.apiURL
 const showActionDetails = ref(false)
 const showActionDetailsText = ref('show')
 
-let posts = reactive<SpasmEventV2[]>([])
+let posts = ref<SpasmEventV2[]>([])
 
 let isError = ref<boolean>(false)
 
-const path: string = `${apiURL}/api/authors/${author}`
+onMounted(async () => {
+  // Using nextTick(), otherwise onMounted() works buggy
+  await nextTick()
 
-const {data, error} = await useFetch(path)
-
-if (error.value) {
-  isError.value = true
-  console.error(error.value)
-}
-
-if (data?.value) {
-  const spasmEvents: SpasmEventV2[] | null =
-    spasm.convertManyToSpasm(data.value)
-  if (spasmEvents && areValidSpasmEventsV2(spasmEvents)) {
-    posts = spasmEvents
+  // Comments are fetched inside onMounted() because event
+  // sanitization with DOMPurify inside convertManyToSpasm()
+  // works only in a browser environment (client-side).
+  const path: string = `${apiURL}/api/authors/${author}`
+  const {data, error} = await useFetch(path)
+  if (error.value) {
+    isError.value = true
+    console.error(error.value)
   }
-// Use mock posts for testing locally without backend
-// if activated in the .env file.
-} else if (
-  useMockedDataIfBackendIsDown
-) {
-  posts = getMockEventsByAddress(author)
-}
+
+  if (data?.value) {
+    const spasmEvents: SpasmEventV2[] | null =
+      spasm.convertManyToSpasm(data.value)
+    if (spasmEvents && areValidSpasmEventsV2(spasmEvents)) {
+      posts.value = spasmEvents
+    }
+  // Use mock posts for testing locally without backend
+  // if activated in the .env file.
+  } else if (
+    useMockedDataIfBackendIsDown
+  ) {
+    posts.value = getMockEventsByAddress(author)
+  }
+})
+
 
 const toggleShowActionDetails = (): void => {
   showActionDetails.value = !showActionDetails.value
