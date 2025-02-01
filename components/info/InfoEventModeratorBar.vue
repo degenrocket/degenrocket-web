@@ -41,7 +41,7 @@ const buttonClicked = async (text: string) => {
   /* const targets = props?.event?.ids */
   const targets = spasm.getAllEventIds(props?.event)
   if (!targets || !Array.isArray(targets)) return
-  const result = await submitSingleSignedEventV2('moderate', text, targets, '')
+  const result = await submitSingleSignedEventV2('moderate', text, targets, '', null, props?.event)
   if (result) {
     const { res } = result
     if (res === 'Success. Action saved and target deleted') {

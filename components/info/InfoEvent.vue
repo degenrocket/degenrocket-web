@@ -350,8 +350,8 @@ watch(() => useRoute().query.p, async (newQueryP) => {
     const newId = newQueryP
     eventId = newId
     setSearchBy(newId)
-    console.log("searchBy:", searchBy)
-    console.log("eventId:", eventId)
+    /* console.log("searchBy:", searchBy) */
+    /* console.log("eventId:", eventId)   */
     /* await updateEvent(id) */
     eventsStore.setCurrentPostId(newId)
     await updateEventWithComments(newId, false)

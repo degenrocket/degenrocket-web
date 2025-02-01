@@ -27,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+import {SpasmEventV2} from '@/helpers/interfaces';
 import {useEventsStore} from '@/stores/useEventsStore'
 const eventsStore = useEventsStore()
 const {submitSingleSignedEventV2} = useWeb3()
@@ -43,6 +44,7 @@ const props = defineProps<{
   iconImportant?: boolean | null
   iconScam?: boolean | null
   iconComments?: boolean | null
+  parentEvent?: SpasmEventV2
 }>()
 
 const alreadySubmitted = ref<boolean>(false)
@@ -51,7 +53,10 @@ const buttonClicked = async () => {
   /* console.log("buttonClicked") */
   if (!props.reaction || !props.target) { return }
   const result =
-    await submitSingleSignedEventV2('react', props.reaction, props.target, '')
+    await submitSingleSignedEventV2(
+      'react', props?.reaction, props?.target,
+      '', null, props?.parentEvent
+    )
   if (result) {
     const { res } = result
     if (

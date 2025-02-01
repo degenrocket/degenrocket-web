@@ -7,6 +7,7 @@
         :reaction="reactions[0]"
         :text="false"
         :icon-upvote="true"
+        :parentEvent="comment"
       />
       <InfoEventReactionsBarButton
         :target="comment?.ids?.[0]?.value?.toString()"
@@ -14,6 +15,7 @@
         :reaction="reactions[1]"
         :text="false"
         :icon-downvote="true"
+        :parentEvent="comment"
       />
     </span>
   </span>

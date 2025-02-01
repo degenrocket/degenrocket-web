@@ -7,6 +7,7 @@
         :reaction="reactions[0]"
         :text="false"
         :icon-bullish="true"
+        :parentEvent="event"
       />
       <InfoEventReactionsBarButton
         :target="event?.ids?.[0]?.value?.toString()"
@@ -14,6 +15,7 @@
         :reaction="reactions[1]"
         :text="false"
         :icon-bearish="true"
+        :parentEvent="event"
       />
       <InfoEventReactionsBarButton
         :target="event?.ids?.[0]?.value?.toString()"
@@ -21,6 +23,7 @@
         :reaction="reactions[2]"
         :text="false"
         :icon-important="true"
+        :parentEvent="event"
       />
       <InfoEventReactionsBarButton
         :target="event?.ids?.[0]?.value?.toString()"
@@ -28,6 +31,7 @@
         :reaction="reactions[3]"
         :text="false"
         :icon-scam="true"
+        :parentEvent="event"
       />
       <InfoEventReactionsBarButton
         :target="event?.ids?.[0]?.value?.toString()"
@@ -35,6 +39,7 @@
         :reaction="reactions[4]"
         :text="false"
         :icon-upvote="true"
+        :parentEvent="event"
       />
       <InfoEventReactionsBarButton
         :target="event?.ids?.[0]?.value?.toString()"
@@ -42,6 +47,7 @@
         :reaction="reactions[5]"
         :text="false"
         :icon-downvote="true"
+        :parentEvent="event"
       />
     </div>
   </div>

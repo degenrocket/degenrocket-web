@@ -453,14 +453,14 @@ const submitMessage = async (e: any):Promise<void> => {
       })
       response = await submitSingleSignedEventV2(
         'reply', userInput.value, parentIds, '',
-        categories
+        categories, parentEvent
       )
 
     // It's a new post if there is no target (action = 'post').
     } else if (props?.formAction === 'post') {
       response = await submitSingleSignedEventV2(
         'post', userInput.value, '', userInputTitle.value,
-        categories
+        categories, parentEvent
       )
     }
   }
@@ -589,14 +589,14 @@ const signWithEthereum = async ():Promise<void> => {
 
     response = await signMessageWithEthereum(
       'reply', userInput.value, parentIds, '',
-      categories
+      categories, parentEvent
     )
 
   // It's a new post if there is no target (action = 'post').
   } else if (props?.formAction === 'post') {
     response = await signMessageWithEthereum(
       'post', userInput.value, '', userInputTitle.value,
-      categories
+      categories, parentEvent
     )
   }
 }
