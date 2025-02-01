@@ -6,7 +6,7 @@ const {copyToClipboard} = useUtils()
 const {showQrCodeModal, setQrCodeValue} = useWeb3()
 
 const explorerEthereumAddress = defaultExplorerEthereumAddress || 'https://etherscan.io/address/'
-const explorerNostrAddress = defaultExplorerNostrAddress || 'https://satellite.earth/@'
+const explorerNostrAddress = defaultExplorerNostrAddress || 'https://primal.net/p/'
 
 const props = defineProps<{
   value?: string | number | undefined
