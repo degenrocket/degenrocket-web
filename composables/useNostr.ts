@@ -16,7 +16,8 @@ import {
   // getSignature,
   // getEventHash
 } from 'nostr-tools'
-import {RelayPool} from "nostr-relaypool";
+// import {RelayPool} from "nostr-relaypool";
+import { SimplePool } from 'nostr-tools-v2/pool'
 import {useUtils} from './useUtils';
 import { spasm } from 'spasm.js'
 
@@ -690,9 +691,14 @@ export const useNostr = () => {
     if (!relays) return false
     console.log("Submitting event to nostr relays:", relays)
 
-    let relayPool = new RelayPool(relays);
+    const relayPool = new SimplePool()
+
+    await Promise.any(relayPool.publish(relays, nostrEventSigned))
+    console.log("event published")
+
+    // let relayPool = new RelayPool(relays);
     // let relayPool = new RelayPool();
-    relayPool.publish(nostrEventSigned, relays)
+    // relayPool.publish(nostrEventSigned, relays)
 
     // TODO receive event or confirmation from Nostr relays
     return true
