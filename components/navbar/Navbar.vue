@@ -30,6 +30,14 @@
     >
       <nuxt-link :to="`/admin`" class="nuxt-link">Admin</nuxt-link>
     </div>
+    <DevOnly>
+      <div
+        class="inline-block pl-1 lg:pl-2"
+        @click="hideFeed()"
+      >
+        <nuxt-link :to="`/search`" class="nuxt-link">Search</nuxt-link>
+      </div>
+    </DevOnly>
     <div
       class="ml-2 mr-1 inline-block text-center float-right"
       @click="showWeb3Modal()">

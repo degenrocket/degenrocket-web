@@ -357,7 +357,7 @@ if (process.client) {
     profilesStore
       .addAddress(author, ["username", "relays", "messages"])
     profilesStore
-      .updateAllProfiles(["username", "relays", "messages"])
+      .updateAllProfiles(["relays", "username", "messages"])
   }
 }
 

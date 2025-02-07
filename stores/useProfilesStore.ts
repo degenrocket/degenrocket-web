@@ -93,7 +93,8 @@
  *
  * Why not just check one relay for all event kinds and
  * addresses within one connection?
- * 
+ *
+ * TODO: old documentation, need to adjust to nostr-tools-v2.
  * Because that won't allow us to confidently determine which
  * relays have which event kinds for which addresses due to
  * limitations of the 'nostr-relays' npm package.
@@ -170,7 +171,6 @@
  */
 
 import {defineStore} from 'pinia'
-import {RelayPool} from "nostr-relaypool";
 import { validateEvent, verifySignature } from 'nostr-tools'
 import {
   Post,
@@ -178,14 +178,17 @@ import {
   DataToExtractFromNostrEventKind0,
   ProfileSpasm,
   NostrEventKind,
-  SpasmEventV2
+  SpasmEventV2,
+  NostrNetworkFilter,
+CustomSubscribeToNostrRelayConfig
 } from '@/helpers/interfaces'
 import { spasm } from 'spasm.js'
+import {useNostrRelaysStore} from './useNostrRelaysStore';
 
 const {
   hasValue,
   isArrayOfStrings,
-  // isArrayOfStringsWithValues,
+  isArrayOfStringsWithValues,
   isArrayWithValues,
   isObjectWithValues,
   removeDuplicatesFromArray,
@@ -316,16 +319,16 @@ state: (): ProfilesState => ({
           // If valid default relays are not specified in .env,
           // then set the following relays as default:
           ) || [
-            "wss://relay.snort.social",
-            "wss://relay.damus.io",
             "wss://nos.lol",
-            "wss://relay.nostrplebs.com",
-            "wss://eden.nostr.land",
-            "wss://nostr.wine",
-            "wss://relay.plebstr.com",
+            "wss://relay.damus.io",
             "wss://relay.primal.net",
-            "wss://purplepag.es",
             "wss://relay.nostr.band",
+            // "wss://relay.snort.social",
+            // "wss://relay.nostrplebs.com",
+            // "wss://eden.nostr.land",
+            // "wss://nostr.wine",
+            // "wss://relay.plebstr.com",
+            // "wss://purplepag.es",
           ],
           defaultExtended: [],
         },
@@ -717,7 +720,7 @@ actions: {
 
   async updateAllProfiles(
     // updateType: UpdateType[] = ["username", "relays", "messages"],
-    updateType: UpdateType[] = ["username", "relays"],
+    updateType: UpdateType[] = ["relays", "username"],
     protocols: Protocol[] = ["nostr", "ethereum"],
     forceUpdate: boolean = false
   ): Promise<void> {
@@ -783,7 +786,7 @@ actions: {
   async updateAllProfilesNostr(
     queue: Queue | false = false,
     // updateType: UpdateType[] = ["username", "relays", "messages"],
-    updateType: UpdateType[] = ["username", "relays"],
+    updateType: UpdateType[] = ["relays", "username"],
     forceUpdate: boolean = false
   ): Promise<void> {
     if (!queue || !(hasValue(queue?.nostr?.kind))) {
@@ -841,14 +844,18 @@ actions: {
 
     // Promise all doesn't work properly probably because
     // there is no clear resolve event when using websocket
-    // connection with 'nostr-relays' npm package.
+    // connection with 'nostr-tools' npm package.
     // However, we can add a function with a setInterval that
     // will check whether addresses have preferred relays and
     // send requests if and when such relays are found.
+    // Alternatively, we can pass ifAwaitUntilEose flag
+    // and resolve only after EOSE.
+    // Note that 'await Promise.all' executes concurrently
+    // while 'For of ... await' executes sequentially one by one.
     await Promise.all(defaultRelays.map((relay) => {
       // const time = new Date(Date.now()).toISOString();
       // console.log(time, "staring Nostr check for:", relay)
-      this.checkNostrAddressesFromRelaysForData(
+      return this.checkNostrAddressesFromRelaysForData(
         queue,
         [],
         [relay],
@@ -916,42 +923,33 @@ actions: {
       allAddressesToBeChecked
     ) as string[]
 
-    // console.log(
-    //   time,
-    //   "allAddressesToBeChecked:", allAddressesToBeChecked,
-    //   "for kinds:", kinds
-    // )
-    
     // Check again preferred relays
     if (this.enableNostrNetworkUsePreferredRelays) {
-      allAddressesToBeChecked.forEach((address) => {
-        this.waitAndCheckNostrAddressFromPreferredRelaysForKinds(
+      // Check sequentially for each address to avoid
+      // connecting to the same relays many times
+      // Execute sequentially with await
+      for (const address of allAddressesToBeChecked) {
+        await this
+          .waitAndCheckNostrAddressFromPreferredRelaysForKinds(
           [address],
           // already checked relays:
           defaultRelays,
           kinds,
           forceUpdate,
         )
-      })
+      }
+
+      // Execute concurrently without await
+      // allAddressesToBeChecked.forEach((address) => {
+      //   this.waitAndCheckNostrAddressFromPreferredRelaysForKinds(
+      //     [address],
+      //     // already checked relays:
+      //     defaultRelays,
+      //     kinds,
+      //     forceUpdate,
+      //   )
+      // })
     }
-
-    // getPreferredRelaysFromProfile
-    // this.getProfilesWithPreferredRelays.forEach((profile) => {
-    //   console.log(
-    //     time,
-    //     "profile.id", profile.id,
-    //     "preferredRelays", getPreferredRelaysFromProfile(profile)
-    //   )
-    // })
-
-    // getPreferredRelaysFromAddress
-    // this.getAddressesWithPreferredRelays.forEach((address) => {
-    //   console.log(
-    //     time,
-    //     "address", address,
-    //     "preferredRelays", this.getPreferredRelaysFromAddress(address)
-    //   )
-    // })
 
     // Make sure not to clean default relays at:
     // this.addresses.toBeCheckedFor.nostr.relays
@@ -972,64 +970,79 @@ actions: {
     queue: Queue | false = false,
     addresses: string[] = [],
     relays: string[] = [],
-    // kinds: NostrEventKind[] = [],
-    updateType: UpdateType[] = ["username", "relays"],
+    updateType: UpdateType[] = ["relays", "username"],
+    forceUpdate: boolean = false,
+    limit: number = 30,
+    method: 'concurrently' | 'sequentially' = 'sequentially'
+  ) {
+    if (!hasValue(updateType)) return
+
+    if (method === 'concurrently') {
+      // 'Promise.all' executes concurrently
+      await Promise.all(updateType.map((dataType) => {
+        return this.checkNostrAddressesFromRelaysForDataType(
+          queue, addresses, relays, dataType, forceUpdate, limit
+        )
+      }))
+    // Execute sequentially by default (e.g., if typo)
+    } else {
+      // 'For of' executes sequentially one by one
+      for (const dataType of updateType) {
+        await this.checkNostrAddressesFromRelaysForDataType(
+          queue, addresses, relays, dataType, forceUpdate, limit
+        )
+      }
+    }
+  },
+
+  async checkNostrAddressesFromRelaysForDataType(
+    queue: Queue | false = false,
+    addresses: string[] = [],
+    relays: string[] = [],
+    dataType: UpdateType = "username",
     forceUpdate: boolean = false,
     limit: number = 30
   ) {
-    // const time = new Date(Date.now()).toISOString();
-    // console.log(
-    //   time, "checkNostrAddressesFromRelaysForData called",
-    //   "for addresses:", addresses
-    // )
-    if (!hasValue(updateType)) return
+    let kind: NostrEventKind
+    switch (dataType) {
+      case 'username':
+        kind = 0
+        break
+      case 'relays':
+        kind = 10002
+        break
+      case 'messages':
+        kind = 1
+        break
+    }
 
-    await Promise.all(updateType.map((dataToCheckFor) => {
+    if (!kind && kind !== 0) return
 
-      let kind: NostrEventKind
-      switch (dataToCheckFor) {
-        case 'username':
-          kind = 0
-          break
-        case 'relays':
-          kind = 10002
-          break
-        case 'messages':
-          kind = 1
-          break
+    let addressesToCheck: string[] = []
+
+    if (hasValue(addresses)) {
+      addressesToCheck = addresses
+    } else {
+      if (queue && hasValue(queue)){
+        addressesToCheck = queue.nostr.kind[kind]
       }
+    }
 
-      if (!kind && kind !== 0) return
-
-      let addressesToCheck: string[] = []
-
-      if (hasValue(addresses)) {
-        addressesToCheck = addresses
-      } else {
-        if (queue && hasValue(queue)){
-          addressesToCheck = queue.nostr.kind[kind]
-        }
-      }
-
-      if (
-        !hasValue(addressesToCheck) ||
-        !isArrayOfStrings(addressesToCheck)
-      ) {
-        return
-
-      }
+    if (
+      !hasValue(addressesToCheck) ||
+      !isArrayOfStrings(addressesToCheck)
+    ) { return }
 
 
-      if (hasValue(addressesToCheck)) {
-        this.checkNostrAddressesFromRelaysForKinds(
-          addressesToCheck,
-          relays,
-          [kind],
-          forceUpdate,
-          limit
-        )
-      }
-    }))
+    if (hasValue(addressesToCheck)) {
+      return this.checkNostrAddressesFromRelaysForKinds(
+        addressesToCheck,
+        relays,
+        [kind],
+        forceUpdate,
+        limit
+      )
+    }
   },
 
   async waitAndCheckNostrAddressFromPreferredRelaysForKinds(
@@ -1041,61 +1054,67 @@ actions: {
   ): Promise<void> {
     const address: string = addresses?.[0]
 
-    // console.log(
-    //   "waitAndCheckNostrAddressFromPreferredRelaysForKinds called",
-    //   "for addresses", addresses,
-    //   "kinds", kinds
-    // )
-
     if (typeof(address) !== "string") return
 
-    // Each attempt is 1 second
-    let attempts = 0
-    const maxAttempts = 10
-
-    const intervalId = setInterval(() => {
-      // const time = new Date(Date.now()).toISOString();
-      // console.log(
-      //   time,
-      //   "intervalId called for address:", address,
-      //   "attempts:", attempts
-      // )
-
-      let preferredRelays = this.getPreferredRelaysFromAddress(
-        address
+    // Option 1.
+    // Preferred relays are already found, so subscribe for new
+    // events with await and then resolve, so this function
+    // can be called multiple times and be executed sequentially.
+    let preferredRelays =
+      this.getPreferredRelaysFromAddress(address)
+    if (isArrayOfStringsWithValues(alreadyCheckedRelays)) {
+        preferredRelays = preferredRelays.filter(
+          relay => !alreadyCheckedRelays.includes(relay)
+        );
+    }
+    if (hasValue(preferredRelays)) {
+      // Subscribe with await
+      await this.checkNostrAddressesFromRelaysForKinds(
+        [address], preferredRelays, kinds, forceUpdate, limit
       )
 
-      // To reduce the amount of new websocket connections,
-      // we can filter out preferred relays which have already
-      // been checked, e.g. as default relays.
-      if (
-        hasValue(alreadyCheckedRelays) &&
-        isArrayOfStrings(alreadyCheckedRelays)
-      ) {
-          preferredRelays = preferredRelays.filter(
-            relay => !alreadyCheckedRelays.includes(relay)
-          );
-      }
+    // Option 2.
+    // Preferred relays are not found, so set interval to check
+    // every second and subscribe for new events without await
+    // once preferred relays are found. Resolve immediately
+    // after setting an interval. Note that subscriptions will
+    // be executed concurrently due to setInterval even if this
+    // function is called sequentially.
+    } else {
+      // Each attempt is 1 second
+      let attempts = 0
+      const maxAttempts = 10
 
-      if (hasValue(preferredRelays) || attempts > maxAttempts) {
-        // console.log("clearing interval for address:", address)
-        clearInterval(intervalId)
+      const intervalId = setInterval(() => {
+        preferredRelays = this.getPreferredRelaysFromAddress(
+          address
+        )
 
-        if (hasValue(preferredRelays)) {
-          // console.log(
-          //   time, "found preferredRelays for address", address
-          // )
-          this.checkNostrAddressesFromRelaysForKinds(
-            [address],
-            preferredRelays,
-            kinds,
-            forceUpdate,
-            limit
-          )
+        // To reduce the amount of new websocket connections,
+        // we can filter out preferred relays which have already
+        // been checked, e.g. as default relays.
+        if (
+          hasValue(alreadyCheckedRelays) &&
+          isArrayOfStrings(alreadyCheckedRelays)
+        ) {
+            preferredRelays = preferredRelays.filter(
+              relay => !alreadyCheckedRelays.includes(relay)
+            );
         }
-      }
-      attempts++
-    }, 1000)
+
+        if (hasValue(preferredRelays) || attempts > maxAttempts) {
+          clearInterval(intervalId)
+          if (hasValue(preferredRelays)) {
+            // Subscribe without await
+            this.checkNostrAddressesFromRelaysForKinds(
+              [address], preferredRelays, kinds,
+              forceUpdate, limit
+            )
+          }
+        }
+        attempts++
+      }, 1000)
+    }
   },
 
   async checkNostrAddressesFromRelaysForKinds(
@@ -1106,7 +1125,7 @@ actions: {
     // limit: number = 10
     limit: number = 100
   ): Promise<void> {
-    const time = new Date(Date.now()).toISOString();
+    // const time = new Date(Date.now()).toISOString();
     // console.log(
     //   time,
     //   "checkNostrAddressesFromRelaysForKinds called",
@@ -1124,6 +1143,12 @@ actions: {
       !hasValue(addresses) &&
       !hasValue(relays) &&
       !hasValue(kinds)
+    ) { return }
+
+    if (
+      !Array.isArray(addresses) ||
+      !Array.isArray(relays) ||
+      !Array.isArray(kinds)
     ) { return }
 
     // If this address has already been checked for
@@ -1201,63 +1226,46 @@ actions: {
     let addressesHex: string[] = convertNpubOrHexAddressesToHex(addressesToBeChecked)
     // let addressesHex: string[] = convertNpubOrHexAddressesToHex(addresses)
 
-    let relayPool = new RelayPool(relays);
+    const relayUrl = relays[0]
 
-    // let unsub = relayPool.subscribe(
-    relayPool.subscribe(
-      [
-        // Filter
-        {
-          kinds: kinds,
-          authors: addressesHex,
-          limit: limit,
-          // Can request events by id filter (ids)
-          // ids: ["b3a706bcceb39f193da553ce76255dd6ba5b097001c8ef85ff1b92e994894c81"]
-          // Cannot request events by signature filter
-          // sigs: ["910568b0c0bf787a85ee4b7a2e4b967d903d2a038c4069191dcac232f4c833d4045c2c6d8d120538370470f2430b2dc6150fc0346b379e584f475ad4927929d9"]
-          // Specify one relay for this filter (optional)
-          // relay: "wss://relay.snort.social"
-        },
-
-        // Another filter (optional)
-        // {},
-      ],
-
-      // Relays
-      relays,
-
-      // onEvent
-      // (event, isAfterEose, relayUrl) => {
-      (event, _, relayUrl) => {
-        // console.log(time, "received event")
-        // console.log("relayURL:", relayUrl)
-        // console.log("isAfterEose:", isAfterEose)
-        // console.log("event:", event)
-
-        sanitizeObjectValuesWithDompurify(event)
-
-        this.handleIncomingNostrEvent(event, relayUrl)
-      },
-
-      // maxDelayms (doesn't work with onEose)
-      undefined,
-
-      // onEose - End Of Subscription Events (EOSE)
-      // (relayUrl, minCreatedAt) => {
-      (_, __) => {
-        // console.log(time, "EOSE. Closing connection with:", relayUrl)
-        // console.log("minCreatedAt:", minCreatedAt)
+    // Filter only numbers if 'any' is not present
+    let kindsOnlyNumbers: number[] = []
+    if (!kinds.includes('any')) {
+      kindsOnlyNumbers =
+        kinds.filter(el => typeof el === 'number') as number[]
+    }
+    const filters: NostrNetworkFilter[] = [
+      {
+        kinds: kindsOnlyNumbers,
+        authors: addressesHex,
+        limit: limit,
       }
-    );
+    ]
+    const onEventFunction = (event: any, relayUrl: string) => {
+      useProfilesStore()
+        .handleIncomingNostrEvent(event, relayUrl)
+    }
+    const config: CustomSubscribeToNostrRelayConfig = {
+      filters, onEventFunction
+    }
 
-    relayPool.onerror((err, relayUrl) => {
-      console.error(time, "RelayPool error", err, " from relay ", relayUrl);
-    });
-    relayPool.onnotice((relayUrl, notice) => {
-      console.error(time, "RelayPool notice", notice, " from relay ", relayUrl);
-    });
+    // If fetching only preferred relays (event kind 10002),
+    // then should await until End of Subscription Events (EOSE)
+    // to make sure that all preferred relays are received before
+    // moving to other functions that might require them, e.g.:
+    // - subscribe for kind 10002 (preferred relays)
+    // - await until preferred relays are received (EOSE)
+    // - subscribe for kind 1 (notes) using preferred relays
+    if (
+      kindsOnlyNumbers.length === 1 && kindsOnlyNumbers[0] &&
+      kindsOnlyNumbers[0] === 10002
+    ) { config.ifAwaitUntilEose = true }
+
+    await useNostrRelaysStore()
+      .subscribeToNostrRelaysByFilters(relayUrl, config)
 
     /**
+      TODO: old documentation, need to adjust to nostr-tools-v2.
       Note: marking works properly only if an array of relays
       has one relay, because if there are multiple relays, then
       all of them will be marked as checked, but due to a logic

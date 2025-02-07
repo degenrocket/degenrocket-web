@@ -7,16 +7,14 @@ import {
   // NostrEvent,
   NostrSpasmEventSignedOpened,
   // SpasmEventBodySignedClosedV2,
-  SpasmEventV2
+  SpasmEventV2,
+  NostrNetworkFilter,
+  NostrNetworkFilterConfig
 } from "./../helpers/interfaces";
 import {bech32} from "bech32"
 import {
-  // validateEvent,
   verifySignature,
-  // getSignature,
-  // getEventHash
 } from 'nostr-tools'
-// import {RelayPool} from "nostr-relaypool";
 import { SimplePool } from 'nostr-tools-v2/pool'
 import {useUtils} from './useUtils';
 import { spasm } from 'spasm.js'
@@ -693,77 +691,65 @@ export const useNostr = () => {
 
     const relayPool = new SimplePool()
 
-    await Promise.any(relayPool.publish(relays, nostrEventSigned))
-    console.log("event published")
+    try {
+      await Promise.any(relayPool.publish(relays, nostrEventSigned))
+      console.log("event published")
+    } catch (error) {
+      if (error instanceof AggregateError) {
+        console.error("AggregateError when submitting to Nostr")
+        error.errors.forEach((err, index) => {
+          console.error(`Promise ${index} failed:`, err);
 
-    // let relayPool = new RelayPool(relays);
-    // let relayPool = new RelayPool();
-    // relayPool.publish(nostrEventSigned, relays)
+        })
+      } else {
+        console.error(error);
+      }
+    }
 
     // TODO receive event or confirmation from Nostr relays
     return true
   }
 
-  interface NostrNetworkFiltersConfig {
-    ids?: string[]
-    authors?: string[]
-    kinds?: number[]
-    since?: number
-    until?: number
-    limit?: number
-    tags?: { tagName: string, tagValue: string[] }[]
-  }
-
-  type NostrNetworkFilters = {
-    ids?: string[]
-    authors?: string[]
-    kinds?: number[]
-    since?: number
-    until?: number
-    limit?: number
-    // tags
-  } & Record<string, string[]>
-
-  const assembleNostrNetworkFilters = (
-    filtersConfig: NostrNetworkFiltersConfig
-  ): NostrNetworkFilters | null => {
+  const assembleNostrNetworkFilter = (
+    filterConfig: NostrNetworkFilterConfig
+  ): NostrNetworkFilter | null => {
     if (
-      !filtersConfig || !isObjectWithValues(filtersConfig)
+      !filterConfig || !isObjectWithValues(filterConfig)
     ) return null
-    const filters: NostrNetworkFilters = {}
+    const filters: NostrNetworkFilter = {}
     if (
-      "ids" in filtersConfig && filtersConfig.ids &&
-      isArrayWithValues(filtersConfig.ids)
-    ) { filters.ids = filtersConfig.ids }
+      "ids" in filterConfig && filterConfig.ids &&
+      isArrayWithValues(filterConfig.ids)
+    ) { filters.ids = filterConfig.ids }
     if (
-      "authors" in filtersConfig && filtersConfig.authors &&
-      isArrayWithValues(filtersConfig.authors)
-    ) { filters.authors = filtersConfig.authors }
+      "authors" in filterConfig && filterConfig.authors &&
+      isArrayWithValues(filterConfig.authors)
+    ) { filters.authors = filterConfig.authors }
     if (
-      "kinds" in filtersConfig && filtersConfig.kinds &&
-      isArrayWithValues(filtersConfig.kinds)
-    ) { filters.kinds = filtersConfig.kinds }
+      "kinds" in filterConfig && filterConfig.kinds &&
+      isArrayWithValues(filterConfig.kinds)
+    ) { filters.kinds = filterConfig.kinds }
     if (
-      "since" in filtersConfig && filtersConfig.since &&
-      typeof(filtersConfig.since) === "number"
-    ) { filters.since = filtersConfig.since }
+      "since" in filterConfig && filterConfig.since &&
+      typeof(filterConfig.since) === "number"
+    ) { filters.since = filterConfig.since }
     if (
-      "until" in filtersConfig && filtersConfig.until &&
-      typeof(filtersConfig.until) === "number"
-    ) { filters.until = filtersConfig.until }
+      "until" in filterConfig && filterConfig.until &&
+      typeof(filterConfig.until) === "number"
+    ) { filters.until = filterConfig.until }
     if (
-      "limit" in filtersConfig && filtersConfig.limit &&
-      typeof(filtersConfig.limit) === "number"
+      "limit" in filterConfig && filterConfig.limit &&
+      typeof(filterConfig.limit) === "number"
     ) {
-      filters.limit = filtersConfig.limit
+      filters.limit = filterConfig.limit
     } else {
       filters.limit = 30
     }
     if (
-      "tags" in filtersConfig && filtersConfig.tags &&
-      isArrayWithValues(filtersConfig.tags)
+      "tags" in filterConfig && filterConfig.tags &&
+      isArrayWithValues(filterConfig.tags)
     ) {
-      filtersConfig.tags.forEach(tag => {
+      filterConfig.tags.forEach(tag => {
         if (
           "tagName" in tag && tag.tagName
           && typeof(tag.tagName) === "string" &&
@@ -796,7 +782,7 @@ export const useNostr = () => {
     getPreferredRelaysFromProfile,
     getHardcodedNostrRelays,
     getDefaultNostrRelays,
-    assembleNostrNetworkFilters,
+    assembleNostrNetworkFilter,
     getNostrRelays,
     sendEventToNostrNetwork,
   }

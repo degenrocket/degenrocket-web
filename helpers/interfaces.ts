@@ -765,7 +765,7 @@ export interface KnownPostOrEventInfo {
 
 export type PrivateKeyType = "ethereum" | "nostr"
 
-export interface NostrNetworkFiltersConfig {
+export interface NostrNetworkFilterConfig {
   ids?: string[]
   authors?: string[]
   kinds?: number[]
@@ -775,7 +775,7 @@ export interface NostrNetworkFiltersConfig {
   tags?: { tagName: string, tagValue: string[] }[]
 }
 
-export type NostrNetworkFilters = {
+export type NostrNetworkFilter = {
   ids?: string[]
   authors?: string[]
   kinds?: number[]
@@ -783,7 +783,7 @@ export type NostrNetworkFilters = {
   until?: number
   limit?: number
   // tags
-} & Record<string, string[]>
+} & Record<string, string | number | (string)[] | (number)[]>
 
 ////////////////
 // Spasm V2
@@ -1398,6 +1398,48 @@ export interface SiblingNostrSpasmSignedV2 {
 }
 
 export type CustomFunctionType = (...args: any[]) => any;
+
+export type CustomNostrRelayOnEventFunction =
+  (event: any, relayUrl: string, ifAfterEose: boolean) => any
+
+export type CustomNostrRelayOnEoseFunction = (
+    relayUrl: string,
+    totalEventsFound: number
+) => any
+
+export class SubscribeToNostrRelayConfig {
+  filters: NostrNetworkFilter[]
+  onEventFunction: CustomNostrRelayOnEventFunction | null
+  onEoseFunction: CustomNostrRelayOnEoseFunction | null
+  ifCloseSubOnEvent: boolean
+  ifCloseRelayOnEvent: boolean
+  ifCloseSubOnEose: boolean
+  ifCloseRelayOnEose: boolean
+  closeSubAfterTime: number | false
+  closeRelayAfterTime: number | false
+  ifAwaitUntilEose: boolean
+  awaitUntilEoseTimeout: number
+  constructor() {
+    this.filters = []
+    this.onEventFunction = null
+    this.onEoseFunction = null
+    this.ifCloseSubOnEvent = false
+    this.ifCloseRelayOnEvent = false
+    this.ifCloseSubOnEose = true
+    this.ifCloseRelayOnEose = false
+    this.closeSubAfterTime = 10000 // 10 sec
+    this.closeRelayAfterTime = 1800000 // 30 min
+    this.ifAwaitUntilEose = false // if resolve only after EOSE
+    this.awaitUntilEoseTimeout = 5000 // 5 sec
+  }
+}
+
+type MakeOptional<T> = {
+  [P in keyof T]?: T[P] extends object ? MakeOptional<T[P]> : T[P];
+};
+
+export type CustomSubscribeToNostrRelayConfig =
+  MakeOptional<SubscribeToNostrRelayConfig>
 
 export interface AppConfig {
   // Cannot be changed via admin web page:

@@ -128,6 +128,14 @@
     <div>
       Events:
     </div>
+    <div v-if="newEvents && newEvents.length">
+      <button
+        @click="showNewEvents()"
+        class="px-3 py-2 mx-0 mt-2 mb-2 border-2 rounded-lg border-colorPrimary-light dark:border-colorPrimary-dark text-colorPrimary-light dark:text-colorPrimary-dark hover:bg-bgHover-light dark:hover:bg-bgHover-dark"
+      >
+        Show new events ({{newEvents.length}})
+      </button>
+    </div>
     <div v-if="events">
       <InfoEventCommentsCard
         v-for="event in events"
@@ -142,12 +150,14 @@
 <script setup lang="ts">
 import { spasm } from 'spasm.js'
 import {
-  NostrNetworkFilters,
+  NostrNetworkFilter,
   NostrEventSignedOpened,
-  SpasmEventV2
+  SpasmEventV2,
+  CustomSubscribeToNostrRelayConfig,
+CustomNostrRelayOnEventFunction
 } from '@/helpers/interfaces';
-/* import {useEventsStore} from '@/stores/useEventsStore' */
-import {RelayPool} from 'nostr-relaypool';
+import {useNostrRelaysStore} from '@/stores/useNostrRelaysStore'
+import {useProfilesStore} from '@/stores/useProfilesStore';
 const {
   getNostrRelays,
   toBeHex
@@ -155,12 +165,9 @@ const {
 const {
   isArrayWithValues,
   isObjectWithValues,
-  sanitizeObjectValuesWithDompurify,
-  isValidSpasmEventV2
+  isValidSpasmEventV2,
+  wait,
 } = useUtils()
-/* const {                     */
-/*   getMockSpasmEventComments */
-/* } = useMocks()              */
 
 const filterIds = ref('')
 const filterAuthors = ref('')
@@ -173,11 +180,12 @@ const filterTagsExtra2Name = ref('')
 const filterTagsExtra2Value = ref('')
 const filterLimit = ref('')
 let events = ref<SpasmEventV2[]>([])
+let newEvents = ref<SpasmEventV2[]>([])
 
 const searchNostrNetwork = async (
 ): Promise<void> => {
   console.log("searching")
-  const filters: NostrNetworkFilters = {}
+  const filter: NostrNetworkFilter = {}
 
   const ids: string[] = []
   if (filterIds.value && typeof(filterIds.value) === "string") {
@@ -193,7 +201,7 @@ const searchNostrNetwork = async (
       })
     }
   }
-  if (isArrayWithValues(ids)) { filters.ids = ids }
+  if (isArrayWithValues(ids)) { filter.ids = ids }
 
   const authors: string[] = []
   if (
@@ -212,7 +220,7 @@ const searchNostrNetwork = async (
       })
     }
   }
-  if (isArrayWithValues(authors)) { filters.authors = authors }
+  if (isArrayWithValues(authors)) { filter.authors = authors }
 
   const kinds: number[] = []
   if (
@@ -229,10 +237,10 @@ const searchNostrNetwork = async (
       })
     }
   }
-  /* if (isArrayWithValues(kinds)) { filters.kinds = kinds } */
+  /* if (isArrayWithValues(kinds)) { filter.kinds = kinds } */
   if (
     Array.isArray(kinds) && typeof(kinds[0]) === "number"
-  ) { filters.kinds = kinds }
+  ) { filter.kinds = kinds }
 
   const tagsE: string[] = []
   if (
@@ -243,7 +251,7 @@ const searchNostrNetwork = async (
       filterTagsE.value.toLowerCase().split(',')
     if (rawValues && isArrayWithValues(rawValues)) {
       rawValues.forEach(rawValue => {
-        const str = String(rawValue)
+        const str = toBeHex(String(rawValue))
         if (str && typeof(str) === "string") {
           // TODO standardize ids
           tagsE.push(str.trim())
@@ -252,7 +260,7 @@ const searchNostrNetwork = async (
     }
   }
   if (isArrayWithValues(tagsE)) {
-    filters["#e"] = tagsE
+    filter["#e"] = tagsE
   }
 
   const tagsP: string[] = []
@@ -264,7 +272,7 @@ const searchNostrNetwork = async (
       filterTagsP.value.toLowerCase().split(',')
     if (rawValues && isArrayWithValues(rawValues)) {
       rawValues.forEach(rawValue => {
-        const str = String(rawValue)
+        const str = toBeHex(String(rawValue))
         if (str && typeof(str) === "string") {
           // TODO standardize addresses
           tagsP.push(str.trim())
@@ -273,7 +281,7 @@ const searchNostrNetwork = async (
     }
   }
   if (isArrayWithValues(tagsP)) {
-    filters["#p"] = tagsP
+    filter["#p"] = tagsP
   }
 
   const tagsExtra1: string[] = []
@@ -301,7 +309,7 @@ const searchNostrNetwork = async (
   ) {
     const filterName =
       "#" + String(filterTagsExtra1Name.value).trim()
-    filters[filterName] = tagsExtra1
+    filter[filterName] = tagsExtra1
   }
 
   const tagsExtra2: string[] = []
@@ -329,7 +337,7 @@ const searchNostrNetwork = async (
   ) {
     const filterName =
       "#" + String(filterTagsExtra2Name.value).trim()
-    filters[filterName] = tagsExtra2
+    filter[filterName] = tagsExtra2
   }
 
   let limit = 20
@@ -343,71 +351,99 @@ const searchNostrNetwork = async (
     }
   }
   if (limit && typeof(limit) === "number") {
-    filters.limit = limit
+    filter.limit = limit
   }
 
   const relays: string[] | null = getNostrRelays()
   if (!relays) return
 
-  console.log("filters:", filters)
-  await searchNostrNetworkByFilters(filters, relays)
+  console.log("filter:", filter)
+  await searchNostrNetworkByFilters(filter, relays)
 }
 
 const searchNostrNetworkByFilters = async (
-  filters: NostrNetworkFilters,
+  filter: NostrNetworkFilter,
   relays: string[],
 ): Promise<NostrEventSignedOpened | null> => {
-  /* events.value = getMockSpasmEventComments() */
-  if (!filters) return null
-  if (!isObjectWithValues(filters)) return null
+  if (!filter) return null
+  if (!isObjectWithValues(filter)) return null
   if (!relays) return null
   if (!isArrayWithValues(relays)) return null
 
-  let relayPool = new RelayPool(relays);
-  relayPool.subscribe(
-    [filters],
-    relays,
-
-    // onEvent
-    // (event, isAfterEose, relayUrl) => {
-    (event, _, relayUrl) => {
-      sanitizeObjectValuesWithDompurify(event)
-
-      console.log(event, relayUrl)
-      // this.handleIncomingNostrEvent(event, relayUrl)
-
-      const spasmEventV2: SpasmEventV2 | null =
-        spasm.convertToSpasm(event)
-      if (spasmEventV2 && isValidSpasmEventV2(spasmEventV2)) {
-        // eventsStore.saveEventsToStore([spasmEventV2])
-        // TODO 
-        events.value.push(spasmEventV2)
+  const onEventFunction: CustomNostrRelayOnEventFunction = (
+    event: any, _: string, ifAfterEose: boolean
+  ) => {
+    console.log("onEventFunction:", event.kind, _, ifAfterEose)
+    const spasmEventV2: SpasmEventV2 | null =
+      spasm.convertToSpasm(event)
+    if (spasmEventV2 && isValidSpasmEventV2(spasmEventV2)) {
+      if (!ifAfterEose) {
+        spasm.appendToArrayIfEventIsUnique(
+          events.value, spasmEventV2
+        )
+      } else {
+        const ifDuplicate = spasm
+          .checkIfArrayHasThisEvent(events.value, spasmEventV2)
+        if (!ifDuplicate) {
+          spasm.prependToArrayIfEventIsUnique(
+            newEvents.value, spasmEventV2
+          )
+        }
       }
+    }
+  }
+  const onEoseFunction = (
+    relayUrl: string, totalEventsFound: number
+  ) => {
+    console.log(relayUrl, "eose, found events:", totalEventsFound)
+  }
 
-      // if (process.client) {
-      // }
-    },
+  try {
+    const config: CustomSubscribeToNostrRelayConfig = {
+      filters: [filter],
+      onEventFunction,
+      onEoseFunction,
+      // Keeping sub open after EOSE for 60 sec to test new events
+      ifCloseSubOnEose: false,
+      closeSubAfterTime: 60000,
+      // Await until EOSE before executing updateAllProfiles()
+      // to get usernames for all new addresses.
+      ifAwaitUntilEose: true
+    }
+    const relayUrls: string[] = relays
+    await useNostrRelaysStore()
+      .subscribeToNostrRelaysByFilters(
+        relayUrls, config,
+      )
 
-    // maxDelayms (doesn't work with onEose)
-    undefined,
+    await wait(5000)
 
-    // onEose - End Of Subscription Events (EOSE)
-    // (relayUrl, minCreatedAt) => {
-    (_, __) => {}
-  );
-
-  relayPool.onerror((err, relayUrl) => {
-    console.error("RelayPool error", err, " from relay ", relayUrl);
-  });
-  relayPool.onnotice((relayUrl, notice) => {
-    console.error("RelayPool notice", notice, " from relay ", relayUrl);
-  });
-
+    await useProfilesStore()
+      .updateAllProfiles(["relays", "username"])
+  } catch (err) {
+    console.error('error in Nostr relay connection', err);
+  }
   return null
 }
 
 const cleanEventsList = () => {
   events.value = []
+  newEvents.value = []
+}
+
+const showNewEvents = async (
+): Promise<void> => {
+  // slice() creates a shallow copy of the array
+  // to avoid modifying the original one
+  newEvents?.value?.slice().reverse().forEach(
+    (newEvent: SpasmEventV2) => {
+      spasm.prependToArrayIfEventIsUnique(
+        events.value, newEvent
+      )
+
+    }
+  )
+  newEvents.value = []
 }
 
 </script>

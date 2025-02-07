@@ -2,16 +2,18 @@ import {defineStore} from 'pinia'
 import {useFetch} from '#app'
 import {
   FeedFilters,
-  NostrEventSignedOpened,
   ProfileSpasm,
   SpasmEventV2,
-  NostrNetworkFiltersConfig
+  NostrNetworkFilterConfig,
+  CustomNostrRelayOnEventFunction,
+  NostrNetworkFilter,
+CustomSubscribeToNostrRelayConfig
 } from '@/helpers/interfaces'
 
 import {useProfilesStore} from '@/stores/useProfilesStore'
 import { spasm } from 'spasm.js'
-import {RelayPool} from "nostr-relaypool";
 import {useAppConfigStore} from '@/stores/useAppConfigStore'
+import {useNostrRelaysStore} from './useNostrRelaysStore'
 // const appConfig = useAppConfigStore()?.getAppConfig
 // const profilesStore = useProfilesStore()
 
@@ -33,7 +35,7 @@ const {
 } = useMocks()
 
 const {
-  assembleNostrNetworkFilters,
+  assembleNostrNetworkFilter,
   getNostrRelays,
   toBeHex
 } = useNostr()
@@ -749,20 +751,20 @@ export const useEventsStore = defineStore('postsStore', {
       ids: string[],
       customRelays?: string[] | null,
       profile?: ProfileSpasm
-    ): Promise<NostrEventSignedOpened | null> {
+    ): Promise<void | null> {
       return this.fetchFromNostrNetworkByFilters(
         {ids: ids}, customRelays, profile
       )
     },
 
     async fetchFromNostrNetworkByFilters(
-      filtersConfig: NostrNetworkFiltersConfig,
+      filterConfig: NostrNetworkFilterConfig,
       customRelays?: string[] | null,
       profile?: ProfileSpasm
-    ): Promise<NostrEventSignedOpened | null> {
-      const filters = assembleNostrNetworkFilters(filtersConfig)
-      if (!filters) return null
-      if (!isObjectWithValues(filters)) return null
+    ): Promise<void | null> {
+      const filter = assembleNostrNetworkFilter(filterConfig)
+      if (!filter) return null
+      if (!isObjectWithValues(filter)) return null
 
       let relays: string[] | null
       if (
@@ -776,44 +778,25 @@ export const useEventsStore = defineStore('postsStore', {
       if (!relays || !isArrayWithValues(relays)) return null
       console.log("relays:", relays)
 
-      let relayPool = new RelayPool(relays);
-      relayPool.subscribe(
-        [filters],
-        relays,
+      const filters: NostrNetworkFilter[] = [filter]
 
-        // onEvent
-        // (event, isAfterEose, relayUrl) => {
-        (event, _, relayUrl) => {
-          sanitizeObjectValuesWithDompurify(event)
+      const onEventFunction: CustomNostrRelayOnEventFunction = (
+        event: any, _: string
+      ) => {
+        const spasmEventV2: SpasmEventV2 | null =
+          spasm.convertToSpasm(event)
+        if (spasmEventV2 && isValidSpasmEventV2(spasmEventV2)) {
+          // eventsStore.saveEventsToStore([spasmEventV2])
+          this.saveEventsToStore([spasmEventV2])
+        }
+      }
 
-          // console.log(event, relayUrl)
+      const config: CustomSubscribeToNostrRelayConfig = {
+        filters, onEventFunction
+      }
 
-          // const eventsStore = useEventsStore()
-          const spasmEventV2: SpasmEventV2 | null =
-            spasm.convertToSpasm(event)
-          if (spasmEventV2 && isValidSpasmEventV2(spasmEventV2)) {
-            // eventsStore.saveEventsToStore([spasmEventV2])
-            this.saveEventsToStore([spasmEventV2])
-          }
-          // if (process.client) {}
-        },
-
-        // maxDelayms (doesn't work with onEose)
-        undefined,
-
-        // onEose - End Of Subscription Events (EOSE)
-        // (relayUrl, minCreatedAt) => {
-        (_, __) => {}
-      );
-
-      relayPool.onerror((err, relayUrl) => {
-        console.error("RelayPool error", err, " from relay ", relayUrl);
-      });
-      relayPool.onnotice((relayUrl, notice) => {
-        console.error("RelayPool notice", notice, " from relay ", relayUrl);
-      });
-
-      return null
+      await useNostrRelaysStore().
+        subscribeToNostrRelaysByFilters(relays, config)
     }
   }
 })
