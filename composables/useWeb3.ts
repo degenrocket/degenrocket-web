@@ -15,6 +15,7 @@ import {
   SpasmEventCategoryV2,
   SpasmEventAddressV2,
   // NostrEventSignedOpened
+  SubmitEventV2Return
 } from "./../helpers/interfaces";
 import { bech32 } from 'bech32'
 import {
@@ -247,12 +248,6 @@ export const useWeb3 = () => {
   interface SubmitActionReturn {
     res: string | boolean | null | undefined,
     signature: string | undefined
-  }
-
-  interface SubmitEventV2Return {
-    res: string | boolean | null | undefined,
-    id?: string | number
-    // signature: string | undefined
   }
 
   const assembleSpasmEventBodyV2 = (
@@ -587,12 +582,16 @@ export const useWeb3 = () => {
     if (!sendTo || !isArrayWithValues(sendTo)) return null
     try {
       if (sendTo && isArrayWithValues(sendTo)) {
-        if (sendTo?.includes("nostr")) {
-          sendEventToNostrNetwork(event)
-        }
+        let resultSpasm: string | boolean | null | undefined =
+          null
+        let resultNostr: boolean | string | null = null
         if (sendTo?.includes("spasm")) {
-          return await sendEventV2ToSpasm(event)
+          resultSpasm = await sendEventV2ToSpasm(event)
         }
+        if (sendTo?.includes("nostr")) {
+          resultNostr = await sendEventToNostrNetwork(event)
+        }
+        return resultSpasm || resultNostr
       }
     } catch (err) {
       console.error(err);
@@ -659,7 +658,7 @@ export const useWeb3 = () => {
     })
     if (res) {
       if (id && typeof(id) === "string") {
-        return { res, id }
+        return { res, id, signedEvent }
       } else { return { res } }
     } else { return null }
   }
@@ -711,7 +710,7 @@ export const useWeb3 = () => {
     })
     if (res) {
       if (id && typeof(id) === "string") {
-        return { res, id }
+        return { res, id, signedEvent }
       } else { return { res } }
     } else { return null }
   }

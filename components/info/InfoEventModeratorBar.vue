@@ -25,6 +25,10 @@
 import {SpasmEventV2} from '@/helpers/interfaces'
 import { spasm } from 'spasm.js'
 import {useAppConfigStore} from '@/stores/useAppConfigStore'
+import {
+  useNotificationStore
+} from '@/stores/useNotificationStore'
+const notificationStore = useNotificationStore()
 const appConfig = useAppConfigStore()?.getAppConfig
 const enableModeration: boolean = appConfig?.enableModeration
 const moderators: string[] = appConfig?.moderators
@@ -48,11 +52,16 @@ const buttonClicked = async (text: string) => {
       moderationResponse.value = "The event has been deleted from the local database. Refresh the page to see the change."
     } else if (!res){
       moderationResponse.value = "ERROR: Something went wrong."
+      notificationStore.showNotification(
+        "ERROR: Something went wrong.",
+        "error", 6000
+      )
     } else if (res === true){
       moderationResponse.value = "Success."
+      notificationStore.showNotification("Success", "success")
     } else if (res){
       moderationResponse.value = res
-      /* alert("You've already submitted this reaction to this post") */
+      notificationStore.showNotification(res, "", 6000)
     }
   }
 }

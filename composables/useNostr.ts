@@ -655,7 +655,7 @@ export const useNostr = () => {
 
   const sendEventToNostrNetwork = async (
     spasmEvent: SpasmEventV2
-  ): Promise<boolean> => {
+  ): Promise<boolean | string> => {
     if (!spasmEvent) return false
     const nostrEventSigned:
       NostrSpasmEventSignedOpened |
@@ -694,6 +694,7 @@ export const useNostr = () => {
     try {
       await Promise.any(relayPool.publish(relays, nostrEventSigned))
       console.log("event published")
+      return "Success. The event submitted to the Nostr network"
     } catch (error) {
       if (error instanceof AggregateError) {
         console.error("AggregateError when submitting to Nostr")

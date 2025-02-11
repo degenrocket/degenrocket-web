@@ -7,7 +7,8 @@ import {
   NostrNetworkFilterConfig,
   CustomNostrRelayOnEventFunction,
   NostrNetworkFilter,
-CustomSubscribeToNostrRelayConfig
+  CustomSubscribeToNostrRelayConfig,
+CustomNostrRelayOnEoseFunction,
 } from '@/helpers/interfaces'
 
 import {useProfilesStore} from '@/stores/useProfilesStore'
@@ -27,7 +28,10 @@ const {
   isArrayOfStrings,
   isObjectWithValues,
   isStringOrNumber,
-  sanitizeObjectValuesWithDompurify
+  removeDuplicatesFromArray,
+  pushToArrayIfValueIsUnique,
+  wait,
+  copyOf
 } = useUtils()
 const {
   getMockEvents,
@@ -37,7 +41,8 @@ const {
 const {
   assembleNostrNetworkFilter,
   getNostrRelays,
-  toBeHex
+  toBeHex,
+  isHex
 } = useNostr()
 
 export interface PostsState {
@@ -262,6 +267,303 @@ export const useEventsStore = defineStore('postsStore', {
         } else { return null }
       } else { return null }
     },
+    
+    async fetchEventsFromSpasmByParentIds(
+      idsStrOrNum: (string | number)[],
+      actions: string | number | (number | string)[] = "reply"
+    ): Promise<SpasmEventV2[] | null> {
+      if (!idsStrOrNum || !Array.isArray(idsStrOrNum)) return null
+      const idsArray: string[] = []
+      idsStrOrNum.forEach(id => {
+        if (id && String(id)) { idsArray.push(String(id)) }
+      })
+      const idsString: string =
+        idsArray.map(id => `id=${encodeURIComponent(id)}`)
+          .join('&')
+
+      const actionsArr: (number | string)[] =
+        Array.isArray(actions) ? actions : [actions]
+      const actionsArrayStr: string[] = []
+      actionsArr.forEach(action => {
+        if (action && String(action)) {
+          actionsArrayStr.push(String(action))
+        }
+      })
+      const actionsString: string =
+        actionsArrayStr.map(
+          action => `action=${encodeURIComponent(action)}`
+      ).join('&')
+
+      const path = this.apiUrl +
+        '/api/events/children/search?' +
+        idsString + '&' + actionsString
+
+      const {data: fetchedResult, error} = await useFetch(path)
+
+      if (error.value) {
+        console.error(error.value)
+        return null
+      }
+
+      if (
+        fetchedResult &&
+        isObjectWithValues(fetchedResult) &&
+        fetchedResult.value &&
+        isArrayWithValues(fetchedResult.value)
+      ) {
+        // Error
+        if (
+          "error" in fetchedResult.value &&
+          fetchedResult.value.error &&
+          typeof(fetchedResult.value.error) === "string"
+        ) {
+          return null
+        // Not error
+        } else {
+          const spasmEvents: SpasmEventV2[] | null =
+            spasm.convertManyToSpasm(fetchedResult.value)
+          if (spasmEvents) {
+            return spasmEvents
+          } else { return null }
+        }
+      } else { return null }
+    },
+
+    async fetchRepliesFromAllNetworksByIds(
+      idsNonUnique: (string | number)[],
+      commentsDepth: number = 4,
+      // IDs of the main event tree, if not specified,
+      // then originalIds are used as a tree
+      destinationTreeIds?: (string | number)[] | null,
+      ifAutoAddEventsToTree: boolean = true,
+      ifAddRecursiveEventsToReturnArray: boolean = true,
+      ifFetchFromSpasm: boolean = true,
+      ifFetchFromNostr: boolean = true,
+    ): Promise<SpasmEventV2[] | null> {
+      try {
+        if (!commentsDepth || commentsDepth < 1) return null
+        if (!idsNonUnique) return null
+        if (!Array.isArray(idsNonUnique)) return null
+        const ids: (string | number)[] = 
+          removeDuplicatesFromArray(idsNonUnique)
+        if (!ids) return null
+        if (!Array.isArray(ids)) return null
+          
+        const spasmEvents: SpasmEventV2[] = []
+
+        // Fetch from Spasm
+        if (ifFetchFromSpasm) {
+          const spasmEventsFromSpasm: SpasmEventV2[] =
+            await useEventsStore()
+              .fetchEventsFromSpasmByParentIds(ids)
+          if (isArrayWithValues(spasmEventsFromSpasm)) {
+            spasmEventsFromSpasm.forEach(spasmEvent => {
+              spasm.appendToArrayIfEventIsUnique(
+                spasmEvents, spasmEvent
+              )
+            })
+          }
+        }
+
+        // Fetch from Nostr
+        if (ifFetchFromNostr) {
+          const spasmEventsFromNostr: SpasmEventV2[] =
+            await useEventsStore()
+              .fetchEventsFromNostrByParentIds(ids)
+          if (isArrayWithValues(spasmEventsFromNostr)) {
+            spasmEventsFromNostr.forEach(spasmEvent => {
+              spasm.appendToArrayIfEventIsUnique(
+                spasmEvents, spasmEvent
+              )
+            })
+          }
+        }
+
+        if (
+          !destinationTreeIds ||
+          !isArrayWithValues(destinationTreeIds)
+        ) {
+          destinationTreeIds = copyOf(ids)
+        } else {
+          destinationTreeIds =
+            removeDuplicatesFromArray(destinationTreeIds)
+        }
+
+        if (
+          isArrayWithValues(spasmEvents) &&
+          ifAutoAddEventsToTree
+        ) {
+          useEventsStore().addEventsToTreeByIds(
+            destinationTreeIds, spasmEvents
+          )
+        }
+
+        // Recursion
+        const newIds: (string)[] = []
+        spasmEvents.forEach(spasmEvent => {
+          const eventIds: (string | number)[] =
+            spasm.getAllEventIds(spasmEvent)
+          if (eventIds && isArrayWithValues(eventIds)) {
+            eventIds.forEach(eventId => {
+              if (eventId && String(eventId)) {
+                pushToArrayIfValueIsUnique(
+                  newIds, String(eventId))
+              }
+            })
+          }
+        })
+
+        if (newIds && isArrayOfStrings(newIds)) {
+          const recursiveSpasmEvents: SpasmEventV2[] =
+            await useEventsStore()
+              .fetchRepliesFromAllNetworksByIds(
+                newIds, commentsDepth - 1, destinationTreeIds,
+                ifAutoAddEventsToTree,
+                ifAddRecursiveEventsToReturnArray,
+                ifFetchFromSpasm,
+                ifFetchFromNostr
+              )
+          if (
+            isArrayWithValues(recursiveSpasmEvents) &&
+            ifAddRecursiveEventsToReturnArray
+          ) {
+            recursiveSpasmEvents.forEach(spasmEvent => {
+              spasm.appendToArrayIfEventIsUnique(
+                spasmEvents, spasmEvent
+              )
+            })
+          }
+        }
+
+        return spasmEvents
+
+      } catch (err) {
+        console.error(err);
+        return null
+      }
+    },
+
+    async fetchEventsFromNostrByParentIds(
+      idsNonUnique: (string | number)[] | null,
+      ifCloseSubOnEose: boolean = true,
+      ifAwaitUntilEose: boolean = true,
+      // There might be Nostr comments to events without
+      // Nostr hex IDs (e.g., RSS, SpasmEvents), but chances
+      // of encountering them are currently low, so it's better
+      // to only search for Nostr replies to valid Nostr hex IDs
+      // to reduce the amount of unnecessary subscriptions and
+      // improve privacy.
+      ifFetchOnlyIfIdIsNostrHex: boolean = true
+    ): Promise<SpasmEventV2[] | null> {
+      try {
+        if (!idsNonUnique) return null
+        if (!Array.isArray(idsNonUnique)) return null
+        const ids: (string | number)[] = 
+          removeDuplicatesFromArray(idsNonUnique)
+        if (!ids) return null
+        if (!Array.isArray(ids)) return null
+        const nostrHexIds: string[] = []
+
+        if (ifFetchOnlyIfIdIsNostrHex) {
+          ids.forEach(id => {
+            if (
+              id && typeof(id) === "string" &&
+              isHex(id) && id.length === 64
+            ) { nostrHexIds.push(id) }
+          })
+        } else {
+          ids.forEach(id => {
+            const nostrId: string | null =
+              spasm.toBeNostrHex(String(id))
+            if (nostrId && typeof(nostrId) === "string") {
+              nostrHexIds.push(nostrId)
+            }
+          })
+        }
+
+        if (!isArrayWithValues(nostrHexIds)) return null
+
+        const spasmEvents: SpasmEventV2[] = []
+
+        const relays = getNostrRelays()
+        const filter: NostrNetworkFilter = { '#e': nostrHexIds }
+        const filters: NostrNetworkFilter[] = [filter]
+
+        // TODO it's possible to add events to tree onEvent
+        // instead of waiting for EOSE from all relays.
+        // const onEventFunction: CustomNostrRelayOnEventFunction = (
+        //   event: any, _: string, __: boolean
+        // ): void => {
+        //   const spasmEventV2: SpasmEventV2 | null =
+        //     spasm.convertToSpasm(event)
+        // }
+        const onEoseFunction:
+          CustomNostrRelayOnEoseFunction = async (
+          _: string, __: number, foundEvents: any[]
+        ): Promise<void> => {
+          const fetchedEvents: SpasmEventV2[] | null =
+            isArrayWithValues(foundEvents)
+            ? spasm.convertManyToSpasm(foundEvents)
+            : null
+          if (
+            fetchedEvents && isArrayWithValues(fetchedEvents)
+          ) {
+            fetchedEvents.forEach(event => {
+              spasm.appendToArrayIfEventIsUnique(
+                spasmEvents, event
+              )
+            })
+          }
+        }
+
+        const config: CustomSubscribeToNostrRelayConfig = {
+          filters,
+          // onEventFunction,
+          onEoseFunction,
+          ifCloseSubOnEose,
+          ifAwaitUntilEose
+        }
+
+        await useNostrRelaysStore().
+          subscribeToNostrRelaysByFilters(relays, config)
+
+        if (isArrayWithValues(spasmEvents)) {
+          return spasmEvents
+        } else {
+          return null
+        }
+      } catch (err) {
+        console.error(err);
+        return null
+      }
+    },
+
+    // For example, add comments as children to an event tree
+    addEventsToTreeByIds(
+      treeIds: (string | number)[] | null,
+      events: SpasmEventV2[]
+    ): void {
+      try {
+        if (!treeIds || !isArrayWithValues(treeIds)) return
+        if (!events || !isArrayWithValues(events)) return
+        if (!this.allPosts) return
+        if (!isArrayWithValues(this.allPosts)) return
+
+        this.allPosts.forEach((event: SpasmEventV2) => {
+          let ifMatch = false
+          treeIds.forEach(id => {
+            if (spasm.checkIfEventHasThisId(event, id)) {
+              ifMatch = true
+            }
+          })
+          if (ifMatch) {
+            spasm.addEventsToTree(event, events)
+          }
+        })
+      } catch (err) {
+        console.error(err);
+      }
+    },
 
     async fetchAndSaveEventsWithCommentsByIds(
       ids: (string | number)[] | null,
@@ -282,8 +584,9 @@ export const useEventsStore = defineStore('postsStore', {
 
       this.saveEventsToStore(fetchedEvents)
 
-      // Add addresses to a list of addresses that should be checked
-      // for profile info (e.g. usernames) during an update function.
+      // Add addresses to a list of addresses that should be
+      // checked for profile info (e.g. usernames) during an
+      // update function.
       const profilesStore = useProfilesStore()
       profilesStore.addAddressesFromSpasmEvents(fetchedEvents)
 
@@ -781,7 +1084,7 @@ export const useEventsStore = defineStore('postsStore', {
       const filters: NostrNetworkFilter[] = [filter]
 
       const onEventFunction: CustomNostrRelayOnEventFunction = (
-        event: any, _: string
+        event: any, _: string, __: boolean
       ) => {
         const spasmEventV2: SpasmEventV2 | null =
           spasm.convertToSpasm(event)
@@ -792,7 +1095,7 @@ export const useEventsStore = defineStore('postsStore', {
       }
 
       const config: CustomSubscribeToNostrRelayConfig = {
-        filters, onEventFunction
+        filters, onEventFunction, ifAwaitUntilEose: true
       }
 
       await useNostrRelaysStore().

@@ -116,6 +116,10 @@
 </template>
 
 <script setup lang="ts">
+import {
+  useNotificationStore
+} from '@/stores/useNotificationStore'
+const notificationStore = useNotificationStore()
 const {
   connectWeb3Authenticator,
   connectNostrExtension,
@@ -146,7 +150,10 @@ const browserExtensionClicked = async () => {
       console.error(err)
     }
   } else {
-    alert('Please install MetaMask, Rabby or other web3 browser extensions and reload the page')
+    notificationStore.showNotification(
+      "Please install MetaMask, Rabby or other web3 browser extensions and reload the page",
+      "error", 8000
+    )
   }
 }
 
@@ -168,7 +175,10 @@ const nostrExtensionClicked = async () => {
       console.error(err)
     }
   } else {
-    alert('Please install nos2x, flamingo, or other nostr browser extensions and reload the page')
+    notificationStore.showNotification(
+      "Please install nos2x, flamingo, or other Nostr browser extensions and reload the page",
+      "error", 6000
+    )
   }
 }
 

@@ -1397,6 +1397,13 @@ export interface SiblingNostrSpasmSignedV2 {
   signatures?: SpasmEventSignatureV2[]
 }
 
+export interface SubmitEventV2Return {
+  res: string | boolean | null | undefined,
+  id?: string | number
+  signedEvent?: SpasmEventV2 | null
+  // signature: string | undefined
+}
+
 export type CustomFunctionType = (...args: any[]) => any;
 
 export type CustomNostrRelayOnEventFunction =
@@ -1404,7 +1411,8 @@ export type CustomNostrRelayOnEventFunction =
 
 export type CustomNostrRelayOnEoseFunction = (
     relayUrl: string,
-    totalEventsFound: number
+    totalEventsFound: number,
+    foundEvents: any[]
 ) => any
 
 export class SubscribeToNostrRelayConfig {
@@ -1430,7 +1438,7 @@ export class SubscribeToNostrRelayConfig {
     this.closeSubAfterTime = 10000 // 10 sec
     this.closeRelayAfterTime = 1800000 // 30 min
     this.ifAwaitUntilEose = false // if resolve only after EOSE
-    this.awaitUntilEoseTimeout = 5000 // 5 sec
+    this.awaitUntilEoseTimeout = 5000 // resolve if no EOSE
   }
 }
 

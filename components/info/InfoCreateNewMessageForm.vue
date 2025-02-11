@@ -254,8 +254,14 @@
 import {
   FiltersCategory,
   SpasmEventCategoryV2,
-  SpasmEventV2
+  SpasmEventV2,
+  SubmitEventV2Return
 } from '@/helpers/interfaces';
+import {
+  useNotificationStore
+} from '@/stores/useNotificationStore'
+const notificationStore = useNotificationStore()
+
 const ifShowCategoriesFilter = useRuntimeConfig()?.public?.ifShowCategoriesFilter === 'true' ? true : false
 const envCategories = useRuntimeConfig()?.public?.envCategories
 
@@ -298,8 +304,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{(
   e: 'reply-submitted',
-  targets?: (string | number)[] | null): void
-}>()
+  targets?: (string | number)[] | null,
+  response?: SubmitEventV2Return
+): void }>()
 
 const titlePlaceholder = ref<string>('title')
 const bodyPlaceholder = ref<string>(postPlaceholder)
@@ -505,14 +512,19 @@ const submitMessage = async (e: any):Promise<void> => {
         })
       }
       hideShowAdvanced()
-      emit('reply-submitted', targets)
+      emit('reply-submitted', targets, response)
     }
   }
 
   if (
     response && response.res &&
     response.res === 'Sorry, but you\'ve already submitted the same action'
-  ) {alert("You've already submitted this comment to this post")}
+  ) {
+    notificationStore.showNotification(
+      "You've already submitted this comment to this post",
+      "error", 6000
+    )
+  }
 
   if (
     response && response.res &&

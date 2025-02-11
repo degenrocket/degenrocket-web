@@ -47,7 +47,6 @@ const buttonClicked = async (text: string) => {
     moderationResponse.value = "The event has been deleted from the local database. Refresh the page to see the change."
   } else {
     moderationResponse.value = res
-    /* alert("You've already submitted this reaction to this post") */
   }
 }
 </script>

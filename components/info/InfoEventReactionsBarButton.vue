@@ -29,7 +29,11 @@
 <script setup lang="ts">
 import {SpasmEventV2} from '@/helpers/interfaces';
 import {useEventsStore} from '@/stores/useEventsStore'
+import {
+  useNotificationStore
+} from '@/stores/useNotificationStore'
 const eventsStore = useEventsStore()
+const notificationStore = useNotificationStore()
 const {submitSingleSignedEventV2} = useWeb3()
 
 const props = defineProps<{
@@ -70,13 +74,15 @@ const buttonClicked = async () => {
       res === 'Sorry, but you\'ve already submitted the same action'
     ) {
       alreadySubmitted.value = true
-      alert("You've already submitted this reaction to this post")
+      notificationStore.showNotification(
+        "You've already submitted this reaction to this post",
+        "error", 6000
+      )
     } else if (
       res && typeof(res) === "string" &&
       res.toLowerCase().startsWith("error")
     ) {
-      console.log("res:", res)
-      alert(res)
+      notificationStore.showNotification(res, "error", 6000)
     }
   }
 }

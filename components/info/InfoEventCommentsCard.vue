@@ -1,5 +1,5 @@
 <template>
-  <div v-if="comment" class="ml-4 mt-2 mb-4 border-l-2 border-bgSecondary-light dark:border-bgSecondary-dark">
+  <div v-if="comment" class="fade-in-custom ml-4 mt-2 mb-4 border-l-2 border-bgSecondary-light dark:border-bgSecondary-dark">
     <div class="overflow-auto overflow-wrap break-words">
       <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">
         <span v-if="addressValue && addressForDisplay">
@@ -181,8 +181,9 @@
 <script setup lang="ts">
 import {marked} from 'marked'
 import {
-  /* SpasmEventChildV2, */
-  SpasmEventV2
+  SpasmEventV2,
+  SubmitEventV2Return,
+  SpasmEventChildV2
 } from '@/helpers/interfaces'
 import { spasm } from 'spasm.js'
 
@@ -199,7 +200,8 @@ const {
 const {
   sliceAddress,
   randomNumber,
-  toBeDate
+  toBeDate,
+  isValidSpasmEventV2
 } = useUtils()
 const env = useRuntimeConfig()?.public
 const enableMarkdownInComments = env?.enableMarkdownInComments === 'true'? true : false
@@ -211,7 +213,7 @@ const enableNewWeb3ActionsReply: boolean = env?.enableNewWeb3ActionsReply === 'f
 const {checkIfSignerAllowedIframe, getArrayOfArraysOfTextAndTagsV2} = useHtmlTags()
 
 const props = defineProps<{
-  comment?: SpasmEventV2
+  comment?: SpasmEventChildV2
   key?: (string | number)
   showActionDetails?: boolean
   showCommentsCount?: boolean
@@ -221,10 +223,40 @@ const emit = defineEmits<{
   (e: 'reply-submitted', targets?: (string | number)[] | null): void
 }>()
 
-const replySubmitted = (targets?: (string | number)[] | null) => {
+const replySubmitted = (
+  targets?: (string | number)[] | null,
+  response?: SubmitEventV2Return
+) => {
   showReplyForm.value = false
   showReplyFormText.value = 'reply'
   emit('reply-submitted', targets)
+  // Render submitted event
+  if (
+    response && typeof(response) === "object" &&
+    'signedEvent' in response && response.signedEvent
+  ) {
+    const spasmEvent: SpasmEventV2 | null =
+      spasm.convertToSpasm(response.signedEvent)
+    if (
+      spasmEvent && 'ids' in spasmEvent && spasmEvent.ids &&
+      isValidSpasmEventV2(spasmEvent)
+    ) {
+      const spasmEventChild: SpasmEventChildV2 = {
+        ids: spasmEvent.ids,
+        event: spasmEvent
+      }
+      if (props && 'comment' in props && props.comment) {
+        if (
+          'children' in props.comment &&
+          Array.isArray(props.comment.children)
+        ) {
+          props.comment.children.unshift(spasmEventChild)
+        } else {
+          props.comment.children = [ spasmEventChild ]
+        }
+      }
+    }
+  }
 }
 
 const showReplyForm = ref(false)
@@ -282,5 +314,12 @@ if (process.client) {
 </script>
 
 <style scoped>
+.fade-in-custom {
+  animation: fadeIn 1s;
+}
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 </style>

@@ -27,14 +27,11 @@
 
 <script setup lang="ts">
 import {SpasmEventV2} from '@/helpers/interfaces';
-/* import {usePostsStore} from '@/stores/usePostsStore' */
-/* const postsStore = usePostsStore() */
 const {
   isValidSpasmEventV2,
   randomNumber
 } = useUtils()
 
-/* const props = defineProps<{ */
 defineProps<{
   event?: SpasmEventV2;
   key?: string | number | null

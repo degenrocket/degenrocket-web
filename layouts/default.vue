@@ -15,6 +15,8 @@
       <Navbar class="fixed bottom-0 w-screen" />
     </div>
 
+    <ExtraNotification />
+
     <div class="grid grid-cols-5">
       <Feed class="lg:border-r border-borderColor-light dark:border-borderColor-dark h-screen overflow-scroll col-span-5 lg:col-span-2"
         :class="[isFeedShown ? 'block' : 'hidden lg:block']" />

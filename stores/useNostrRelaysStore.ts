@@ -11,7 +11,6 @@ const {
   sanitizeObjectValuesWithDompurify,
   isValidUrl,
   mergeSubscribeToNostrRelayConfigs,
-  copyOf
 } = useUtils()
 
 export interface NostrRelayStoreState {
@@ -29,7 +28,9 @@ export interface ErroredRelayUrl {
 export const useNostrRelaysStore = defineStore('nostrRelayStore', {
   state: (): NostrRelayStoreState => ({
     // Environment settings:
-    enableNostrNetwork: useRuntimeConfig()?.public?.enableNostrNetwork,
+    // enableNostrNetwork: useRuntimeConfig()?.public?.enableNostrNetwork,
+    enableNostrNetwork: useRuntimeConfig()?.public
+      ?.enableNostrNetwork === "true" ? true : false,
     allRelays: [],
     allErroredRelayUrls: []
   }),
@@ -290,6 +291,7 @@ export const useNostrRelaysStore = defineStore('nostrRelayStore', {
       customConfig: CustomSubscribeToNostrRelayConfig
     ): Promise<string | null> {
       try {
+        if (!this.enableNostrNetwork) return null
         const defaultConfig = new SubscribeToNostrRelayConfig()
         const config = mergeSubscribeToNostrRelayConfigs(
           defaultConfig, customConfig || {}
@@ -316,6 +318,7 @@ export const useNostrRelaysStore = defineStore('nostrRelayStore', {
         let ifEose: boolean = false
         let ifAnyEventFound: boolean = false
         let totalEventsFound: number = 0
+        const foundEvents: any[] = []
 
         const sub = await relay.subscribe(
           // [ { kinds: [1], since: Math.floor(Date.now() / 1000) } ],
@@ -326,11 +329,14 @@ export const useNostrRelaysStore = defineStore('nostrRelayStore', {
               ifAnyEventFound = true
               totalEventsFound += 1
               try {
-              sanitizeObjectValuesWithDompurify(event)
-                if (
-                  onEventFunction &&
-                  typeof(onEventFunction) === "function"
-                ) { onEventFunction(event, relayUrl, ifEose) }
+                sanitizeObjectValuesWithDompurify(event)
+                if (event) {
+                  foundEvents.push(event)
+                  if (
+                    onEventFunction &&
+                    typeof(onEventFunction) === "function"
+                  ) { onEventFunction(event, relayUrl, ifEose) }
+                }
                 if (ifCloseSubOnEvent) {
                   await sub.close()
                 }
@@ -346,7 +352,11 @@ export const useNostrRelaysStore = defineStore('nostrRelayStore', {
               if (
                 onEoseFunction &&
                 typeof(onEoseFunction) === "function"
-              ) { onEoseFunction(relayUrl, totalEventsFound) }
+              ) {
+                onEoseFunction(
+                  relayUrl, totalEventsFound, foundEvents
+                )
+              }
               if (ifCloseSubOnEose) {
                 await sub.close()
               }

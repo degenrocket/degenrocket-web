@@ -33,72 +33,8 @@
 <script setup lang="ts">
 const {
   qrCodeValue,
-  connectWeb3Authenticator,
-  connectNostrExtension,
-  setRandomSigner,
-  disconnectAccount,
   hideQrCodeModal
 } = useWeb3()
-const ifAllowGuestLogin = useRuntimeConfig()?.public?.ifAllowGuestLogin === 'true' ? true : false
-const enableNewNostrActionsAll = useRuntimeConfig()?.public?.enableNewNostrActionsAll === 'true' ? true : false
-const enableNewEthereumActionsAll = useRuntimeConfig()?.public?.enableNewEthereumActionsAll === 'true' ? true : false
-
-const browserExtensionClicked = async () => {
-  /* console.log("browserExtensionClicked called") */
-
-  const web3 = window.ethereum
-  /* console.log(web3) */
-
-  if (web3) {
-    try {
-      const res = await connectWeb3Authenticator()
-      /* console.log("res:", res) */
-
-      if (res) {
-        hideQrCodeModal()
-      }
-      return
-    } catch (err) {
-      console.error(err)
-    }
-  } else {
-    alert('Please install MetaMask, Rabby or other web3 browser extensions and reload the page')
-  }
-}
-
-const nostrExtensionClicked = async () => {
-  /* console.log("nostrExtensionClicked called") */
-
-  const nostr = window.nostr
-
-  if (nostr) {
-    try {
-      const res = await connectNostrExtension()
-      /* console.log("res:", res) */
-
-      if (res) {
-        hideQrCodeModal()
-      }
-      return
-    } catch (err) {
-      console.error(err)
-    }
-  } else {
-    alert('Please install nos2x, flamingo, or other nostr browser extensions and reload the page')
-  }
-}
-
-const guestClicked = () => {
-  /* console.log("guestClicked called") */
-  setRandomSigner()
-  hideQrCodeModal()
-}
-
-const logOut = () => {
-  disconnectAccount()
-  hideQrCodeModal()
-}
-
 </script>
 
 <style scoped>

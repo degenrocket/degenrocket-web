@@ -134,13 +134,21 @@
 </template>
 
 <script setup lang="ts">
+import { spasm } from 'spasm.js'
 import {useEventsStore} from '@/stores/useEventsStore'
-import {SpasmEventV2} from '@/helpers/interfaces';
+import {
+  useNotificationStore
+} from '@/stores/useNotificationStore'
+import {
+  SpasmEventV2,
+  SubmitEventV2Return
+} from '@/helpers/interfaces';
+const eventsStore = useEventsStore()
+const notificationStore = useNotificationStore()
 // New web3 actions are enabled by default if not disabled in .env
 const env = useRuntimeConfig()?.public
 const enableNewWeb3ActionsAll: boolean = env?.enableNewWeb3ActionsAll === 'false'? false : true
 const enableNewWeb3ActionsReply: boolean = env?.enableNewWeb3ActionsReply === 'false'? false : true
-const eventsStore = useEventsStore()
 const params = useRoute().params
 const query = useRoute().query
 const {
@@ -172,22 +180,34 @@ if (process.client) {
 }
 
 const replySubmitted = async (
-  targets?: (string | number)[] | null
+  targets?: (string | number)[] | null,
+  response?: SubmitEventV2Return
 ): Promise<void> => {
-  if (!targets || !isArrayWithValues(targets)) { return }
-  const event = eventsStore.getPost
+  // Attach submitted event to tree event if reply came from
+  // InfoCreateNewMessageForm directly since replies coming
+  // from InfoEventComments should not have 'response' variable.
+  try {
+    if (!targets || !isArrayWithValues(targets)) { return }
+    const treeEvent = eventsStore.getPost
+    if (!isValidSpasmEventV2(treeEvent)) { return }
 
-  // Refetch all the comments if a user submitted a new reply
-  // so a user can see his reply.
-  // Next step is to scroll screen down to his new reply.
+    if (
+      response && typeof(response) === "object" &&
+      'signedEvent' in response && response.signedEvent
+    ) {
+      const spasmEvent: SpasmEventV2 | null =
+        spasm.convertToSpasm(response.signedEvent)
+      const treeEventIds: (string| number)[] =
+        spasm.getAllEventIds(treeEvent)
+      eventsStore.addEventsToTreeByIds(treeEventIds, [spasmEvent])
+      notificationStore.showNotification('Submitted', 'success')
+    }
 
-  if (!isValidSpasmEventV2(event)) {
-    console.error("ERROR: event is not a valid SpasmEventV2")
-    await nextTick()
+    /* await updateEventWithComments(searchBy) */
+  } catch (err) {
+    console.error(err);
     return
   }
-
-  await updateEventWithComments(searchBy)
 }
 
 const updateEventWithComments = async (
@@ -195,23 +215,37 @@ const updateEventWithComments = async (
   ifSetCurrentPostId: boolean = true
 ): Promise<void> => {
   if (!id) { return }
-  // 1. Make sure that the post is in the store,
-  //    otherwise fetch from server and save to store.
+  // 1. Get full event tree from local store
+  //    or fetch from Spasm instance (with comments)
   const result: SpasmEventV2[] | null =
     await eventsStore.fetchAndSaveEventsWithCommentsByIds([id])
 
+  // 2. Fetch event from Nostr network (without comments)
   if (
-    result && isArrayWithValues(result) &&
-    result[0] && isValidSpasmEventV2(result[0])
+    !result || !isArrayWithValues(result) ||
+    !result[0] || !isValidSpasmEventV2(result[0])
   ) {
-    isErrorEventNotFound.value = false
-  } else {
-    isErrorEventNotFound.value = true
+    const nostrHexId = spasm.toBeNostrHex(searchBy)
+    if (nostrHexId) {
+      await eventsStore.fetchFromNostrNetworkByIds([nostrHexId])
+    }
   }
 
   if (ifSetCurrentPostId) { eventsStore.setCurrentPostId(id) }
+  const event = eventsStore.getPost
+
+  // 3. Fetch comments from all networks
+  if (isValidSpasmEventV2(event)) {
+    isErrorEventNotFound.value = false
+    const eventIds: (string | number)[] =
+      spasm.getAllEventIds(event)
+    await eventsStore.fetchRepliesFromAllNetworksByIds(eventIds)
+  } else {
+    isErrorEventNotFound.value = true
+  }
 }
 
+// Already searching by default inside updateEventWithComments()
 const searchNostrNetwork = async (
 ): Promise<void> => {
   console.log("searching")
@@ -355,7 +389,6 @@ watch(() => useRoute().query.p, async (newQueryP) => {
     /* await updateEvent(id) */
     eventsStore.setCurrentPostId(newId)
     await updateEventWithComments(newId, false)
-    /* await eventsStore.updateEventComments(id) */
   }
 })
 </script>
