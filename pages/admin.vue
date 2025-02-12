@@ -43,7 +43,8 @@
         <div>Signal: <input v-model="signalNumber" type="text" placeholder="enter username or number" class="custom-admin-input-socials"></div>
         <div>Whatsapp: <input v-model="whatsappNumber" type="text" placeholder="enter number" class="custom-admin-input-socials"></div>
         <div>XMPP: <input v-model="xmppName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
-        <div>Extra info: <input v-model="extraContactInfo" type="text" placeholder="enter any extra info (markdown links supported)" class="custom-admin-input-socials"></div>
+        <div class="text-colorNotImportant-light dark:text-colorNotImportant-dark">Note: extra info supports markdown, but not <code>\n</code></div>
+        <div>Extra info: <textarea v-model="extraContactInfo" placeholder="enter any extra info (markdown links supported)" class="block p-1 bg-bgBase-light dark:bg-bgBase-dark border-bgSecondary-light dark:border-bgSecondary-dark w-[90%] max-w-[700px] h-60 lg:h-36 focus:outline-none rounded-b-lg border-2"/></div>
       </div>
       <h5 class="mt-4">Blockchain links:</h5>
       <div class="pl-4">

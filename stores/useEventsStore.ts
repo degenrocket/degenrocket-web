@@ -30,7 +30,7 @@ const {
   isStringOrNumber,
   removeDuplicatesFromArray,
   pushToArrayIfValueIsUnique,
-  wait,
+  isArrayOfNumbers,
   copyOf
 } = useUtils()
 const {
@@ -367,14 +367,22 @@ export const useEventsStore = defineStore('postsStore', {
 
         // Fetch from Nostr
         if (ifFetchFromNostr) {
+          // Nostr kind 1 event is a 'note'. Usually, it's a
+          // reply if it references any event in the #e tag.
+          const kinds = [1]
           const spasmEventsFromNostr: SpasmEventV2[] =
             await useEventsStore()
-              .fetchEventsFromNostrByParentIds(ids)
+              .fetchEventsFromNostrByParentIds(ids, kinds)
           if (isArrayWithValues(spasmEventsFromNostr)) {
             spasmEventsFromNostr.forEach(spasmEvent => {
-              spasm.appendToArrayIfEventIsUnique(
-                spasmEvents, spasmEvent
-              )
+              if (
+                spasmEvent && 'action' in spasmEvent &&
+                spasmEvent.action === 'reply'
+              ) {
+                spasm.appendToArrayIfEventIsUnique(
+                  spasmEvents, spasmEvent
+                )
+              }
             })
           }
         }
@@ -445,6 +453,7 @@ export const useEventsStore = defineStore('postsStore', {
 
     async fetchEventsFromNostrByParentIds(
       idsNonUnique: (string | number)[] | null,
+      kinds: number[] = [],
       ifCloseSubOnEose: boolean = true,
       ifAwaitUntilEose: boolean = true,
       // There might be Nostr comments to events without
@@ -487,6 +496,7 @@ export const useEventsStore = defineStore('postsStore', {
 
         const relays = getNostrRelays()
         const filter: NostrNetworkFilter = { '#e': nostrHexIds }
+        if (isArrayOfNumbers(kinds)) { filter.kinds = kinds }
         const filters: NostrNetworkFilter[] = [filter]
 
         // TODO it's possible to add events to tree onEvent

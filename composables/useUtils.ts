@@ -84,6 +84,35 @@ export const useUtils = () => {
     return false
   }
 
+  const isArrayOfNumbers = (array: any): boolean => {
+    if (!array) return false
+    if (!Array.isArray(array)) return false
+    if (
+      array.length > 0 &&
+      array.every(element => typeof(element) === "number")
+    ) {
+      return true
+    }
+    return false
+  }
+
+  const isArrayOfStringsOrNumbers = (array: any): boolean => {
+    if (!array) return false
+    if (!Array.isArray(array)) return false
+    if (
+      array.length > 0 &&
+      array.every(element =>
+        typeof(element) === "string" ||
+        typeof(element) === "number"
+      )
+    ) {
+      return true
+    }
+    return false
+  }
+
+  const isArrayOfNumbersOrStrings = isArrayOfStringsOrNumbers
+
   const isArrayOfStringsWithValues = (array: any): boolean => {
     if (!Array.isArray(array)) return false
     if (!hasValue(array)) return false
@@ -975,6 +1004,9 @@ export const useUtils = () => {
   return {
     hasValue,
     isArrayOfStrings,
+    isArrayOfNumbers,
+    isArrayOfStringsOrNumbers,
+    isArrayOfNumbersOrStrings,
     isArrayOfStringsWithValues,
     isArrayWithValues,
     isStringOrNumber,

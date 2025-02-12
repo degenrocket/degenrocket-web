@@ -259,6 +259,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
     ):void {
       if (!config) { return }
       if (typeof(config) !== "object") { return }
+      if (!this.enableAppConfigChanges) { return }
 
       // Booleans
       const updateBoolean = (key: AppConfigKeyBoolean) => {
