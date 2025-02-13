@@ -90,9 +90,21 @@
         class="inline px-6 lg:min-w-[200px] min-h-[40px] text-colorPrimary-light dark:text-colorPrimary-dark border-2 border-colorPrimary-light dark:border-colorPrimary-dark rounded-lg hover:bg-bgHover-light dark:hover:bg-bgHover-dark">
         Sign message
       </button>
-      <span class="ml-2 cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark mb-4 hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
+
+      <span
+        v-if="idNostrNote"
+        class="block mt-4 ml-2 mb-2 cursor-pointer">
+        <a :href="`nostr:${idNostrNote}`" target="_blank" class="text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark">
+        Reply with your Nostr app
+          <IconsExternalWebsite
+            class="custom-icons-large lg:custom-icons pb-1"
+          />
+        </a>
+      </span>
+
+      <span class="block mt-2 ml-2 mb-4 cursor-pointer text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark"
         @click="toggleShowAdvanced()">
-        {{showAdvancedText}} advanced
+        {{showAdvancedText}} advanced options (multi-signing)
       </span>
 
       <!-- Networks -->
@@ -125,7 +137,7 @@
       </div>
 
       <!-- Advanced (multi-signing) -->
-      <div v-if="showAdvanced" class="mt-1">
+      <div v-if="showAdvanced" class="mt-1 ml-2">
         Sign with multiple private keys:
         <div v-if="connectedAddressEthereum">
           Ethereum: {{ sliceAddress(connectedAddressEthereum, 8, 6) }}
@@ -260,6 +272,7 @@ import {
 import {
   useNotificationStore
 } from '@/stores/useNotificationStore'
+import { spasm } from 'spasm.js'
 const notificationStore = useNotificationStore()
 
 const ifShowCategoriesFilter = useRuntimeConfig()?.public?.ifShowCategoriesFilter === 'true' ? true : false
@@ -287,7 +300,8 @@ const {
   savedMergedMultiSignedSpasmEventV2
 } = useWeb3()
 const {
-  getNostrRelays
+  getNostrRelays,
+  toBeNote
 } = useNostr()
 const {
   sliceAddress,
@@ -324,12 +338,24 @@ const errorMessageMultiSign = ref<string>('')
 
 const categoriesDropDownShown = ref(false)
 const showAdvanced = ref(false)
-const showAdvancedText = ref('show')
+const showAdvancedText = ref('Show')
+
+const idNostrNote = ref('')
 
 const categories: FiltersCategory[] = [
   ...envCategories,
   'none',
 ]
+
+if (props && 'parentEvent' in props && props.parentEvent) {
+  const idNostrHex: string | number | null = spasm.getIdByFormat(
+    props.parentEvent, { name: 'nostr-hex' }, 'event'
+  )
+  if (idNostrHex && String(idNostrHex)) {
+    const note = toBeNote(String(idNostrHex))
+    if (note) { idNostrNote.value = note }
+  }
+}
 
 watch(
   userInputTitle, async (newTitle: string) => {
@@ -359,9 +385,9 @@ const toggleCategoriesDropDown = () => {
 
 const toggleShowAdvanced = (): void => {
   showAdvanced.value = !showAdvanced.value
-  showAdvancedText.value = showAdvancedText.value === 'show'
-    ? 'hide'
-    : 'show'
+  showAdvancedText.value = showAdvancedText.value === 'Show'
+    ? 'Hide'
+    : 'Show'
   if (showAdvanced.value) {
     turnOnMultiSign()
   } else {
@@ -371,7 +397,7 @@ const toggleShowAdvanced = (): void => {
 
 const hideShowAdvanced = (): void => {
   showAdvanced.value = false
-  showAdvancedText.value = 'show'
+  showAdvancedText.value = 'Show'
   turnOffMultiSign()
 }
 

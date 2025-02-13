@@ -62,6 +62,16 @@
         :showQrCode="true"
         :showExternalWebsite="true"
       />
+      <span
+        v-if="npub"
+        class="block mt-1 mb-2 cursor-pointer">
+        <a :href="`nostr:${npub}`" target="_blank" class="text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark">
+        Open in your Nostr app
+          <IconsExternalWebsite
+            class="custom-icons-large lg:custom-icons pb-1"
+          />
+        </a>
+      </span>
     </div>
 
     <!-- client-only tags solve hydration mismatch warning -->
