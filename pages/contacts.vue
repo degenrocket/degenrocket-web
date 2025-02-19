@@ -8,7 +8,7 @@
       <p class="mt-5 text-colorNotImportant-light dark:text-colorNotImportant-dark">For developers:</p>
       <div>
         This forum is a part of the
-        <a href="https://github.com/degenrocket" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+        <a href="https://spasm.network" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
           Spasm
           <IconsRocket class="custom-icons" />
         </a>

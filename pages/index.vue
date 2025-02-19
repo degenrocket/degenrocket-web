@@ -20,7 +20,7 @@
       <p>- Never sign any messages that you don't understand.</p>
       <div>
         - This forum is a part of the
-        <a href="https://github.com/degenrocket" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+        <a href="https://spasm.network" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
           Spasm
           <IconsRocket class="custom-icons" />
         </a>
