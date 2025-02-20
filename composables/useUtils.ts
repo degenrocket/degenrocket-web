@@ -707,6 +707,53 @@ export const useUtils = () => {
       : ''
   }
 
+  const sliceId = (
+    id: string | number,
+    start: number = 6,
+      end: number = 4,
+      max?: number // used for URL length
+  ): string => {
+    if (!id) { return '' }
+    const str: string = String(id) ? String(id) : ''
+    if (!str) return ''
+
+    let maxChar: number = Number(start) ? Number(start) : 6
+    if (Number(end)) { maxChar += Number(end) }
+    if (max && Number(max)) { maxChar = Number(max) }
+
+    // ID is URL
+    try {
+      const url = new URL(str)
+      if (url && typeof(url) === "object") {
+        let slicedUrl = ''
+        if (url.hostname && typeof(url.hostname) === "string") {
+          slicedUrl += url.hostname
+        }
+        if (url.pathname && typeof(url.pathname) === "string") {
+          slicedUrl += url.pathname
+        }
+        if (url.search && typeof(url.search) === "string") {
+          slicedUrl += url.search
+        }
+        if (slicedUrl) {
+          if (slicedUrl.length > maxChar + 3) {
+            return `${slicedUrl.slice(0, maxChar)}...`
+          } else {
+            return slicedUrl
+          }
+        } else { '' }
+      }
+    } catch (err) {
+      // Not a valid URL
+      // console.error(err);
+    }
+
+    // else
+    return str
+      ? `${str.slice(0, start)}...${str.slice(-end)}`
+      : ''
+  }
+
   const randomNumber = (min = 1, max = 1000000) => {
     return Math.floor(Math.random() * (max - min + 1)) + min
   }
@@ -1111,6 +1158,7 @@ export const useUtils = () => {
     splitStringIntoArrayOfStrings,
     splitIntoArray,
     sliceAddress,
+    sliceId,
     randomNumber,
     mergeObjects,
     mergeSubscribeToNostrRelayConfigs,

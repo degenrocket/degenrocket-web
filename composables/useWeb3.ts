@@ -1295,6 +1295,20 @@ export const useWeb3 = () => {
       return toBeNote(nostrId)
     }
 
+    // URL and guid are higher than spasmid because they are
+    // consistent while spasmid might be different for unsigned
+    // RSS items on different instances if RSS feed is parsed
+    // differently.
+    const urlId = spasm.extractParentIdByFormat(event, {
+      name: "url"
+    })
+    if (urlId && typeof(urlId) === "string") { return urlId }
+
+    const guidId = spasm.extractParentIdByFormat(event, {
+      name: "guid"
+    })
+    if (guidId && typeof(guidId) === "string") { return guidId }
+
     const spasmId = spasm.extractParentIdByFormat(event, {
       name: "spasmid", version: "01"
     })
@@ -1315,16 +1329,6 @@ export const useWeb3 = () => {
     if (dmpIdNostr && typeof(dmpIdNostr) === "string") {
       return toBeShortId(dmpIdNostr)
     }
-
-    const urlId = spasm.extractParentIdByFormat(event, {
-      name: "url"
-    })
-    if (urlId && typeof(urlId) === "string") { return urlId }
-
-    const guidId = spasm.extractParentIdByFormat(event, {
-      name: "guid"
-    })
-    if (guidId && typeof(guidId) === "string") { return guidId }
 
     return ""
   }

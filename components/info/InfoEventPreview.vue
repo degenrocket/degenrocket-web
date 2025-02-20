@@ -92,7 +92,7 @@
         :to="`/news/?p=${event.parent?.ids?.[0]?.value.toString().slice(0,shortUrlsLengthOfWeb3Ids)}`"
       >
         <span>
-          {{sliceAddress(event.parent?.ids?.[0]?.value.toString(), 13, 8)}}
+          {{sliceId(event.parent?.ids?.[0]?.value.toString(), 13, 8)}}
         </span>
       </nuxt-link>
       -->
@@ -104,7 +104,7 @@
         :to="`/news/?p=${event.parent?.ids?.[0]?.value.toString()}`"
       >
         <span>
-          {{sliceAddress(event.parent?.ids?.[0]?.value.toString(), 8, 8)}}
+          {{sliceId(event.parent?.ids?.[0]?.value.toString(), 8, 8)}}
         </span>
       </nuxt-link>
       -->
@@ -126,7 +126,7 @@
         :to="`/news/?p=${extractParentIdForDisplay(event)}`"
       >
         <span>
-          {{sliceAddress(extractParentIdForDisplay(event), 13, 8)}}
+          {{sliceId(extractParentIdForDisplay(event), 13, 4, 30)}}
         </span>
       </nuxt-link>
     </div>
@@ -268,7 +268,7 @@ const enableShortUrlsForWeb3Actions: boolean = appConfig?.enableShortUrlsForWeb3
 const shortUrlsLengthOfWeb3Ids: number = appConfig?.shortUrlsLengthOfWeb3Ids
 const {checkIfSignerAllowedIframe, getArrayOfArraysOfTextAndTagsV2} = useHtmlTags()
 const {
-  sliceAddress,
+  sliceId,
   randomNumber,
   toBeDate,
   isArrayWithValues
