@@ -1333,6 +1333,17 @@ export const useWeb3 = () => {
     return ""
   }
 
+  const extractParentIdForLink = (
+    event: SpasmEventV2
+  ): string => {
+    if (!event) return ''
+    const id = extractParentIdForDisplay(event)
+    if (!id) return ''
+    const encodedId = encodeURIComponent(id)
+    if (!encodedId) return ''
+    return encodedId
+  }
+
   return {
     isWeb3ModalShown: readonly(isWeb3ModalShown),
     isQrCodeModalShown: readonly(isQrCodeModalShown),
@@ -1386,6 +1397,7 @@ export const useWeb3 = () => {
     extractValueFromAddressForDisplay,
     extractOneAuthorAddressForDisplay,
     extractIdForDisplay,
-    extractParentIdForDisplay
+    extractParentIdForDisplay,
+    extractParentIdForLink
   }
 }

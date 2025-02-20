@@ -240,11 +240,13 @@ export const useEventsStore = defineStore('postsStore', {
     },
 
     async fetchEventById(
-      id: (string | number) | null
+      originalId: (string | number) | null
     ): Promise<SpasmEventV2 | null> {
-      if (!id) return null
+      if (!originalId) return null
       if (!this.apiUrl) return null
-      if (!isStringOrNumber(id)) return null
+      if (!isStringOrNumber(originalId)) return null
+      const id = encodeURIComponent(originalId)
+      if (!id) return null
 
       const path = this.apiUrl + '/api/events/search?e=' + id
       const {data: fetchedResult, error} = await useFetch(path)
@@ -604,12 +606,14 @@ export const useEventsStore = defineStore('postsStore', {
     },
 
     async fetchEventWithCommentsById(
-      id: (string | number) | null,
+      originalId: (string | number) | null,
       commentsDepth: number = 10
     ): Promise<SpasmEventV2 | null> {
-      if (!id) return null
+      if (!originalId) return null
       if (!this.apiUrl) return null
-      if (!isStringOrNumber(id)) return null
+      if (!isStringOrNumber(originalId)) return null
+      const id = encodeURIComponent(originalId)
+      if (!id) return null
 
       const path =
         this.apiUrl +

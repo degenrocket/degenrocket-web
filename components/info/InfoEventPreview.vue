@@ -121,9 +121,9 @@
       </nuxt-link>
       -->
       <nuxt-link
-        v-if="extractParentIdForDisplay(event)"
+        v-if="extractParentIdForLink(event)"
         class="text-colorPrimary-light dark:text-colorPrimary-dark hover:underline"
-        :to="`/news/?p=${extractParentIdForDisplay(event)}`"
+        :to="`/news/?p=${extractParentIdForLink(event)}`"
       >
         <span>
           {{sliceId(extractParentIdForDisplay(event), 13, 4, 30)}}
@@ -251,7 +251,8 @@ const appConfig = useAppConfigStore()?.getAppConfig
 const profilesStore = useProfilesStore()
 const {
   connectedAddressNostr,
-  extractParentIdForDisplay
+  extractParentIdForDisplay,
+  extractParentIdForLink
 } = useWeb3()
 const {
   toBeHex,
