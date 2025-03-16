@@ -89,12 +89,12 @@
         <div v-if="!isSignerAllowedIframe">
           <!-- Plain text -->
           <div v-if="!enableMarkdownInComments">
-            {{comment.content}}
+            {{extractTextForDisplay(comment)}}
           </div>
           <!-- Markdown if enabled -->
           <div
             v-if="enableMarkdownInComments"
-            v-dompurify-html="(marked(comment.content, {breaks:true}))"
+            v-dompurify-html="(extractTextForDisplay(comment))"
           />
         </div>
 
@@ -107,11 +107,11 @@
             <!-- Markdown if enabled -->
             <div
               v-if="enableMarkdownInComments && textChunk"
-              v-dompurify-html="(marked(textChunk, {breaks:true}))"
+              v-dompurify-html="(standardizeTextForDisplay(textChunk, 'reply'))"
             />
             <!-- Plain text if markdown is disabled -->
             <div v-if="!enableMarkdownInComments && textChunk">
-              {{textChunk}}
+              {{standardizeTextForDisplay(textChunk, 'reply')}}
             </div>
             <!-- HTML tags (e.g. iframe) -->
             <!--
@@ -179,7 +179,6 @@
 </template>
 
 <script setup lang="ts">
-import {marked} from 'marked'
 import {
   SpasmEventV2,
   SubmitEventV2Return,
@@ -201,7 +200,9 @@ const {
   sliceAddress,
   randomNumber,
   toBeDate,
-  isValidSpasmEventV2
+  isValidSpasmEventV2,
+  extractTextForDisplay,
+  standardizeTextForDisplay
 } = useUtils()
 const env = useRuntimeConfig()?.public
 const enableMarkdownInComments = env?.enableMarkdownInComments === 'true'? true : false

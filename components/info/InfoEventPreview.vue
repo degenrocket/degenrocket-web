@@ -186,13 +186,15 @@
 
     <!--
     1. white-space: pre-line; is needed to properly display
-    multiple lines of text with \n line breakers.
+       multiple lines of text with \n line breakers.
     2. white-space: pre-wrap also displays multiple spaces/tabs,
-    but it adds an unnecessary tab to the first line (how to fix?).
-    3. Eventually, decided to use marked library with {breaks:true},
-    which replaces single \n with <br> to properly display a new line
-    4. Markdown (marked library) can be disabled in .env, e.g. due to
-    security concerns, so 'white-space: pre-line' is used.
+       but it adds an unnecessary tab to the first line.
+    3. Eventually, decided to use marked library inside
+       standardizeTextForDisplay function with {breaks:true},
+       which replaces single \n with <br> to properly display
+       a new line.
+    4. Markdown (marked library) can be disabled in .env, e.g. due
+       to security concerns, so 'white-space: pre-line' is used.
     -->
     <div v-if="event.content" class="whitespace-pre-line my-1">
 
@@ -200,12 +202,12 @@
       <div v-if="!isSignerAllowedIframe">
         <!-- Plain text -->
         <div v-if="!enableMarkdownInPosts">
-          {{event.content}}
+          {{extractTextForDisplay(event)}}
         </div>
         <!-- Markdown if enabled -->
         <div
           v-if="enableMarkdownInPosts"
-          v-dompurify-html="(marked(event.content, {breaks:true}))"
+          v-dompurify-html="(extractTextForDisplay(event))"
         />
       </div>
 
@@ -218,11 +220,11 @@
           <!-- Markdown if enabled -->
           <div
             v-if="enableMarkdownInPosts && textChunk"
-            v-dompurify-html="(marked(textChunk, {breaks:true}))"
+            v-dompurify-html="(standardizeTextForDisplay(textChunk, 'post'))"
           />
           <!-- Plain text if markdown is disabled -->
           <div v-if="!enableMarkdownInPosts && textChunk">
-            {{textChunk}}
+            {{standardizeTextForDisplay(textChunk, 'post')}}
           </div>
           <!-- HTML tags (e.g. iframe) -->
           <!--
@@ -242,7 +244,6 @@
 </template>
 
 <script setup lang="ts">
-import {marked} from 'marked'
 import {SpasmEventV2} from '@/helpers/interfaces'
 import { spasm } from 'spasm.js'
 import {useProfilesStore} from '@/stores/useProfilesStore'
@@ -272,7 +273,9 @@ const {
   sliceId,
   randomNumber,
   toBeDate,
-  isArrayWithValues
+  isArrayWithValues,
+  extractTextForDisplay,
+  standardizeTextForDisplay
 } = useUtils()
 
 const props = defineProps<{
