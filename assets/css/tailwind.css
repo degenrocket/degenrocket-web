@@ -64,15 +64,17 @@
   }
 
   ul {
-    @apply -mt-5 list-disc list-inside;
+    /* @apply -mt-5 list-disc list-inside; */
+    @apply pl-6 -mt-5 -mb-5 list-disc list-outside;
   }
 
   ol {
-    @apply -mt-5 list-decimal list-inside;
+    /* @apply -mt-5 list-decimal list-inside; */
+    @apply pl-6 -mt-5 list-decimal list-outside;
   }
 
   li {
-    @apply -my-1;
+    @apply -my-1 -mb-5;
   }
 
   blockquote {
@@ -80,8 +82,12 @@
     @apply mx-1 px-4 bg-bgSecondary-light dark:bg-bgSecondary-dark rounded-md shadow-md;
   }
 
+  pre {
+    @apply px-4 py-4 overflow-auto text-colorBase-light dark:text-colorBase-light bg-bgDark-light dark:bg-bgDark-light rounded;
+  }
+
   code {
-    @apply text-colorBase-light dark:text-colorBase-light bg-bgDark-light dark:bg-bgDark-light px-2 py-1 rounded;
+    @apply text-colorBase-light dark:text-colorBase-light bg-bgDark-light dark:bg-bgDark-light px-0.5 py-1 rounded;
   }
 
   br {
