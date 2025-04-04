@@ -903,8 +903,6 @@ export const useUtils = () => {
     original: string,
     type: "post" | "reply"
   ): string => {
-    console.log("original:", original)
-    console.log("type:", type)
     if (!original || typeof(original) !== "string") return ''
     if (!type) return ''
     if (type !== "post" && type !== "reply") return ''
@@ -922,13 +920,10 @@ export const useUtils = () => {
       env?.enableMarkdownInComments === 'true'? true : false
 
     if (type === "post" && enableMarkdownInPosts) {
-      console.log("yes to post")
       text = marked(text, {breaks:true})
-      console.log("text:", text)
     }
 
     if (type === "reply" && enableMarkdownInComments) {
-      console.log("yes to comment")
       text = marked(text, {breaks:true})
     }
 
