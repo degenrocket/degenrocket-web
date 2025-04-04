@@ -2,6 +2,8 @@
 
 DegenRocket-web is a UI interface for a web3 decentralized social media with native support for Degen Messaging Protocol (DMP).
 
+DegenRocket-server repository can be found [here](https://github.com/degenrocket/degenrocket-server).
+
 ## Server setup
 
 If you don't have any experience at setting up a server, then there is a beginner-friendly guide with scripts for an automated [initial server setup](https://github.com/degenrocket/degenrocket-scripts).
@@ -16,14 +18,14 @@ If you don't have any experience at setting up a server, then there is a beginne
 # install nvm to manage node versions
 # https://github.com/nvm-sh/nvm
 
-# install node v18
-nvm install 18
+# install node v20
+nvm install 20
 
-# set node v18 as default
-nvm alias default 18
+# set node v20 as default
+nvm alias default 20
 
-# switch to node v18
-nvm use 18
+# switch to node v20
+nvm use 20
 
 # update npm
 npm install -g npm
@@ -84,19 +86,36 @@ Open a browser and test the app at `localhost:3000`.
 #### Necessary settings
 
 - Change app name, title, description, about, manifest params in `.env`.
-- Add social media links in `.env`.
 - Add logos (recommended sizes are 100x100, 192x192, 512x512) as `favicon.ico`, `pwa-192x192.png`, `pwa-512x512.png` into `public/` folder.
 
 #### Optional settings
 
-- (Optional) change colors in `.env`.
-- (Optional) Show/hide contacts info in intro in `.env`.
-- (Optional) Show/hide tutorial in intro in `.env`.
-- (Optional) Show/hide latest comments in intro in `.env`.
-- (Optional) Show/hide categories filter in feed in `.env`.
-- (Optional) Show/hide guest login option in web3 modal in `.env`.
+There are many other settings that can be changed via `.env`,
+most variables have self-explanatory names and comments.
 
 The full list of settings can be found in `./.env.example`.
+
+#### Admin panel
+
+Some settings (social media links, lists of moderators, short URLs,
+different whitelists) can be changed via a web page without
+restarting a server.
+
+An admin panel can be accessed at `https://example.com/admin`
+or by clicking on an 'admin' button at the bottom menu bar after
+connecting an admin public key (address).
+
+Make sure that an admin panel and app config changes are enabled
+and admin addresses are listed in `.env` files in **both** frontend
+(degenrocket-web) and backend (degenrocket-server).
+
+```
+ENABLE_APP_CONFIG_CHANGES=true
+ENABLE_APP_CONFIG_CHANGES_BY_ADMIN=true
+# Separate admin addresses with comma
+ENABLE_ADMIN=true
+ADMINS=""
+```
 
 #### Advanced customization
 
