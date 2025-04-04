@@ -2,6 +2,7 @@ import {defineStore} from 'pinia'
 import {useFetch} from '#app'
 import {
   FeedFilters,
+  FeedEventsFilters,
   ProfileSpasm,
   SpasmEventV2,
   NostrNetworkFilterConfig,
@@ -798,7 +799,7 @@ export const useEventsStore = defineStore('postsStore', {
     // },
 
     filterEvents(
-      filters?: FeedFilters,
+      filters?: FeedEventsFilters,
       spasmEvents?: SpasmEventV2[]
     ): SpasmEventV2[] {
 
@@ -928,6 +929,19 @@ export const useEventsStore = defineStore('postsStore', {
           this.allPosts, selectedIdsNotDisplayed
         )
         if (foundEvents) { stickyPosts = foundEvents }
+      }
+
+      if (
+        feedFilters && 'limit' in feedFilters &&
+        feedFilters.limit && typeof(feedFilters.limit) === 'number'
+      ) {
+        let limit: number = feedFilters.limit
+        // Decreasing limit by 5 events to prevent a blinking
+        // effect when a 'load more' button is pressed, but new
+        // events that satisfy a filter have not been fetched yet,
+        // so other events which don't satisfy a filter are shown.
+        if (limit > 10) { limit = limit - 5 }
+        filteredEvents = filteredEvents.slice(0,limit)
       }
 
       // Step 3.
