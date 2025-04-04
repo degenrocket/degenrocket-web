@@ -1,10 +1,7 @@
 <template>
   <div>
     <FeedFilters class="fixed w-full lg:w-[40%]" />
-    <!--
-    <FeedPosts class="mt-9" />
-    -->
-    <FeedEvents class="mt-9" />
+    <FeedEvents class="mt-9 pl-0.5" />
   </div>
 </template>
 
