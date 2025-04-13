@@ -36,6 +36,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
     simplexLink: useRuntimeConfig()?.public?.simplexLink,
     statusLink: useRuntimeConfig()?.public?.statusLink,
     lensLink: useRuntimeConfig()?.public?.lensLink,
+    farcasterLink: useRuntimeConfig()?.public?.farcasterLink,
     hiveLink: useRuntimeConfig()?.public?.hiveLink,
     pushLink: useRuntimeConfig()?.public?.pushLink,
     mirrorLink: useRuntimeConfig()?.public?.mirrorLink,
@@ -55,6 +56,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
     sessionName: useRuntimeConfig()?.public?.sessionName,
     matrixName: useRuntimeConfig()?.public?.matrixName,
     lensName: useRuntimeConfig()?.public?.lensName,
+    farcasterName: useRuntimeConfig()?.public?.farcasterName,
     hiveName: useRuntimeConfig()?.public?.hiveName,
     pushName: useRuntimeConfig()?.public?.pushName,
     mirrorName: useRuntimeConfig()?.public?.mirrorName,
@@ -190,6 +192,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
         simplexLink: this.simplexLink,
         statusLink: this.statusLink,
         lensLink: this.lensLink,
+        farcasterLink: this.farcasterLink,
         hiveLink: this.hiveLink,
         pushLink: this.pushLink,
         mirrorLink: this.mirrorLink,
@@ -209,6 +212,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
         sessionName: this.sessionName,
         matrixName: this.matrixName,
         lensName: this.lensName,
+        farcasterName: this.farcasterName,
         hiveName: this.hiveName,
         pushName: this.pushName,
         mirrorName: this.mirrorName,
@@ -332,6 +336,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
       updateString("simplexLink")
       updateString("statusLink")
       updateString("lensLink")
+      updateString("farcasterLink")
       updateString("hiveLink")
       updateString("pushLink")
       updateString("mirrorLink")
@@ -351,6 +356,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
       updateString("sessionName")
       updateString("matrixName")
       updateString("lensName")
+      updateString("farcasterName")
       updateString("hiveName")
       updateString("pushName")
       updateString("mirrorName")

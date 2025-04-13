@@ -1498,6 +1498,7 @@ export interface AppConfig {
   simplexLink?: string
   statusLink?: string
   lensLink?: string
+  farcasterLink?: string
   hiveLink?: string
   pushLink?: string
   mirrorLink?: string
@@ -1517,6 +1518,7 @@ export interface AppConfig {
   sessionName?: string
   matrixName?: string
   lensName?: string
+  farcasterName?: string
   hiveName?: string
   pushName?: string
   mirrorName?: string
@@ -1550,6 +1552,7 @@ export type AppConfigKeyString =
   | "simplexLink"
   | "statusLink"
   | "lensLink"
+  | "farcasterLink"
   | "hiveLink"
   | "pushLink"
   | "mirrorLink"
@@ -1569,6 +1572,7 @@ export type AppConfigKeyString =
   | "sessionName"
   | "matrixName"
   | "lensName"
+  | "farcasterName"
   | "hiveName"
   | "pushName"
   | "mirrorName"

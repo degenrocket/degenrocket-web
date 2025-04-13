@@ -117,6 +117,13 @@
       </span>
     </div>
 
+    <div v-if="farcasterName">
+      Farcaster:
+      <span v-if="farcasterName">
+        {{farcasterName}}
+      </span>
+    </div>
+
     <div v-if="hiveName">
       Hive:
       <span v-if="hiveName">
@@ -185,7 +192,7 @@
       </span>
     </div>
 
-    <div v-if="nostrLink || sessionLink || simplexLink || statusLink || lensLink || hiveLink || pushLink || mirrorLink || mastodonLink || matrixLink || discordLink || telegramLink || twitterLink || redditLink || youtubeLink || instagramLink || facebookLink || linkedinLink || wikipediaLink || githubLink">
+    <div v-if="nostrLink || sessionLink || simplexLink || statusLink || lensLink || farcasterLink || hiveLink || pushLink || mirrorLink || mastodonLink || matrixLink || discordLink || telegramLink || twitterLink || redditLink || youtubeLink || instagramLink || facebookLink || linkedinLink || wikipediaLink || githubLink">
       Follow:
       <span v-if="nostrLink">
         <a :href="nostrLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
@@ -210,6 +217,11 @@
       <span v-if="lensLink">
         <a :href="lensLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
           Lens
+        </a>
+      </span>
+      <span v-if="farcasterLink">
+        <a :href="farcasterLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+          Farcaster
         </a>
       </span>
       <span v-if="hiveLink">
@@ -310,6 +322,7 @@ const sessionLink = appConfig?.sessionLink
 const simplexLink = appConfig?.simplexLink
 const statusLink = appConfig?.statusLink
 const lensLink = appConfig?.lensLink
+const farcasterLink = appConfig?.farcasterLink
 const hiveLink = appConfig?.hiveLink
 const pushLink = appConfig?.pushLink
 const mirrorLink = appConfig?.mirrorLink
@@ -330,6 +343,7 @@ const nostrNpub = appConfig?.nostrNpub
 const sessionName = appConfig?.sessionName
 const matrixName = appConfig?.matrixName
 const lensName = appConfig?.lensName
+const farcasterName = appConfig?.farcasterName
 const hiveName = appConfig?.hiveName
 const pushName = appConfig?.pushName
 const mirrorName = appConfig?.mirrorName

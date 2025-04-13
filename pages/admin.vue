@@ -12,6 +12,7 @@
         <div>SimpleX: <input v-model="simplexLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
         <div>Status: <input v-model="statusLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
         <div>Lens: <input v-model="lensLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
+        <div>Farcaster: <input v-model="farcasterLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
         <div>Hive: <input v-model="hiveLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
         <div>Push: <input v-model="pushLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
         <div>Mirror: <input v-model="mirrorLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
@@ -34,6 +35,7 @@
         <div>Session: <input v-model="sessionName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
         <div>Matrix: <input v-model="matrixName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
         <div>Lens: <input v-model="lensName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
+        <div>Farcaster: <input v-model="farcasterName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
         <div>Hive: <input v-model="hiveName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
         <div>Push: <input v-model="pushName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
         <div>Mirror: <input v-model="mirrorName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
@@ -287,6 +289,7 @@ const sessionLink = ref<string>(appConfig?.sessionLink)
 const simplexLink = ref<string>(appConfig?.simplexLink)
 const statusLink = ref<string>(appConfig?.statusLink)
 const lensLink = ref<string>(appConfig?.lensLink)
+const farcasterLink = ref<string>(appConfig?.farcasterLink)
 const hiveLink = ref<string>(appConfig?.hiveLink)
 const pushLink = ref<string>(appConfig?.pushLink)
 const mirrorLink = ref<string>(appConfig?.mirrorLink)
@@ -306,6 +309,7 @@ const nostrNpub = ref<string>(appConfig?.nostrNpub)
 const sessionName = ref<string>(appConfig?.sessionName)
 const matrixName = ref<string>(appConfig?.matrixName)
 const lensName = ref<string>(appConfig?.lensName)
+const farcasterName = ref<string>(appConfig?.farcasterName)
 const hiveName = ref<string>(appConfig?.hiveName)
 const pushName = ref<string>(appConfig?.pushName)
 const mirrorName = ref<string>(appConfig?.mirrorName)
@@ -421,6 +425,9 @@ const saveAppConfig = async () => {
     if (typeof(lensLink.value) === "string") {
       newAppConfig.lensLink = lensLink.value
     }
+    if (typeof(farcasterLink.value) === "string") {
+      newAppConfig.farcasterLink = farcasterLink.value
+    }
     if (typeof(hiveLink.value) === "string") {
       newAppConfig.hiveLink = hiveLink.value
     }
@@ -477,6 +484,9 @@ const saveAppConfig = async () => {
     }
     if (typeof(lensName.value) === "string") {
       newAppConfig.lensName = lensName.value
+    }
+    if (typeof(farcasterName.value) === "string") {
+      newAppConfig.farcasterName = farcasterName.value
     }
     if (typeof(hiveName.value) === "string") {
       newAppConfig.hiveName = hiveName.value
