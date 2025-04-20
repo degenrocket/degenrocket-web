@@ -19,7 +19,7 @@
       <p>- Sign all comments and reactions with your Ethereum or Nostr private keys.</p>
       <p>- Never sign any messages that you don't understand.</p>
       <div>
-        - This forum is a part of the
+        - This forum is part of the
         <a href="https://spasm.network" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
           Spasm
           <IconsRocket class="custom-icons" />
