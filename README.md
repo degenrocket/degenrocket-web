@@ -79,6 +79,10 @@ Open a browser and test the app at `localhost:3000`.
 
 *Note: press `ctrl+c` in the terminal to stop the process.* 
 
+*Note: `npm run dev` temporarily doesn't work on nuxt versions
+above 3.15 because they introduced breaking changes, but you
+can still use `npm run prod`.*
+
 ---
 
 ## Customization
@@ -143,6 +147,10 @@ Note: customized files like `components/custom/CustomIntro.vue`, `components/cus
 
 ## Build
 
+```
+npm install
+```
+
 Build the frontend for running in production.
 
 ```
@@ -150,6 +158,10 @@ npm run build
 ```
 
 ## Run production
+
+```
+npm install
+```
 
 Run with pm2 (after build):
 
