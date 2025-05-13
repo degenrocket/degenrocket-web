@@ -53,11 +53,13 @@ const {
 
 const isWeb3ModalShown = ref(false)
 const isQrCodeModalShown = ref(false)
+const isFollowModalShown = ref(false)
 const pendingAuthentication = ref(false)
 const isMultiSign = ref(false)
 const isNetworkSpasmSelected = ref(true)
 const isNetworkNostrSelected = ref(false)
 const qrCodeValue = ref<string | undefined>('')
+const followValue = ref<string | undefined>('')
 let provider: JsonRpcApiProvider | undefined
 let signer: JsonRpcSigner | undefined
 const connectedAddress = ref<string | undefined | null>('')
@@ -90,13 +92,27 @@ export const useWeb3 = () => {
     isQrCodeModalShown.value = true
   }
 
+  const showFollowModal = (): void => {
+    isFollowModalShown.value = true
+  }
+
   const hideQrCodeModal = (): void => {
     isQrCodeModalShown.value = false
+  }
+
+  const hideFollowModal = (): void => {
+    isFollowModalShown.value = false
   }
 
   const setQrCodeValue = (value?: string): void => {
     if (value && typeof(value) === "string") {
       qrCodeValue.value = value
+    }
+  }
+
+  const setFollowValue = (value?: string): void => {
+    if (value && typeof(value) === "string") {
+      followValue.value = value
     }
   }
 
@@ -1347,7 +1363,9 @@ export const useWeb3 = () => {
   return {
     isWeb3ModalShown: readonly(isWeb3ModalShown),
     isQrCodeModalShown: readonly(isQrCodeModalShown),
+    isFollowModalShown: readonly(isFollowModalShown),
     qrCodeValue: readonly(qrCodeValue),
+    followValue: readonly(followValue),
     pendingAuthentication: readonly(pendingAuthentication),
     isMultiSign: readonly(isMultiSign),
     connectedAddress: readonly(connectedAddress),
@@ -1367,8 +1385,11 @@ export const useWeb3 = () => {
     showWeb3Modal,
     hideWeb3Modal,
     showQrCodeModal,
+    showFollowModal,
     hideQrCodeModal,
+    hideFollowModal,
     setQrCodeValue,
+    setFollowValue,
     turnOnMultiSign,
     turnOffMultiSign,
     connectWeb3Authenticator,

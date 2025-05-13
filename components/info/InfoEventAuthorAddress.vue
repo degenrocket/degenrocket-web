@@ -34,6 +34,7 @@
         v-if="extractValueFromAddressForDisplay(address, true)"
         :key="extractValueFromAddressForDisplay(address, true)"
         :value="extractValueFromAddressForDisplay(address, true)"
+        :showFollow="true"
         :showCopyToClipboard="true"
         :showQrCode="true"
         :showExternalWebsite="true"

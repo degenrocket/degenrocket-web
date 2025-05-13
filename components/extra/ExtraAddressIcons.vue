@@ -3,13 +3,17 @@ const env = useRuntimeConfig()?.public
 const defaultExplorerEthereumAddress = env?.defaultExplorerEthereumAddress
 const defaultExplorerNostrAddress = env?.defaultExplorerNostrAddress
 const {copyToClipboard} = useUtils()
-const {showQrCodeModal, setQrCodeValue} = useWeb3()
+const {
+  showQrCodeModal, setQrCodeValue,
+  showFollowModal, setFollowValue
+} = useWeb3()
 
 const explorerEthereumAddress = defaultExplorerEthereumAddress || 'https://etherscan.io/address/'
 const explorerNostrAddress = defaultExplorerNostrAddress || 'https://primal.net/p/'
 
 const props = defineProps<{
   value?: string | number | undefined
+  showFollow?: boolean
   showCopyToClipboard?: boolean
   showQrCode?: boolean
   showExternalWebsite?: boolean
@@ -26,7 +30,10 @@ const externalWebsiteTitle = ref("Open on another website")
 const externalWebsiteUrl = ref("")
 
 if (props.value && typeof(props.value) === "string") {
-  if (props.value.startsWith('0x')) {
+  if (
+    props.value.startsWith('0x') &&
+    props.value.length === 42
+  ) {
     protocol.value = "ethereum"
   } else if (
     (
@@ -65,6 +72,12 @@ const qrCodeClicked = (): void => {
   setQrCodeValue(props.value)
 }
 
+const followClicked = (): void => {
+  showFollowModal()
+  setFollowValue(props.value)
+}
+
+
 /* const close = () => {                    */
 /*   show.value = false                     */
 /*   setTimeout(() => emit('onClose'), 100) */
@@ -79,6 +92,12 @@ const qrCodeClicked = (): void => {
 
 <template>
   <span>
+      <button @click="followClicked()" title="Show follow options" class="ml-1 text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark">
+        <span v-if="showFollow" >
+          Follow
+        </span>
+      </button>
+
       <button @click="copyToClipboardClicked(value)" :title="copyToClipboardTitle" class="ml-1 text-colorNotImportant-light dark:text-colorNotImportant-dark hover:text-colorPrimary-light dark:hover:text-colorPrimary-dark">
         <IconsCopyToClipboard
           v-if="showCopyToClipboard && !showCopyToClipboardSuccess"

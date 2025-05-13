@@ -28,13 +28,17 @@
 
     <ExtraWeb3Modal v-if="isWeb3ModalShown"/>
     <ExtraQrCodeModal v-if="isQrCodeModalShown"/>
+    <ExtraFollowModal v-if="isFollowModalShown"/>
   </div>
 </template>
 
 <script setup lang="ts">
 import {useAppConfigStore} from '@/stores/useAppConfigStore'
 const {isFeedShown} = useFeed()
-const {isWeb3ModalShown, isQrCodeModalShown, setConnectedAddress} = useWeb3()
+const {
+  isWeb3ModalShown, isQrCodeModalShown,
+  setConnectedAddress, isFollowModalShown
+} = useWeb3()
 
 // Always use the latest app config from database
 await useAppConfigStore()?.fetchAndUpdateAppConfig()
