@@ -36,6 +36,7 @@
         <div>Matrix: <input v-model="matrixName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
         <div>Lens: <input v-model="lensName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
         <div>Farcaster: <input v-model="farcasterName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
+        <div>Bluesky:: <input v-model="blueskyName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
         <div>Hive: <input v-model="hiveName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
         <div>Push: <input v-model="pushName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
         <div>Mirror: <input v-model="mirrorName" type="text" placeholder="enter username" class="custom-admin-input-socials"></div>
@@ -310,6 +311,7 @@ const sessionName = ref<string>(appConfig?.sessionName)
 const matrixName = ref<string>(appConfig?.matrixName)
 const lensName = ref<string>(appConfig?.lensName)
 const farcasterName = ref<string>(appConfig?.farcasterName)
+const blueskyName = ref<string>(appConfig?.blueskyName)
 const hiveName = ref<string>(appConfig?.hiveName)
 const pushName = ref<string>(appConfig?.pushName)
 const mirrorName = ref<string>(appConfig?.mirrorName)
@@ -487,6 +489,9 @@ const saveAppConfig = async () => {
     }
     if (typeof(farcasterName.value) === "string") {
       newAppConfig.farcasterName = farcasterName.value
+    }
+    if (typeof(blueskyName.value) === "string") {
+      newAppConfig.blueskyName = blueskyName.value
     }
     if (typeof(hiveName.value) === "string") {
       newAppConfig.hiveName = hiveName.value

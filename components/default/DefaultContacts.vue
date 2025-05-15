@@ -124,6 +124,13 @@
       </span>
     </div>
 
+    <div v-if="blueskyName">
+      Bluesky:
+      <span v-if="blueskyName">
+        {{blueskyName}}
+      </span>
+    </div>
+
     <div v-if="hiveName">
       Hive:
       <span v-if="hiveName">
@@ -344,6 +351,7 @@ const sessionName = appConfig?.sessionName
 const matrixName = appConfig?.matrixName
 const lensName = appConfig?.lensName
 const farcasterName = appConfig?.farcasterName
+const blueskyName = appConfig?.blueskyName
 const hiveName = appConfig?.hiveName
 const pushName = appConfig?.pushName
 const mirrorName = appConfig?.mirrorName

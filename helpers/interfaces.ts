@@ -1519,6 +1519,7 @@ export interface AppConfig {
   matrixName?: string
   lensName?: string
   farcasterName?: string
+  blueskyName?: string
   hiveName?: string
   pushName?: string
   mirrorName?: string
@@ -1573,6 +1574,7 @@ export type AppConfigKeyString =
   | "matrixName"
   | "lensName"
   | "farcasterName"
+  | "blueskyName"
   | "hiveName"
   | "pushName"
   | "mirrorName"

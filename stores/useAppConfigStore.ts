@@ -57,6 +57,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
     matrixName: useRuntimeConfig()?.public?.matrixName,
     lensName: useRuntimeConfig()?.public?.lensName,
     farcasterName: useRuntimeConfig()?.public?.farcasterName,
+    blueskyName: useRuntimeConfig()?.public?.blueskyName,
     hiveName: useRuntimeConfig()?.public?.hiveName,
     pushName: useRuntimeConfig()?.public?.pushName,
     mirrorName: useRuntimeConfig()?.public?.mirrorName,
@@ -213,6 +214,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
         matrixName: this.matrixName,
         lensName: this.lensName,
         farcasterName: this.farcasterName,
+        blueskyName: this.blueskyName,
         hiveName: this.hiveName,
         pushName: this.pushName,
         mirrorName: this.mirrorName,
@@ -357,6 +359,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
       updateString("matrixName")
       updateString("lensName")
       updateString("farcasterName")
+      updateString("blueskyName")
       updateString("hiveName")
       updateString("pushName")
       updateString("mirrorName")

@@ -156,6 +156,7 @@ export default defineNuxtConfig({
       matrixName: process.env.MATRIX_NAME,
       lensName: process.env.LENS_NAME,
       farcasterName: process.env.FARCASTER_NAME,
+      blueskyName: process.env.BLUESKY_NAME,
       hiveName: process.env.HIVE_NAME,
       pushName: process.env.PUSH_NAME,
       mirrorName: process.env.MIRROR_NAME,
