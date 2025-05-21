@@ -37,6 +37,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
     statusLink: useRuntimeConfig()?.public?.statusLink,
     lensLink: useRuntimeConfig()?.public?.lensLink,
     farcasterLink: useRuntimeConfig()?.public?.farcasterLink,
+    blueskyLink: useRuntimeConfig()?.public?.farcasterLink,
     hiveLink: useRuntimeConfig()?.public?.hiveLink,
     pushLink: useRuntimeConfig()?.public?.pushLink,
     mirrorLink: useRuntimeConfig()?.public?.mirrorLink,
@@ -194,6 +195,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
         statusLink: this.statusLink,
         lensLink: this.lensLink,
         farcasterLink: this.farcasterLink,
+        blueskyLink: this.blueskyLink,
         hiveLink: this.hiveLink,
         pushLink: this.pushLink,
         mirrorLink: this.mirrorLink,
@@ -339,6 +341,7 @@ export const useAppConfigStore = defineStore('appConfigStore', {
       updateString("statusLink")
       updateString("lensLink")
       updateString("farcasterLink")
+      updateString("blueskyLink")
       updateString("hiveLink")
       updateString("pushLink")
       updateString("mirrorLink")

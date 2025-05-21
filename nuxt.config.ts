@@ -134,6 +134,7 @@ export default defineNuxtConfig({
       statusLink: process.env.STATUS_LINK,
       lensLink: process.env.LENS_LINK,
       farcasterLink: process.env.FARCASTER_LINK,
+      blueskyLink: process.env.BLUESKY_LINK,
       hiveLink: process.env.HIVE_LINK,
       pushLink: process.env.PUSH_LINK,
       mirrorLink: process.env.MIRROR_LINK,

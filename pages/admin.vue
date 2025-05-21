@@ -13,6 +13,7 @@
         <div>Status: <input v-model="statusLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
         <div>Lens: <input v-model="lensLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
         <div>Farcaster: <input v-model="farcasterLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
+        <div>Bluesky: <input v-model="blueskyLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
         <div>Hive: <input v-model="hiveLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
         <div>Push: <input v-model="pushLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
         <div>Mirror: <input v-model="mirrorLink" type="text" placeholder="enter full link with https://" class="custom-admin-input-socials"></div>
@@ -291,6 +292,7 @@ const simplexLink = ref<string>(appConfig?.simplexLink)
 const statusLink = ref<string>(appConfig?.statusLink)
 const lensLink = ref<string>(appConfig?.lensLink)
 const farcasterLink = ref<string>(appConfig?.farcasterLink)
+const blueskyLink = ref<string>(appConfig?.blueskyLink)
 const hiveLink = ref<string>(appConfig?.hiveLink)
 const pushLink = ref<string>(appConfig?.pushLink)
 const mirrorLink = ref<string>(appConfig?.mirrorLink)
@@ -429,6 +431,9 @@ const saveAppConfig = async () => {
     }
     if (typeof(farcasterLink.value) === "string") {
       newAppConfig.farcasterLink = farcasterLink.value
+    }
+    if (typeof(blueskyLink.value) === "string") {
+      newAppConfig.blueskyLink = blueskyLink.value
     }
     if (typeof(hiveLink.value) === "string") {
       newAppConfig.hiveLink = hiveLink.value

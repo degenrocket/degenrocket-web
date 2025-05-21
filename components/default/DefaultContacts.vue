@@ -199,7 +199,7 @@
       </span>
     </div>
 
-    <div v-if="nostrLink || sessionLink || simplexLink || statusLink || lensLink || farcasterLink || hiveLink || pushLink || mirrorLink || mastodonLink || matrixLink || discordLink || telegramLink || twitterLink || redditLink || youtubeLink || instagramLink || facebookLink || linkedinLink || wikipediaLink || githubLink">
+    <div v-if="nostrLink || sessionLink || simplexLink || statusLink || lensLink || farcasterLink || blueskyLink || hiveLink || pushLink || mirrorLink || mastodonLink || matrixLink || discordLink || telegramLink || twitterLink || redditLink || youtubeLink || instagramLink || facebookLink || linkedinLink || wikipediaLink || githubLink">
       Follow:
       <span v-if="nostrLink">
         <a :href="nostrLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
@@ -229,6 +229,11 @@
       <span v-if="farcasterLink">
         <a :href="farcasterLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
           Farcaster
+        </a>
+      </span>
+      <span v-if="blueskyLink">
+        <a :href="blueskyLink" target="_blank" class="text-colorPrimary-light dark:text-colorPrimary-dark">
+          Bluesky
         </a>
       </span>
       <span v-if="hiveLink">
@@ -330,6 +335,7 @@ const simplexLink = appConfig?.simplexLink
 const statusLink = appConfig?.statusLink
 const lensLink = appConfig?.lensLink
 const farcasterLink = appConfig?.farcasterLink
+const blueskyLink = appConfig?.blueskyLink
 const hiveLink = appConfig?.hiveLink
 const pushLink = appConfig?.pushLink
 const mirrorLink = appConfig?.mirrorLink
