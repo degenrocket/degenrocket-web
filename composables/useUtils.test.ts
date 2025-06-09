@@ -79,39 +79,50 @@ describe('isArrayOfStrings', () => {
   });
 
   test('returns true when array has at least one empty string', () => {
-    expect(
-      isArrayOfStrings(["abc", ""])
-    ).toBe(true);
+    expect(isArrayOfStrings(["abc", ""])).toBe(true);
   });
 
   test('returns false when array has at least one non-string value', () => {
-    expect(
-      isArrayOfStrings(["abc", 1])
-    ).toBe(false);
+    expect(isArrayOfStrings(["abc", 0])).toBe(false);
+    expect(isArrayOfStrings(["abc", 1])).toBe(false);
+    expect(isArrayOfStrings(["abc", null])).toBe(false);
+    expect(isArrayOfStrings(["abc", undefined])).toBe(false);
+    expect(isArrayOfStrings(["abc", true])).toBe(false);
+    expect(isArrayOfStrings(["abc", false])).toBe(false);
+    expect(isArrayOfStrings(["abc", ["xyz"]])).toBe(false);
+    expect(isArrayOfStrings(["abc", {str:"xyz"}])).toBe(false);
+    expect(isArrayOfStrings([0, "abc"])).toBe(false);
+    expect(isArrayOfStrings([1, "abc"])).toBe(false);
+    expect(isArrayOfStrings([null, "abc"])).toBe(false);
+    expect(isArrayOfStrings([undefined, "abc"])).toBe(false);
+    expect(isArrayOfStrings([true, "abc"])).toBe(false);
+    expect(isArrayOfStrings([false, "abc"])).toBe(false);
+    expect(isArrayOfStrings([["xyz"], "abc"])).toBe(false);
+    expect(isArrayOfStrings([{str:"xyz"}, "abc"])).toBe(false);
   });
 
   test('returns true when array has one empty string', () => {
-    expect( isArrayOfStrings([""])).toBe(true);
+    expect(isArrayOfStrings([""])).toBe(true);
   });
 
   test('returns false when value is an object', () => {
-    expect( isArrayOfStrings({id: 1})).toBe(false);
+    expect(isArrayOfStrings({id: 1})).toBe(false);
   });
 
   test('returns false when value is null', () => {
-    expect( isArrayOfStrings(null)).toBe(false);
+    expect(isArrayOfStrings(null)).toBe(false);
   });
 
   test('returns false when value is undefined', () => {
-    expect( isArrayOfStrings(undefined)).toBe(false);
+    expect(isArrayOfStrings(undefined)).toBe(false);
   });
 
   test('returns false when value is an empty string', () => {
-    expect( isArrayOfStrings('')).toBe(false);
+    expect(isArrayOfStrings('')).toBe(false);
   });
 
   test('returns false when value is a number', () => {
-    expect( isArrayOfStrings(1)).toBe(false);
+    expect(isArrayOfStrings(1)).toBe(false);
   });
 })
 
