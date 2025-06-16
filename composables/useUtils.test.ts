@@ -130,21 +130,31 @@ const { isArrayOfStringsWithValues } = useUtils()
 
 describe('isArrayOfStringsWithValues', () => {
   test('returns true when array has only strings', () => {
-    expect(
-      isArrayOfStringsWithValues(["abc", "def"])
-    ).toBe(true);
+    expect(isArrayOfStringsWithValues(["abc", "def"])).toBe(true);
   });
 
   test('returns false when array has at least one empty string', () => {
-    expect(
-      isArrayOfStringsWithValues(["abc", ""])
-    ).toBe(false);
+    expect(isArrayOfStringsWithValues(["abc", ""])).toBe(false);
   });
 
   test('returns false when array has at least one non-string value', () => {
-    expect(
-      isArrayOfStringsWithValues(["abc", 1])
-    ).toBe(false);
+    expect(isArrayOfStringsWithValues(["abc", 1])).toBe(false);
+    expect(isArrayOfStringsWithValues(["abc", 0])).toBe(false);
+    expect(isArrayOfStringsWithValues(["abc", 1])).toBe(false);
+    expect(isArrayOfStringsWithValues(["abc", null])).toBe(false);
+    expect(isArrayOfStringsWithValues(["abc", undefined])).toBe(false);
+    expect(isArrayOfStringsWithValues(["abc", true])).toBe(false);
+    expect(isArrayOfStringsWithValues(["abc", false])).toBe(false);
+    expect(isArrayOfStringsWithValues(["abc", ["xyz"]])).toBe(false);
+    expect(isArrayOfStringsWithValues(["abc", {str:"xyz"}])).toBe(false);
+    expect(isArrayOfStringsWithValues([0, "abc"])).toBe(false);
+    expect(isArrayOfStringsWithValues([1, "abc"])).toBe(false);
+    expect(isArrayOfStringsWithValues([null, "abc"])).toBe(false);
+    expect(isArrayOfStringsWithValues([undefined, "abc"])).toBe(false);
+    expect(isArrayOfStringsWithValues([true, "abc"])).toBe(false);
+    expect(isArrayOfStringsWithValues([false, "abc"])).toBe(false);
+    expect(isArrayOfStringsWithValues([["xyz"], "abc"])).toBe(false);
+    expect(isArrayOfStringsWithValues([{str:"xyz"}, "abc"])).toBe(false);
   });
 
   test('returns false when array has one empty string', () => {
