@@ -269,7 +269,7 @@ describe('areValidPosts', () => {
     const result1 = areValidPosts(validPosts1);
     expect(result1).toBe(true);
 
-    const validPosts2 = [validPost, validPostSig];
+    const validPosts2 = [validPost, validPostSig as Post];
     const result2 = areValidPosts(validPosts2);
     expect(result2).toBe(true);
   });
@@ -305,7 +305,7 @@ describe('areValidPosts', () => {
     const result2 = areValidPosts(invalidPosts2);
     expect(result2).toBe(false);
 
-    const invalidPosts3 = [validPost, invalidPostSigActionButNoTarget];
+    const invalidPosts3 = [validPost, invalidPostSigActionButNoTarget as Post];
     const result3 = areValidPosts(invalidPosts3);
     expect(result3).toBe(false);
   });
@@ -321,7 +321,7 @@ describe('areValidPosts', () => {
   });
 
   test('areValidPosts returns false if posts is not an array', async () => {
-    const result = areValidPosts({});
+    const result = areValidPosts({} as Post[]);
     expect(result).toBe(false);
   });
 
