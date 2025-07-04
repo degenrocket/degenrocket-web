@@ -334,8 +334,9 @@ describe('areValidPosts', () => {
 const { isValidSpasmEventV2 } = useUtils()
 
 describe('isValidSpasmEventV2', () => {
-  test('returns false when event is undefined', () => {
+  test('returns false when event is undefined or null', () => {
     expect(isValidSpasmEventV2(undefined)).toBe(false);
+    expect(isValidSpasmEventV2(null)).toBe(false);
   });
 
   test('returns false when event is an empty object', () => {
@@ -581,8 +582,32 @@ describe('deleteMatchingValuesFromObject', () => {
       currentState,
       checkedState
     )).toEqual(result);
-  })
-})
+  });
+
+  test('should handle invalid types', () => {
+    expect(deleteMatchingValuesFromObject(
+      null, null
+    )).toEqual(null);
+    expect(deleteMatchingValuesFromObject(
+      undefined, null
+    )).toEqual(undefined);
+    expect(deleteMatchingValuesFromObject(
+      0, null
+    )).toEqual(0);
+    expect(deleteMatchingValuesFromObject(
+      123, 123
+    )).toEqual(123);
+    expect(deleteMatchingValuesFromObject(
+      "abc", "abc"
+    )).toEqual("abc");
+    expect(deleteMatchingValuesFromObject(
+      true, false
+    )).toEqual(true);
+    expect(deleteMatchingValuesFromObject(
+      false, true
+    )).toEqual(false);
+  });
+});
 
 // sliceAddress
 describe('sliceAddress-each', () => {
