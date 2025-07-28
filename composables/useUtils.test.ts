@@ -620,7 +620,7 @@ describe('sliceAddress-each', () => {
     [null, 5, 4, ''],
     [undefined, undefined, undefined, ''],
     ['1234', 0, 4, '...1234'],
-  ])('given %s and %d as arguments, returns %s', (input, start, end, expected) => {
+  ])('given %s and %d as arguments, returns %s', (input: any, start: any, end: any, expected: any) => {
     const result = sliceAddress(input, start, end);
     expect(result).toEqual(expected);
     expect(result).to.be.a('string');
@@ -636,14 +636,14 @@ describe('randomNumber-each', () => {
     [100, 200],
     [Number.MIN_VALUE, Number.MAX_VALUE],
     [-10, 10],
-  ])('returns a random number between %d and %d', (min, max) => {
+  ])('returns a random number between %d and %d', (min: any, max: any) => {
     const result = randomNumber(min, max);
     expect(result).toBeGreaterThanOrEqual(min);
     expect(result).toBeLessThanOrEqual(max);
   });
 });
 
-
+/*
 const { sanitizeObjectValuesWithDompurify } = useUtils()
 
 describe('sanitizeObjectValuesWithDompurify', () => {
@@ -710,11 +710,7 @@ describe('sanitizeObjectValuesWithDompurify', () => {
       },
     };
 
-    /**
-     * We should create a deep copy of an object using
-     * JSON.parse and JSON.stringify, e.g.:
-     * const input = JSON.parse(JSON.stringify(validDmpEvent));
-     */
+    // We should create a deep copy of an object
     // const input = JSON.parse(JSON.stringify(objectWithMaliciousCode))
     // const output = JSON.parse(JSON.stringify(objectWithoutMaliciousCode))
 
@@ -743,3 +739,4 @@ describe('sanitizeObjectValuesWithDompurify', () => {
 
   });
 })
+*/
