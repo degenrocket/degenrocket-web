@@ -106,12 +106,23 @@ export default defineNuxtConfig({
       enableMarkdownInPosts: process.env.ENABLE_MARKDOWN_IN_POSTS,
       enableMarkdownInComments: process.env.ENABLE_MARKDOWN_IN_COMMENTS,
 
+      // Images
+      enableEmbedImageTagsForAllUsers: process.env.ENABLE_EMBED_IMAGE_TAGS_FOR_ALL_USERS,
+      enableEmbedImageTagsForFullLineImageLinks: process.env.ENABLE_EMBED_IMAGE_TAGS_FOR_FULL_LINE_IMAGE_LINKS,
+      enableEmbedImageTagsInPosts: process.env.ENABLE_EMBED_IMAGE_TAGS_IN_POSTS,
+      enableEmbedImageTagsInComments: process.env.ENABLE_EMBED_IMAGE_TAGS_IN_COMMENTS,
+
       // Iframe tags (warning: manage with caution)
       enableEmbedIframeTagsForSelectedUsers: process.env.ENABLE_EMBED_IFRAME_TAGS_FOR_SELECTED_USERS,
+      enableEmbedIframeTagsForInlineLinks: process.env.ENABLE_EMBED_IFRAME_TAGS_FOR_INLINE_LINKS,
+      enableEmbedIframeTagsForVideos: process.env.ENABLE_EMBED_IFRAME_TAGS_FOR_VIDEOS,
+      enableEmbedIframeTagsForImages: process.env.ENABLE_EMBED_IFRAME_TAGS_FOR_IMAGES,
+      enableEmbedIframeTagsForAudio: process.env.ENABLE_EMBED_IFRAME_TAGS_FOR_AUDIO,
       enableEmbedIframeTagsInPosts: process.env.ENABLE_EMBED_IFRAME_TAGS_IN_POSTS,
       enableEmbedIframeTagsInComments: process.env.ENABLE_EMBED_IFRAME_TAGS_IN_COMMENTS,
       signersAllowedToEmbedIframeTags: process.env.SIGNERS_ALLOWED_TO_EMBED_IFRAME_TAGS,
       iframeTagsAllowedDomains: process.env.IFRAME_TAGS_ALLOWED_DOMAINS,
+      iframeTagsAllowedDomainsAny: process.env.IFRAME_TAGS_ALLOWED_DOMAINS_ANY,
       iframeVideoWidth: process.env.IFRAME_VIDEO_WIDTH,
       iframeVideoHeight: process.env.IFRAME_VIDEO_HEIGHT,
       iframeAdditionalParams: process.env.IFRAME_ADDITIONAL_PARAMS,
