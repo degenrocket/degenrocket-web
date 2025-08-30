@@ -6,6 +6,10 @@ const {
   isArrayWithValues
 } = useUtils()
 
+const {
+  toBeHex
+} = useNostr()
+
 /**
  * Allowing external content to be embedded into a website with
  * iframe HTML tags is a potential attack vector, so the complex
@@ -77,9 +81,14 @@ export const useHtmlTags = () => {
   const config = useRuntimeConfig()
   const env = config?.public
   const enableEmbedIframeTagsForSelectedUsers: boolean = env?.enableEmbedIframeTagsForSelectedUsers === 'true' ? true : false
+  const enableEmbedIframeTagsForInlineLinks: boolean = env?.enableEmbedIframeTagsForInlineLinks === 'true' ? true : false
+  const enableEmbedIframeTagsForVideos: boolean = env?.enableEmbedIframeTagsForVideos === 'true' ? true : false
+  const enableEmbedIframeTagsForImages: boolean = env?.enableEmbedIframeTagsForImages === 'true' ? true : false
+  const enableEmbedIframeTagsForAudio: boolean = env?.enableEmbedIframeTagsForAudio === 'true' ? true : false
   const iframeHideOneLineUrl: boolean = env?.iframeHideOneLineUrl === 'true' ? true : false
   const signersAllowedToEmbedIframeTags: string = env?.signersAllowedToEmbedIframeTags
   const iframeTagsAllowedDomains: string = env?.iframeTagsAllowedDomains
+  const iframeTagsAllowedDomainsAny: boolean = env?.iframeTagsAllowedDomainsAny === 'true' ? true : false
   const iframeVideoWidth: string = env?.iframeVideoWidth
   const iframeVideoHeight: string = env?.iframeVideoHeight
   const iframeAdditionalParams: string = env?.iframeAdditionalParams
@@ -95,6 +104,12 @@ export const useHtmlTags = () => {
 
     if (typeof(signersAllowedToEmbedIframeTags) === 'string') {
       ArrayOfIframeSigners = signersAllowedToEmbedIframeTags.toLowerCase().split(',')
+      // Convert Nostr's npub to hex
+      ArrayOfIframeSigners = ArrayOfIframeSigners.map(
+        signer => signer.startsWith('npub')
+          ? toBeHex(signer)
+          : signer
+      )
     }
 
     if (typeof(signer) === 'string') {
@@ -108,6 +123,8 @@ export const useHtmlTags = () => {
   }
 
   const checkIfUrlIsAllowedIframeDomain = (url: string): boolean => {
+    if (iframeTagsAllowedDomainsAny) return true
+
     let ArrayOfAllowedDomains: string[] = ['']
     let isUrlAllowedDomain: boolean = false
 
@@ -128,6 +145,7 @@ export const useHtmlTags = () => {
     return isUrlAllowedDomain
   }
 
+  // TODO delete after full transition to V2
   // Parent function
   const getArrayOfArraysOfTextAndTags = (post: Post): string[][] => {
     if (typeof(post.text) !== 'string') {
@@ -201,7 +219,8 @@ export const useHtmlTags = () => {
     const urlRegex = /(https?:\/\/[^\s\])]+)(?![,!])/g;
 
     // Matches the string only if the whole string is a URL.
-    const urlRegexFullLine = /^(https?:\/\/[^\s\])]+)(?![,!])$/g;
+    // const urlRegexFullLine = /^(https?:\/\/[^\s\])]+)(?![,!])$/g;
+    const urlRegexFullLine = /^(https?:\/\/[^\s\])]+)(?![,!])$/;
     
     const linesOfText = text.split('\n')
 
@@ -210,59 +229,122 @@ export const useHtmlTags = () => {
     let arrayOfUrlChunks: string[] = ['']
 
     let chunkIndex = 0
+    let chunkIndexAtTheStartOfLine = 0
 
     // Loop through all lines
     linesOfText?.forEach((line): void => {
-      if (!line) return
+      chunkIndexAtTheStartOfLine = chunkIndex
+      if (!line && line !== '') return
+        
+      let ifAddedIframeForThisLine = false
+
+      if (
+        urlRegexFullLine.test(line) ||
+        enableEmbedIframeTagsForInlineLinks
+      ) {
+        const arrayOfUrlsInLine = line.match(urlRegex)
+
+        let ifLineHasAtLeastOneUrl: boolean = false
+
+        // Loop through all URLs in the line
+        arrayOfUrlsInLine?.forEach((url): void => {
+          if (!checkIfUrlIsAllowedIframeDomain(url)) {
+            return
+          }
+
+          ifLineHasAtLeastOneUrl = true
+
+          // const cleanUrl = url.replace(/\.$/, "")
+          let cleanUrl: string = url
+          if (
+            url.endsWith(".") ||
+            url.endsWith(",") ||
+            url.endsWith("!") ||
+            url.endsWith("?")
+          ) {
+            cleanUrl = url.slice(0, -1);
+          }
+
+          // const urlWithTags = addIframeTagsToUrl(cleanUrl)
+          let urlWithTags = ''
+          let ifToAddIframe = false
+
+          // Embed iframes for videos only
+          if (enableEmbedIframeTagsForVideos) {
+            const extentions = [".mp4", ".avi"]
+            if (extentions.some(ext => cleanUrl.endsWith(ext))) {
+              ifToAddIframe = true
+            }
+          }
+
+          // Embed iframes for images only
+          if (enableEmbedIframeTagsForImages) {
+            const extentions =
+              [".png", ".jpg", ".jpeg", ".webp", ".ico"]
+            if (extentions.some(ext => cleanUrl.endsWith(ext))) {
+              ifToAddIframe = true
+            }
+          }
+
+          // Embed iframes for audio only
+          if (enableEmbedIframeTagsForAudio) {
+            const extentions = [".mp3", ".wav"]
+            if (extentions.some(ext => cleanUrl.endsWith(ext))) {
+              ifToAddIframe = true
+            }
+          }
+
+          if (ifToAddIframe) {
+            urlWithTags= addIframeTagsToUrl(cleanUrl)
+            ifAddedIframeForThisLine = true
+          }
+
+          arrayOfUrlChunks[chunkIndex] = (arrayOfUrlChunks[chunkIndex] || '') + `${urlWithTags}`
+
+          // Only add a new line if iframe was added
+          if (ifAddedIframeForThisLine) {
+            // arrayOfUrlChunks[chunkIndex] = (arrayOfUrlChunks[chunkIndex] || '') + `<br>`
+            arrayOfUrlChunks[chunkIndex] = (arrayOfUrlChunks[chunkIndex] || '') + `\n`
+          }
+        })
+
+        // Most lines will have no URL,
+        // Some lines will have one URL,
+        // A few lines will have multiple URLs.
+        // Thus, move to another element if line has at least one URL,
+        // but only move after all URLs from this line were added to
+        // the array, because some lines have multiple eligible URLs.
+        if (ifLineHasAtLeastOneUrl && ifAddedIframeForThisLine) {
+          chunkIndex ++
+        }
+      }
 
       // Add the current line to array of text chunks
-      if (line) {
+      if (line || line === '') {
         // Some instances want to embed videos with iframe tags
         // without displaying the actual URL to users.
         // Check if the whole line consists of only one URL,
         // and hide it if the URL hiding is enabled in the .env file.
-        if (urlRegexFullLine.test(line) && iframeHideOneLineUrl) {
+        if (
+          urlRegexFullLine.test(line) &&
+          iframeHideOneLineUrl &&
+          ifAddedIframeForThisLine
+        ) {
+          // Only delete URL if it at least one iframe was added
+          // for this line, otherwise it will delete random URLs
+          // that were not used to embed media.
           // Check for undefined with ||
-          arrayOfTextChunks[chunkIndex] = (arrayOfTextChunks[chunkIndex] || '') + `\n`
+          // arrayOfTextChunks[chunkIndex] = (arrayOfTextChunks[chunkIndex] || '') + `\n`
+          arrayOfTextChunks[chunkIndexAtTheStartOfLine] =
+            (arrayOfTextChunks[chunkIndexAtTheStartOfLine] || '') + `\n`
         } else {
           // Check for undefined with ||
-          arrayOfTextChunks[chunkIndex] = (arrayOfTextChunks[chunkIndex] || '') + `${line}\n`
+          // arrayOfTextChunks[chunkIndex] = (arrayOfTextChunks[chunkIndex] || '') + `${line}\n`
+          arrayOfTextChunks[chunkIndexAtTheStartOfLine] =
+            (arrayOfTextChunks[chunkIndexAtTheStartOfLine] || '') + `${line}\n`
         }
       }
 
-      const arrayOfUrlsInLine = line.match(urlRegex)
-
-      let ifLineHasAtLeastOneUrl: boolean = false
-
-      // Loop through all URLs in the line
-      arrayOfUrlsInLine?.forEach((url): void => {
-        if (!checkIfUrlIsAllowedIframeDomain(url)) {
-          return
-        }
-
-        ifLineHasAtLeastOneUrl = true
-
-        // Remove dot (.) at the end of URL if exists
-        // const cleanUrl = url.replace(/\.$/, "")
-        let cleanUrl: string = url
-        if (url.endsWith(".")) {
-          cleanUrl = url.slice(0, -1);
-        }
-
-        const urlWithTags = addIframeTagsToUrl(cleanUrl)
-
-        arrayOfUrlChunks[chunkIndex] = (arrayOfUrlChunks[chunkIndex] || '') + `${urlWithTags}<br>`
-      })
-
-      // Most lines will have no URL,
-      // Some lines will have one URL,
-      // A few lines will have multiple URLs.
-      // Thus, move to another element if line has at least one URL,
-      // but only move after all URLs from this line were added to
-      // the array, because some lines have multiple eligible URLs.
-      if (ifLineHasAtLeastOneUrl) {
-        chunkIndex ++
-      }
     })
 
     return [arrayOfTextChunks, arrayOfUrlChunks]
@@ -284,8 +366,15 @@ export const useHtmlTags = () => {
     }
 
     // Match if URL is anywhere in the string:
-    const urlRegex = /(https?:\/\/[^\s\])]+)/g;
-    return urlRegex.test(text)
+    // regex method
+    // const urlRegex = /(https?:\/\/[^\s\])]+)/g;
+    // return urlRegex.test(text)
+
+    // non-regex method
+    const httpIndex = text.indexOf('http://');
+    const httpsIndex = text.indexOf('https://');
+
+    return httpIndex !== -1 || httpsIndex !== -1;
   }
 
   // Do all the environment setting checks to make
@@ -343,13 +432,13 @@ export const useHtmlTags = () => {
     // Return true if everything is good
     return true
   }
-
+  
   return {
     checkIfSignerAllowedIframe,
     checkIfUrlIsAllowedIframeDomain,
     getArrayOfArraysOfTextAndTags,
     getArrayOfArraysOfTextAndTagsV2,
     splitTextIntoChunks,
-    checkIfTextHasUrl,
+    checkIfTextHasUrl
   }
 }
