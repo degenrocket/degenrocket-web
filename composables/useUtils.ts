@@ -914,10 +914,40 @@ export const useUtils = () => {
     let text = original.replace(/&gt; /g, '> ')
 
     const env = useRuntimeConfig()?.public
+    const enableEmbedImageTagsForAllUsers: boolean =
+      env?.enableEmbedImageTagsForAllUsers === 'true' ? true : false
+    const enableEmbedImageTagsForFullLineImageLinks: boolean =
+      env?.enableEmbedImageTagsForFullLineImageLinks === 'true' ? true : false
+    const enableEmbedImageTagsInPosts: boolean =
+      env?.enableEmbedImageTagsInPosts === 'true' ? true : false
+    const enableEmbedImageTagsInComments: boolean =
+      env?.enableEmbedImageTagsInComments === 'true' ? true : false
+
     const enableMarkdownInPosts: boolean =
       env?.enableMarkdownInPosts === 'true'? true : false
     const enableMarkdownInComments: boolean =
       env?.enableMarkdownInComments === 'true'? true : false
+
+    if (
+      enableEmbedImageTagsForAllUsers &&
+      enableEmbedImageTagsForFullLineImageLinks
+    ) {
+      // Also checking whether markdown is enabled before
+      // adding img tags, because otherwise text is displayed
+      // without properly rendering HTML tags.
+      if (
+        enableEmbedImageTagsInPosts && type === "post" &&
+        enableMarkdownInPosts
+      ) {
+        text = wrapFullLineImageLinksWithImgTags(text)
+      }
+      if (
+        enableEmbedImageTagsInComments && type === "reply" &&
+        enableMarkdownInComments
+      ) {
+        text = wrapFullLineImageLinksWithImgTags(text)
+      }
+    }
 
     if (type === "post" && enableMarkdownInPosts) {
       text = marked(text, {breaks:true})
@@ -930,6 +960,46 @@ export const useUtils = () => {
     return text
   }
 
+
+const wrapFullLineImageLinksWithImgTags = (
+  text: string
+) => {
+  if (typeof(text) !== "string") return ''
+  const allowedProtocols = ['http', 'https']
+  const allowedExtensions = ['jpeg', 'jpg', 'png', 'webp', 'ico']
+
+  const lines = text.split('\n')
+
+  const processedLines = lines.map(line => {
+    // Trim the line to remove leading and trailing whitespace
+    // const trimmedLine = line.trim()
+
+    const startsWithAllowedProtocol = allowedProtocols
+      .some(protocol => line.startsWith(protocol))
+    const endsWithAllowedExtension = allowedExtensions
+      .some(format => line.endsWith(`.${format}`))
+    const containsWhitespace = Array.from(line).some(
+      char => char === ' '  ||
+              char === '\t' ||
+              char === '\n' ||
+              char === '\r'
+    )
+
+    if (
+      startsWithAllowedProtocol &&
+      endsWithAllowedExtension &&
+      !containsWhitespace
+    ) {
+      return `<img src="${line}" alt="Image">`
+    }
+    return line
+  });
+
+  // Join the processed lines back into a single string
+  return processedLines.join('\n')
+}
+
+  
   const extractTextForDisplay = (
     event: SpasmEventV2
   ) => {
