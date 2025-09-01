@@ -112,6 +112,18 @@ export default defineNuxtConfig({
       enableEmbedImageTagsInPosts: process.env.ENABLE_EMBED_IMAGE_TAGS_IN_POSTS,
       enableEmbedImageTagsInComments: process.env.ENABLE_EMBED_IMAGE_TAGS_IN_COMMENTS,
 
+      // Videos
+      enableEmbedVideoTagsForAllUsers: process.env.ENABLE_EMBED_VIDEO_TAGS_FOR_ALL_USERS,
+      enableEmbedVideoTagsForFullLineVideoLinks: process.env.ENABLE_EMBED_VIDEO_TAGS_FOR_FULL_LINE_VIDEO_LINKS,
+      enableEmbedVideoTagsInPosts: process.env.ENABLE_EMBED_VIDEO_TAGS_IN_POSTS,
+      enableEmbedVideoTagsInComments: process.env.ENABLE_EMBED_VIDEO_TAGS_IN_COMMENTS,
+
+      // Audios
+      enableEmbedAudioTagsForAllUsers: process.env.ENABLE_EMBED_AUDIO_TAGS_FOR_ALL_USERS,
+      enableEmbedAudioTagsForFullLineAudioLinks: process.env.ENABLE_EMBED_AUDIO_TAGS_FOR_FULL_LINE_AUDIO_LINKS,
+      enableEmbedAudioTagsInPosts: process.env.ENABLE_EMBED_AUDIO_TAGS_IN_POSTS,
+      enableEmbedAudioTagsInComments: process.env.ENABLE_EMBED_AUDIO_TAGS_IN_COMMENTS,
+
       // Iframe tags (warning: manage with caution)
       enableEmbedIframeTagsForSelectedUsers: process.env.ENABLE_EMBED_IFRAME_TAGS_FOR_SELECTED_USERS,
       enableEmbedIframeTagsForInlineLinks: process.env.ENABLE_EMBED_IFRAME_TAGS_FOR_INLINE_LINKS,
