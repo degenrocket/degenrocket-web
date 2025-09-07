@@ -134,7 +134,7 @@
       <InfoEventCommentsCardReactionsBar :comment="comment" class="mr-1"/>
 
       <span v-if="showCommentsCount">
-        <nuxt-link :to="`/news/?p=${String(comment.signatures?.[0].value)}`">
+        <nuxt-link :to="`/news/${extractIdForDisplay(comment)}`">
           <button v-if="spasm.getTotalOfReply(comment)" class="inline-block mr-2 text-colorBlue-light dark:text-colorBlue-dark">
             <span
               v-if="spasm.getTotalOfReply(comment)"
