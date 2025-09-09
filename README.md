@@ -1,18 +1,18 @@
-# DegenRocket web client
+# Spasm Forum web client
 
-DegenRocket-web is a frontend for a [Spasm-powered](https://github.com/degenrocket/spasm.js) forum.
+spasm-forum-web is a frontend for a [Spasm](https://github.com/spasm-network/spasm.js) forum.
 
-DegenRocket-server repository can be found [here](https://github.com/degenrocket/degenrocket-server).
+spasm-forum-server repository can be found [here](https://github.com/spasm-network/spasm-forum-server).
 
 ## Server setup
 
-If you don't have any experience at setting up a server, then there is a beginner-friendly guide with scripts for an automated [initial server setup](https://github.com/degenrocket/degenrocket-scripts).
+If you don't have any experience at setting up a server, then there is a beginner-friendly guide with scripts for an automated [initial server setup](https://github.com/spasm-network/spasm-forum-scripts).
 
 ---
 
 ## Install npm
 
-*Note: nvm and npm should already be installed if you've used scripts for an automated [initial server setup](https://github.com/degenrocket/degenrocket-scripts).*
+*Note: nvm and npm should already be installed if you've used scripts for an automated [initial server setup](https://github.com/spasm-network/spasm-forum-scripts).*
 
 ```
 # install nvm to manage node versions
@@ -40,10 +40,10 @@ npm install
 
 Download the app from the Github into the `frontend/` folder.
 
-*Note: the app should already be downloaded if you've used scripts for an automated [initial server setup](https://github.com/degenrocket/degenrocket-scripts).*
+*Note: the app should already be downloaded if you've used scripts for an automated [initial server setup](https://github.com/spasm-network/spasm-forum-scripts).*
 
 ```
-git clone https://github.com/degenrocket/degenrocket-web.git frontend/
+git clone https://github.com/spasm-network/spasm-forum-web.git frontend/
 cd frontend/
 ```
 
@@ -53,7 +53,7 @@ cd frontend/
 
 Create default `.env` file, see example `.env.example`.
 
-*Note: the `.env` file should already be created if you've used scripts for an automated [initial server setup](https://github.com/degenrocket/degenrocket-scripts).*
+*Note: the `.env` file should already be created if you've used scripts for an automated [initial server setup](https://github.com/spasm-network/spasm-forum-scripts).*
 
 ```
 cp .env.example .env
@@ -111,7 +111,7 @@ connecting an admin public key (address).
 
 Make sure that an admin panel and app config changes are enabled
 and admin addresses are listed in `.env` files in **both** frontend
-(degenrocket-web) and backend (degenrocket-server).
+(spasm-forum-web) and backend (spasm-forum-server).
 
 ```
 ENABLE_APP_CONFIG_CHANGES=true
